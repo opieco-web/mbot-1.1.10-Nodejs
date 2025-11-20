@@ -1,7 +1,9 @@
 {
-  "channelId": null,
+  "channelId": "1305225655394242561",
   "mode": "auto",
-  "prefixes": {},
+  "prefixes": {
+    "1440196646490214422": "."
+  },
   "autoresponses": {
     "1296783492989980682": [
       {

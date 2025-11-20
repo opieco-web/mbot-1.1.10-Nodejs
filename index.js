@@ -1,4 +1,4 @@
-import { Client, GatewayIntentBits, Partials, Collection, ButtonStyle, ActionRowBuilder, ButtonBuilder, Events, PermissionsBitField, REST, Routes, SlashCommandBuilder, EmbedBuilder } from 'discord.js';
+import { Client, GatewayIntentBits, Partials, Collection, ButtonStyle, ActionRowBuilder, ButtonBuilder, Events, PermissionsBitField, REST, Routes, SlashCommandBuilder, EmbedBuilder, MessageFlags } from 'discord.js';
 import fs from 'fs';
 
 const TOKEN = process.env.DISCORD_BOT_TOKEN;
@@ -132,32 +132,32 @@ client.on(Events.InteractionCreate, async interaction => {
     // ------------------------
     if (commandName === 'setchannel') {
         if (!member.permissions.has(PermissionsBitField.Flags.ManageNicknames))
-            return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> You cannot use this command.', ephemeral: true });
+            return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> You cannot use this command.', flags: MessageFlags.Ephemeral });
 
         const channel = interaction.options.getChannel('channel');
         data.channelId = channel.id;
         fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
-        return interaction.reply({ content: `<:1_yes_correct:1439893200981721140> Nickname request channel set to ${channel}`, ephemeral: true });
+        return interaction.reply({ content: `<:1_yes_correct:1439893200981721140> Nickname request channel set to ${channel}`, flags: MessageFlags.Ephemeral });
     }
 
     if (commandName === 'mode') {
         if (!member.permissions.has(PermissionsBitField.Flags.ManageNicknames))
-            return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> You cannot use this command.', ephemeral: true });
+            return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> You cannot use this command.', flags: MessageFlags.Ephemeral });
 
         const type = interaction.options.getString('type').toLowerCase();
-        if (!['auto','approval'].includes(type)) return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> Mode must be auto or approval', ephemeral: true });
+        if (!['auto','approval'].includes(type)) return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> Mode must be auto or approval', flags: MessageFlags.Ephemeral });
 
         data.mode = type;
         fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
-        return interaction.reply({ content: `<:1_yes_correct:1439893200981721140> Mode set to **${type}**`, ephemeral: true });
+        return interaction.reply({ content: `<:1_yes_correct:1439893200981721140> Mode set to **${type}**`, flags: MessageFlags.Ephemeral });
     }
 
     if (commandName === 'reset') {
         try {
             await member.setNickname(null);
-            return interaction.reply({ content: '<:1_yes_correct:1439893200981721140> Your nickname has been reset!', ephemeral: true });
+            return interaction.reply({ content: '<:1_yes_correct:1439893200981721140> Your nickname has been reset!', flags: MessageFlags.Ephemeral });
         } catch {
-            return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> Could not reset your nickname.', ephemeral: true });
+            return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> Could not reset your nickname.', flags: MessageFlags.Ephemeral });
         }
     }
 
@@ -168,18 +168,18 @@ client.on(Events.InteractionCreate, async interaction => {
         const newPrefix = interaction.options.getString('prefix');
         data.prefixes[guildId] = newPrefix;
         fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
-        return interaction.reply({ content: `<:1_yes_correct:1439893200981721140> Prefix updated to: ${newPrefix}`, ephemeral: true });
+        return interaction.reply({ content: `<:1_yes_correct:1439893200981721140> Prefix updated to: ${newPrefix}`, flags: MessageFlags.Ephemeral });
     }
 
     if (commandName === 'prefix') {
         const prefix = getPrefix(guildId);
-        return interaction.reply({ content: `<:mg_question:1439893408041930894> Current prefix is: ${prefix}`, ephemeral: true });
+        return interaction.reply({ content: `<:mg_question:1439893408041930894> Current prefix is: ${prefix}`, flags: MessageFlags.Ephemeral });
     }
 
     if (commandName === 'afk') {
         const note = interaction.options.getString('note') || 'I am currently AFK.';
         afkUsers[user.id] = note;
-        const replyMsg = await interaction.reply({ content: `<:mg_alert:1439893442065862698> AFK set: ${note}`, fetchReply: true, ephemeral: true });
+        const replyMsg = await interaction.reply({ content: `<:mg_alert:1439893442065862698> AFK set: ${note}`, fetchReply: true, flags: MessageFlags.Ephemeral });
 
         // Delete bot reply after 60s
         setTimeout(() => replyMsg.delete().catch(() => {}), 60000);
@@ -191,7 +191,7 @@ client.on(Events.InteractionCreate, async interaction => {
             .setTitle(`${target.tag}'s Avatar`)
             .setImage(target.displayAvatarURL({ dynamic: true, size: 1024 }))
             .setColor(0x37373D);
-        return interaction.reply({ embeds: [avatarEmbed], ephemeral: true });
+        return interaction.reply({ embeds: [avatarEmbed], flags: MessageFlags.Ephemeral });
     }
 
     // ------------------------
@@ -256,36 +256,36 @@ client.on(Events.InteractionCreate, async interaction => {
             const type = interaction.options.getString('type').toLowerCase();
             const response = interaction.options.getString('response');
 
-            if (!['text','react'].includes(type)) return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> Type must be "text" or "react"', ephemeral: true });
+            if (!['text','react'].includes(type)) return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> Type must be "text" or "react"', flags: MessageFlags.Ephemeral });
 
             data.autoresponses[guildId] = data.autoresponses[guildId] || [];
             data.autoresponses[guildId].push({ trigger, type, response });
             fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
 
-            return interaction.reply({ content: `<:1_yes_correct:1439893200981721140> Auto-response added for "${trigger}"`, ephemeral: true });
+            return interaction.reply({ content: `<:1_yes_correct:1439893200981721140> Auto-response added for "${trigger}"`, flags: MessageFlags.Ephemeral });
         }
 
         if (subcommand === 'remove') {
             const trigger = interaction.options.getString('trigger');
 
             if (!data.autoresponses[guildId] || data.autoresponses[guildId].length === 0) {
-                return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> No auto-responses configured for this server.', ephemeral: true });
+                return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> No auto-responses configured for this server.', flags: MessageFlags.Ephemeral });
             }
 
             const initialLength = data.autoresponses[guildId].length;
             data.autoresponses[guildId] = data.autoresponses[guildId].filter(ar => ar.trigger !== trigger);
 
             if (data.autoresponses[guildId].length === initialLength) {
-                return interaction.reply({ content: `<:2_no_wrong:1439893245130838047> No auto-response found for trigger "${trigger}"`, ephemeral: true });
+                return interaction.reply({ content: `<:2_no_wrong:1439893245130838047> No auto-response found for trigger "${trigger}"`, flags: MessageFlags.Ephemeral });
             }
 
             fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
-            return interaction.reply({ content: `<:1_yes_correct:1439893200981721140> Auto-response removed for "${trigger}"`, ephemeral: true });
+            return interaction.reply({ content: `<:1_yes_correct:1439893200981721140> Auto-response removed for "${trigger}"`, flags: MessageFlags.Ephemeral });
         }
 
         if (subcommand === 'list') {
             if (!data.autoresponses[guildId] || data.autoresponses[guildId].length === 0) {
-                return interaction.reply({ content: '<:mg_question:1439893408041930894> No auto-responses configured for this server.', ephemeral: true });
+                return interaction.reply({ content: '<:mg_question:1439893408041930894> No auto-responses configured for this server.', flags: MessageFlags.Ephemeral });
             }
 
             let list = '**Auto-Responses for this server:**\n\n';
@@ -293,7 +293,7 @@ client.on(Events.InteractionCreate, async interaction => {
                 list += `${index + 1}. Trigger: \`${ar.trigger}\` | Type: \`${ar.type}\` | Response: \`${ar.response}\`\n`;
             });
 
-            return interaction.reply({ content: list, ephemeral: true });
+            return interaction.reply({ content: list, flags: MessageFlags.Ephemeral });
         }
     }
 });
@@ -456,7 +456,7 @@ client.on(Events.MessageCreate, async msg => {
 
         collector.on('collect', async i => {
             if (!i.member.permissions.has(PermissionsBitField.Flags.ManageNicknames)) {
-                return i.reply({ content: '<:2_no_wrong:1439893245130838047> You cannot approve/reject.', ephemeral: true });
+                return i.reply({ content: '<:2_no_wrong:1439893245130838047> You cannot approve/reject.', flags: MessageFlags.Ephemeral });
             }
 
             if (i.customId === `approve_${msg.author.id}`) {
