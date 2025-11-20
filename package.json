@@ -1,0 +1,13 @@
+{
+  "name": "m•bot",
+  "version": "3.0.0",
+  "description": "Nickname bot with server-specific prefix, AFK system, avatar view, fun commands, and auto-response moderation features",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "discord.js": "^14.13.0"
+  }
+}
