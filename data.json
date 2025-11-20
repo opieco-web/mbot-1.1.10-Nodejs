@@ -15,6 +15,11 @@
         "trigger": "<@1108782022543032400>",
         "type": "react",
         "response": "<a:mg_heart_flowers:1318077522897928223>"
+      },
+      {
+        "trigger": "<@1272065508367138902>",
+        "type": "react",
+        "response": "<:mg_h_hug:1439960872473854065>"
       }
     ]
   }

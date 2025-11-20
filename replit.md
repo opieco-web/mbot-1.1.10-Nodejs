@@ -39,7 +39,7 @@ Preferred communication style: Simple, everyday language.
 - **Prefix Commands**: Server-specific prefix (default `!`)
   - `!afk` - Set AFK status (message deleted after 5s, reply after 60s)
   - `!av` - Show user avatar
-  - `!tb` - Truth or Dare (same enhanced pool as slash command)
+  - `!td` - Truth or Dare (same enhanced pool as slash command)
   - `!cf` - Coin flip (public reply)
 
 ## Permission Model

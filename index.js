@@ -1,4 +1,4 @@
-import { Client, GatewayIntentBits, Partials, Collection, ButtonStyle, ActionRowBuilder, ButtonBuilder, Events, PermissionsBitField, REST, Routes, SlashCommandBuilder, EmbedBuilder, MessageFlags } from 'discord.js';
+import { Client, GatewayIntentBits, Partials, Collection, ButtonStyle, ActionRowBuilder, ButtonBuilder, Events, PermissionsBitField, REST, Routes, SlashCommandBuilder, EmbedBuilder, MessageFlags, ActivityType } from 'discord.js';
 import fs from 'fs';
 
 const TOKEN = process.env.DISCORD_BOT_TOKEN;
@@ -91,17 +91,122 @@ const commands = [
     // Fun: Coin Flip
     new SlashCommandBuilder()
         .setName('coinflip')
-        .setDescription('Flip a coin - Heads or Tails')
+        .setDescription('Flip a coin - Heads or Tails'),
+
+    // Status Management
+    new SlashCommandBuilder()
+        .setName('status')
+        .setDescription('Manage bot status and activity (moderator only)')
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName('set')
+                .setDescription('Set bot activity')
+                .addStringOption(option =>
+                    option.setName('type')
+                        .setDescription('Activity type')
+                        .setRequired(true)
+                        .addChoices(
+                            { name: 'Playing', value: 'Playing' },
+                            { name: 'Listening', value: 'Listening' },
+                            { name: 'Watching', value: 'Watching' },
+                            { name: 'Competing', value: 'Competing' },
+                            { name: 'Streaming', value: 'Streaming' }
+                        ))
+                .addStringOption(option =>
+                    option.setName('text')
+                        .setDescription('Activity text')
+                        .setRequired(true))
+                .addStringOption(option =>
+                    option.setName('emoji')
+                        .setDescription('Emoji (optional)')
+                        .setRequired(false))
+                .addStringOption(option =>
+                    option.setName('stream_url')
+                        .setDescription('Streaming URL (required for Streaming type)')
+                        .setRequired(false)))
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName('presence')
+                .setDescription('Set bot presence status')
+                .addStringOption(option =>
+                    option.setName('status')
+                        .setDescription('Presence status')
+                        .setRequired(true)
+                        .addChoices(
+                            { name: 'Online', value: 'online' },
+                            { name: 'Idle', value: 'idle' },
+                            { name: 'Do Not Disturb', value: 'dnd' },
+                            { name: 'Invisible', value: 'invisible' }
+                        )))
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName('emoji')
+                .setDescription('Update or remove emoji from current activity')
+                .addStringOption(option =>
+                    option.setName('emoji')
+                        .setDescription('Emoji (leave empty to remove)')
+                        .setRequired(false)))
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName('remove')
+                .setDescription('Clear all status and activity'))
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName('info')
+                .setDescription('Show current bot status information'))
+        .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageGuild)
 ].map(cmd => cmd.toJSON());
 
 const rest = new REST({ version: '10' }).setToken(TOKEN);
 await rest.put(Routes.applicationCommands(CLIENT_ID), { body: commands });
 
 // ------------------------
+// HELPER: Apply saved status
+// ------------------------
+function applyBotStatus() {
+    if (!data.status.type && !data.status.presence) {
+        client.user.setPresence({ status: 'online' });
+        return;
+    }
+
+    const presenceData = {};
+    
+    if (data.status.type && data.status.text) {
+        const activityTypeMap = {
+            'Playing': ActivityType.Playing,
+            'Listening': ActivityType.Listening,
+            'Watching': ActivityType.Watching,
+            'Competing': ActivityType.Competing,
+            'Streaming': ActivityType.Streaming
+        };
+
+        const activity = {
+            name: data.status.text,
+            type: activityTypeMap[data.status.type]
+        };
+
+        if (data.status.emoji) {
+            activity.name = `${data.status.emoji} ${data.status.text}`;
+        }
+
+        if (data.status.type === 'Streaming' && data.status.streamUrl) {
+            activity.url = data.status.streamUrl;
+        }
+
+        presenceData.activities = [activity];
+    }
+
+    presenceData.status = data.status.presence || 'online';
+    
+    client.user.setPresence(presenceData);
+}
+
+// ------------------------
 // BOT READY
 // ------------------------
 client.once(Events.ClientReady, () => {
     console.log(`${client.user.tag} is online!`);
+    applyBotStatus();
 });
 
 // ------------------------
@@ -111,6 +216,7 @@ const defaultPrefix = '!';
 let afkUsers = {}; // { userId: note }
 data.prefixes = data.prefixes || {}; // { guildId: prefix }
 data.autoresponses = data.autoresponses || {}; // { guildId: [{trigger, type, response}] }
+data.status = data.status || {}; // { type, text, emoji, streamUrl, presence, lastUpdatedBy, lastUpdatedAt }
 
 // ------------------------
 // HELPER: get prefix per guild
@@ -242,7 +348,7 @@ client.on(Events.InteractionCreate, async interaction => {
     // ------------------------
     if (commandName === 'coinflip') {
         const result = Math.random() < 0.5 ? 'Heads' : 'Tails';
-        return interaction.reply({ content: `🪙 The coin landed on: **${result}**!` });
+        return interaction.reply({ content: `<:Tails:1441153955412312134> The coin landed on: **${result}**!` });
     }
 
     // ------------------------
@@ -294,6 +400,118 @@ client.on(Events.InteractionCreate, async interaction => {
             });
 
             return interaction.reply({ content: list, flags: MessageFlags.Ephemeral });
+        }
+    }
+
+    // ------------------------
+    // STATUS MANAGEMENT
+    // ------------------------
+    if (commandName === 'status') {
+        if (!member.permissions.has(PermissionsBitField.Flags.ManageGuild) && !member.permissions.has(PermissionsBitField.Flags.Administrator)) {
+            return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> You do not have permission to use this command.', flags: MessageFlags.Ephemeral });
+        }
+
+        const subcommand = interaction.options.getSubcommand();
+
+        if (subcommand === 'set') {
+            const type = interaction.options.getString('type');
+            const text = interaction.options.getString('text');
+            const emoji = interaction.options.getString('emoji') || null;
+            const streamUrl = interaction.options.getString('stream_url') || null;
+
+            if (type === 'Streaming') {
+                if (!streamUrl) {
+                    return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> Streaming URL is required for Streaming type.', flags: MessageFlags.Ephemeral });
+                }
+                
+                const validStreamUrl = streamUrl.match(/^https?:\/\/(www\.)?(twitch\.tv|youtube\.com|youtu\.be)\/.+$/i);
+                if (!validStreamUrl) {
+                    return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> Invalid streaming URL. Please provide a valid Twitch or YouTube URL.', flags: MessageFlags.Ephemeral });
+                }
+            }
+
+            data.status.type = type;
+            data.status.text = text;
+            data.status.emoji = emoji;
+            data.status.streamUrl = streamUrl;
+            data.status.lastUpdatedBy = user.id;
+            data.status.lastUpdatedAt = new Date().toISOString();
+            fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
+
+            applyBotStatus();
+
+            return interaction.reply({ content: `<:1_yes_correct:1439893200981721140> Bot activity updated to: **${type}** ${emoji || ''} ${text}`, flags: MessageFlags.Ephemeral });
+        }
+
+        if (subcommand === 'presence') {
+            const status = interaction.options.getString('status');
+
+            data.status.presence = status;
+            data.status.lastUpdatedBy = user.id;
+            data.status.lastUpdatedAt = new Date().toISOString();
+            fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
+
+            applyBotStatus();
+
+            const statusNames = { online: 'Online', idle: 'Idle', dnd: 'Do Not Disturb', invisible: 'Invisible' };
+            return interaction.reply({ content: `<:1_yes_correct:1439893200981721140> Bot presence updated to: **${statusNames[status]}**`, flags: MessageFlags.Ephemeral });
+        }
+
+        if (subcommand === 'emoji') {
+            const emoji = interaction.options.getString('emoji') || null;
+
+            if (!data.status.type || !data.status.text) {
+                return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> No activity is currently set. Use `/status set` first.', flags: MessageFlags.Ephemeral });
+            }
+
+            data.status.emoji = emoji;
+            data.status.lastUpdatedBy = user.id;
+            data.status.lastUpdatedAt = new Date().toISOString();
+            fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
+
+            applyBotStatus();
+
+            if (emoji) {
+                return interaction.reply({ content: `<:1_yes_correct:1439893200981721140> Activity emoji updated to: ${emoji}`, flags: MessageFlags.Ephemeral });
+            } else {
+                return interaction.reply({ content: `<:1_yes_correct:1439893200981721140> Activity emoji removed.`, flags: MessageFlags.Ephemeral });
+            }
+        }
+
+        if (subcommand === 'remove') {
+            data.status = {};
+            fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
+
+            client.user.setPresence({ status: 'online', activities: [] });
+
+            return interaction.reply({ content: '<:1_yes_correct:1439893200981721140> All status and activity cleared. Bot reset to default (online, no activity).', flags: MessageFlags.Ephemeral });
+        }
+
+        if (subcommand === 'info') {
+            const statusEmbed = new EmbedBuilder()
+                .setTitle('Current Bot Status Information')
+                .setColor(0x37373D)
+                .setTimestamp();
+
+            if (!data.status.type && !data.status.presence) {
+                statusEmbed.setDescription('No custom status or activity configured. Bot is using default settings (online, no activity).');
+            } else {
+                if (data.status.type) statusEmbed.addFields({ name: 'Activity Type', value: data.status.type, inline: true });
+                if (data.status.text) statusEmbed.addFields({ name: 'Activity Text', value: data.status.text, inline: true });
+                if (data.status.emoji) statusEmbed.addFields({ name: 'Emoji', value: data.status.emoji, inline: true });
+                if (data.status.type === 'Streaming' && data.status.streamUrl) {
+                    statusEmbed.addFields({ name: 'Stream URL', value: data.status.streamUrl, inline: false });
+                }
+                statusEmbed.addFields({ name: 'Presence', value: data.status.presence || 'online', inline: true });
+                if (data.status.lastUpdatedBy) {
+                    statusEmbed.addFields({ name: 'Last Updated By', value: `<@${data.status.lastUpdatedBy}>`, inline: true });
+                }
+                if (data.status.lastUpdatedAt) {
+                    statusEmbed.addFields({ name: 'Last Updated At', value: new Date(data.status.lastUpdatedAt).toLocaleString(), inline: false });
+                }
+            }
+
+            return interaction.reply({ embeds: [statusEmbed], flags: MessageFlags.Ephemeral });
         }
     }
 });
@@ -351,7 +569,7 @@ client.on(Events.MessageCreate, async msg => {
         }
 
         // Fun command: Truth or Dare
-        if (cmd === 'tb') {
+        if (cmd === 'td') {
             const truths = [
                 "What's your biggest fear?",
                 "Have you ever lied to your best friend?",
@@ -394,7 +612,7 @@ client.on(Events.MessageCreate, async msg => {
         // Fun command: Coin Flip
         if (cmd === 'cf') {
             const result = Math.random() < 0.5 ? 'Heads' : 'Tails';
-            return msg.reply({ content: `🪙 The coin landed on: **${result}**!` });
+            return msg.reply({ content: `<:Tails:1441153955412312134> The coin landed on: **${result}**!` });
         }
     }
 
