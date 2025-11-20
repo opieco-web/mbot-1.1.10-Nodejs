@@ -2,5 +2,18 @@
   "channelId": null,
   "mode": "auto",
   "prefixes": {},
-  "autoresponses": {}
+  "autoresponses": {
+    "1296783492989980682": [
+      {
+        "trigger": "<@1065350468928290828>",
+        "type": "react",
+        "response": "<a:mg_pixel_walking_fries:1439874950755258520>"
+      },
+      {
+        "trigger": "<@1108782022543032400>",
+        "type": "react",
+        "response": "<a:mg_heart_flowers:1318077522897928223>"
+      }
+    ]
+  }
 }

@@ -69,11 +69,29 @@ const commands = [
     // Moderation: Auto response
     new SlashCommandBuilder()
         .setName('autoresponse')
-        .setDescription('Add an auto response (mod only)')
-        .addStringOption(option => option.setName('trigger').setDescription('Trigger word').setRequired(true))
-        .addStringOption(option => option.setName('type').setDescription('Response type: text or react').setRequired(true))
-        .addStringOption(option => option.setName('response').setDescription('Text or emoji').setRequired(true))
-        .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageMessages)
+        .setDescription('Manage auto responses (mod only)')
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName('add')
+                .setDescription('Add an auto response')
+                .addStringOption(option => option.setName('trigger').setDescription('Trigger word').setRequired(true))
+                .addStringOption(option => option.setName('type').setDescription('Response type: text or react').setRequired(true))
+                .addStringOption(option => option.setName('response').setDescription('Text or emoji').setRequired(true)))
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName('remove')
+                .setDescription('Remove an auto response')
+                .addStringOption(option => option.setName('trigger').setDescription('Trigger word to remove').setRequired(true)))
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName('list')
+                .setDescription('List all auto responses'))
+        .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageMessages),
+
+    // Fun: Coin Flip
+    new SlashCommandBuilder()
+        .setName('coinflip')
+        .setDescription('Flip a coin - Heads or Tails')
 ].map(cmd => cmd.toJSON());
 
 const rest = new REST({ version: '10' }).setToken(TOKEN);
@@ -181,10 +199,38 @@ client.on(Events.InteractionCreate, async interaction => {
     // ------------------------
     if (commandName === 'truthordare') {
         const truths = [
-            "What's your biggest fear?", "Have you ever lied to your best friend?", "What's your secret hobby?"
+            "What's your biggest fear?",
+            "Have you ever lied to your best friend?",
+            "What's your secret hobby?",
+            "What's the most embarrassing thing you've done?",
+            "Who was your first crush?",
+            "What's a secret you've never told anyone?",
+            "Have you ever cheated on a test?",
+            "What's your biggest regret?",
+            "What's the worst gift you've ever received?",
+            "Have you ever ghosted someone?",
+            "What's something you're glad your parents don't know about?",
+            "What's your most unpopular opinion?",
+            "Have you ever pretended to be sick to skip school or work?",
+            "What's the longest you've gone without showering?",
+            "What's a weird habit you have?"
         ];
         const dares = [
-            "Do 10 push-ups.", "Sing a song loudly.", "Post a funny selfie."
+            "Do 10 push-ups.",
+            "Sing a song loudly.",
+            "Post a funny selfie.",
+            "Send a voice message singing the alphabet.",
+            "Change your nickname to something embarrassing for 1 hour.",
+            "React to the last 5 messages with random emojis.",
+            "Share the last photo in your camera roll.",
+            "Do your best impression of a celebrity.",
+            "Type your next message with your eyes closed.",
+            "Compliment everyone online right now.",
+            "Send a message in all caps for the next 5 minutes.",
+            "Share an embarrassing story from your childhood.",
+            "Let someone else write your status for 24 hours.",
+            "Do 20 jumping jacks and post a video.",
+            "Text a random contact 'I miss you' without context."
         ];
         const pick = Math.random() < 0.5 ? 'Truth' : 'Dare';
         const question = pick === 'Truth' ? truths[Math.floor(Math.random()*truths.length)] : dares[Math.floor(Math.random()*dares.length)];
@@ -192,20 +238,63 @@ client.on(Events.InteractionCreate, async interaction => {
     }
 
     // ------------------------
+    // FUN COMMAND: Coin Flip
+    // ------------------------
+    if (commandName === 'coinflip') {
+        const result = Math.random() < 0.5 ? 'Heads' : 'Tails';
+        return interaction.reply({ content: `🪙 The coin landed on: **${result}**!` });
+    }
+
+    // ------------------------
     // MODERATION: Auto-response
     // ------------------------
     if (commandName === 'autoresponse') {
-        const trigger = interaction.options.getString('trigger');
-        const type = interaction.options.getString('type').toLowerCase();
-        const response = interaction.options.getString('response');
+        const subcommand = interaction.options.getSubcommand();
 
-        if (!['text','react'].includes(type)) return interaction.reply({ content: 'Type must be "text" or "react"', ephemeral: true });
+        if (subcommand === 'add') {
+            const trigger = interaction.options.getString('trigger');
+            const type = interaction.options.getString('type').toLowerCase();
+            const response = interaction.options.getString('response');
 
-        data.autoresponses[guildId] = data.autoresponses[guildId] || [];
-        data.autoresponses[guildId].push({ trigger, type, response });
-        fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
+            if (!['text','react'].includes(type)) return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> Type must be "text" or "react"', ephemeral: true });
 
-        return interaction.reply({ content: `<:1_yes_correct:1439893200981721140> Auto-response added for "${trigger}"`, ephemeral: true });
+            data.autoresponses[guildId] = data.autoresponses[guildId] || [];
+            data.autoresponses[guildId].push({ trigger, type, response });
+            fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
+
+            return interaction.reply({ content: `<:1_yes_correct:1439893200981721140> Auto-response added for "${trigger}"`, ephemeral: true });
+        }
+
+        if (subcommand === 'remove') {
+            const trigger = interaction.options.getString('trigger');
+
+            if (!data.autoresponses[guildId] || data.autoresponses[guildId].length === 0) {
+                return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> No auto-responses configured for this server.', ephemeral: true });
+            }
+
+            const initialLength = data.autoresponses[guildId].length;
+            data.autoresponses[guildId] = data.autoresponses[guildId].filter(ar => ar.trigger !== trigger);
+
+            if (data.autoresponses[guildId].length === initialLength) {
+                return interaction.reply({ content: `<:2_no_wrong:1439893245130838047> No auto-response found for trigger "${trigger}"`, ephemeral: true });
+            }
+
+            fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
+            return interaction.reply({ content: `<:1_yes_correct:1439893200981721140> Auto-response removed for "${trigger}"`, ephemeral: true });
+        }
+
+        if (subcommand === 'list') {
+            if (!data.autoresponses[guildId] || data.autoresponses[guildId].length === 0) {
+                return interaction.reply({ content: '<:mg_question:1439893408041930894> No auto-responses configured for this server.', ephemeral: true });
+            }
+
+            let list = '**Auto-Responses for this server:**\n\n';
+            data.autoresponses[guildId].forEach((ar, index) => {
+                list += `${index + 1}. Trigger: \`${ar.trigger}\` | Type: \`${ar.type}\` | Response: \`${ar.response}\`\n`;
+            });
+
+            return interaction.reply({ content: list, ephemeral: true });
+        }
     }
 });
 
@@ -264,14 +353,48 @@ client.on(Events.MessageCreate, async msg => {
         // Fun command: Truth or Dare
         if (cmd === 'tb') {
             const truths = [
-                "What's your biggest fear?", "Have you ever lied to your best friend?", "What's your secret hobby?"
+                "What's your biggest fear?",
+                "Have you ever lied to your best friend?",
+                "What's your secret hobby?",
+                "What's the most embarrassing thing you've done?",
+                "Who was your first crush?",
+                "What's a secret you've never told anyone?",
+                "Have you ever cheated on a test?",
+                "What's your biggest regret?",
+                "What's the worst gift you've ever received?",
+                "Have you ever ghosted someone?",
+                "What's something you're glad your parents don't know about?",
+                "What's your most unpopular opinion?",
+                "Have you ever pretended to be sick to skip school or work?",
+                "What's the longest you've gone without showering?",
+                "What's a weird habit you have?"
             ];
             const dares = [
-                "Do 10 push-ups.", "Sing a song loudly.", "Post a funny selfie."
+                "Do 10 push-ups.",
+                "Sing a song loudly.",
+                "Post a funny selfie.",
+                "Send a voice message singing the alphabet.",
+                "Change your nickname to something embarrassing for 1 hour.",
+                "React to the last 5 messages with random emojis.",
+                "Share the last photo in your camera roll.",
+                "Do your best impression of a celebrity.",
+                "Type your next message with your eyes closed.",
+                "Compliment everyone online right now.",
+                "Send a message in all caps for the next 5 minutes.",
+                "Share an embarrassing story from your childhood.",
+                "Let someone else write your status for 24 hours.",
+                "Do 20 jumping jacks and post a video.",
+                "Text a random contact 'I miss you' without context."
             ];
             const pick = Math.random() < 0.5 ? 'Truth' : 'Dare';
             const question = pick === 'Truth' ? truths[Math.floor(Math.random()*truths.length)] : dares[Math.floor(Math.random()*dares.length)];
             return msg.reply({ content: `**${pick}:** ${question}` });
+        }
+
+        // Fun command: Coin Flip
+        if (cmd === 'cf') {
+            const result = Math.random() < 0.5 ? 'Heads' : 'Tails';
+            return msg.reply({ content: `🪙 The coin landed on: **${result}**!` });
         }
     }
 
