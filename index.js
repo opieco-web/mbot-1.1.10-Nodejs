@@ -274,7 +274,7 @@ data.status = data.status || {}; // { type, text, emoji, streamUrl, presence, la
 data.welcome = data.welcome || {}; // { guildId: { channelId, delay, enabled } }
 data.afk = data.afk || {}; // { userId: { reason: string, timestamp: number } }
 
-// HELPER: Calculate AFK duration with full format (0h 0m 0s)
+// HELPER: Calculate AFK duration with smart format (shows only relevant units)
 function calculateDuration(time) {
     const now = Date.now();
     const diffMs = now - time;
@@ -283,7 +283,16 @@ function calculateDuration(time) {
     const minutes = Math.floor((totalSeconds % 3600) / 60);
     const seconds = totalSeconds % 60;
     
-    return `**${hours}h ${minutes}m ${seconds}s**`;
+    let duration = '';
+    if (hours > 0) {
+        duration = hours + 'h ' + minutes + 'm ' + seconds + 's';
+    } else if (minutes > 0) {
+        duration = minutes + 'm ' + seconds + 's';
+    } else {
+        duration = seconds + 's';
+    }
+    
+    return '**' + duration + '**';
 }
 
 // HELPER: Format bot uptime
@@ -809,15 +818,15 @@ client.on(Events.MessageCreate, async msg => {
     msg.mentions.users.forEach(async user => {
         if (afkUsers[user.id]) {
             const afkData = afkUsers[user.id];
-            const duration = calculateDuration(afkData.timestamp);
+            const timestampSeconds = Math.floor(afkData.timestamp / 1000);
             
             try {
                 const member = await msg.guild.members.fetch(user.id);
                 const displayName = `**${member.nickname || member.displayName}**`;
-                const replyMsg = await msg.reply(`<:mg_alert:1439893442065862698> ${displayName} is AFK — ${afkData.reason} (${duration}).`);
+                const replyMsg = await msg.reply(`<:mg_alert:1439893442065862698> ${displayName} is AFK for <t:${timestampSeconds}:R> — ${afkData.reason}.`);
                 setTimeout(() => replyMsg.delete().catch(() => {}), 60000);
             } catch (e) {
-                const replyMsg = await msg.reply(`<:mg_alert:1439893442065862698> **${user.displayName}** is AFK — ${afkData.reason} (${duration}).`);
+                const replyMsg = await msg.reply(`<:mg_alert:1439893442065862698> **${user.displayName}** is AFK for <t:${timestampSeconds}:R> — ${afkData.reason}.`);
                 setTimeout(() => replyMsg.delete().catch(() => {}), 60000);
             }
         }
