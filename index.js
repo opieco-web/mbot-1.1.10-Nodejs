@@ -39,25 +39,27 @@ const commands = [
         .addSubcommand(subcommand =>
             subcommand
                 .setName('reset')
-                .setDescription('Reset your nickname'))
-        .addSubcommandGroup(group =>
-            group
-                .setName('filter')
-                .setDescription('Manage banned words for nicknames')
-                .addSubcommand(subcommand =>
-                    subcommand
-                        .setName('add')
-                        .setDescription('Add a banned word')
-                        .addStringOption(option => option.setName('word').setDescription('Word to ban').setRequired(true)))
-                .addSubcommand(subcommand =>
-                    subcommand
-                        .setName('remove')
-                        .setDescription('Remove a banned word')
-                        .addStringOption(option => option.setName('word').setDescription('Word to unban').setRequired(true)))
-                .addSubcommand(subcommand =>
-                    subcommand
-                        .setName('list')
-                        .setDescription('View all banned words'))),
+                .setDescription('Reset your nickname')),
+
+    new SlashCommandBuilder()
+        .setName('nicknamefilter')
+        .setDescription('Manage banned words for nicknames (moderator only)')
+        .addStringOption(option =>
+            option
+                .setName('action')
+                .setDescription('add, remove, or list')
+                .setRequired(true)
+                .addChoices(
+                    { name: 'add', value: 'add' },
+                    { name: 'remove', value: 'remove' },
+                    { name: 'list', value: 'list' }
+                ))
+        .addStringOption(option =>
+            option
+                .setName('word')
+                .setDescription('Word to ban/unban (not needed for list)')
+                .setRequired(false))
+        .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageNicknames),
 
     // Prefix / AFK / Avatar commands
     new SlashCommandBuilder()
@@ -483,41 +485,43 @@ client.on(Events.InteractionCreate, async interaction => {
                 return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> Could not reset your nickname.', flags: MessageFlags.Ephemeral });
             }
         }
+    }
 
-        // Filter subcommands
-        if (interaction.options.getSubcommandGroup() === 'filter') {
-            if (!member.permissions.has(PermissionsBitField.Flags.ManageNicknames))
-                return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> You cannot use this command.', flags: MessageFlags.Ephemeral });
+    if (commandName === 'nicknamefilter') {
+        const action = interaction.options.getString('action');
+        const word = interaction.options.getString('word')?.toLowerCase();
 
-            const filterSubcommand = interaction.options.getSubcommand();
-            const word = interaction.options.getString('word')?.toLowerCase();
+        if (action === 'add') {
+            if (!word)
+                return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> Please provide a word to ban.', flags: MessageFlags.Ephemeral });
 
-            if (filterSubcommand === 'add') {
-                if (data.nicknameFilter.includes(word))
-                    return interaction.reply({ content: `<:2_no_wrong:1439893245130838047> Word "${word}" is already banned.`, flags: MessageFlags.Ephemeral });
+            if (data.nicknameFilter.includes(word))
+                return interaction.reply({ content: `<:2_no_wrong:1439893245130838047> Word "${word}" is already banned.`, flags: MessageFlags.Ephemeral });
 
-                data.nicknameFilter.push(word);
-                fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
-                return interaction.reply({ content: `<:1_yes_correct:1439893200981721140> Word "${word}" has been added to the ban list.`, flags: MessageFlags.Ephemeral });
-            }
+            data.nicknameFilter.push(word);
+            fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
+            return interaction.reply({ content: `<:1_yes_correct:1439893200981721140> Word "${word}" has been added to the ban list.`, flags: MessageFlags.Ephemeral });
+        }
 
-            if (filterSubcommand === 'remove') {
-                const index = data.nicknameFilter.indexOf(word);
-                if (index === -1)
-                    return interaction.reply({ content: `<:2_no_wrong:1439893245130838047> Word "${word}" is not in the ban list.`, flags: MessageFlags.Ephemeral });
+        if (action === 'remove') {
+            if (!word)
+                return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> Please provide a word to unban.', flags: MessageFlags.Ephemeral });
 
-                data.nicknameFilter.splice(index, 1);
-                fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
-                return interaction.reply({ content: `<:1_yes_correct:1439893200981721140> Word "${word}" has been removed from the ban list.`, flags: MessageFlags.Ephemeral });
-            }
+            const index = data.nicknameFilter.indexOf(word);
+            if (index === -1)
+                return interaction.reply({ content: `<:2_no_wrong:1439893245130838047> Word "${word}" is not in the ban list.`, flags: MessageFlags.Ephemeral });
 
-            if (filterSubcommand === 'list') {
-                if (data.nicknameFilter.length === 0)
-                    return interaction.reply({ content: '<:mg_question:1439893408041930894> No banned words configured.', flags: MessageFlags.Ephemeral });
+            data.nicknameFilter.splice(index, 1);
+            fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
+            return interaction.reply({ content: `<:1_yes_correct:1439893200981721140> Word "${word}" has been removed from the ban list.`, flags: MessageFlags.Ephemeral });
+        }
 
-                const list = '**Banned Words:**\n' + data.nicknameFilter.map(w => '• ' + w).join('\n');
-                return interaction.reply({ content: list, flags: MessageFlags.Ephemeral });
-            }
+        if (action === 'list') {
+            if (data.nicknameFilter.length === 0)
+                return interaction.reply({ content: '<:mg_question:1439893408041930894> No banned words configured.', flags: MessageFlags.Ephemeral });
+
+            const list = '**Banned Words:**\n' + data.nicknameFilter.map(w => '• ' + w).join('\n');
+            return interaction.reply({ content: list, flags: MessageFlags.Ephemeral });
         }
     }
 
@@ -1024,7 +1028,7 @@ client.on(Events.MessageCreate, async msg => {
     if (data.mode === 'auto') {
         const bannedWord = containsBannedWord(nickname);
         if (bannedWord)
-            return msg.reply(`<:2_no_wrong:1439893245130838047> Nickname contains banned word: "${bannedWord}"`);
+            return msg.reply(`<:wrong:1440296241090265088> Cannot use "${bannedWord}" in your nickname.`);
 
         try {
             const before = msg.member.nickname || msg.member.displayName;
@@ -1036,7 +1040,7 @@ client.on(Events.MessageCreate, async msg => {
     } else if (data.mode === 'approval') {
         const bannedWord = containsBannedWord(nickname);
         if (bannedWord)
-            return msg.reply(`<:2_no_wrong:1439893245130838047> Nickname contains banned word: "${bannedWord}"`);
+            return msg.reply(`<:wrong:1440296241090265088> Cannot use "${bannedWord}" in your nickname.`);
 
         const approveBtn = new ButtonBuilder()
             .setCustomId(`approve_${msg.author.id}`)
