@@ -59,7 +59,8 @@ const commands = [
 
     new SlashCommandBuilder()
         .setName('afklist')
-        .setDescription('View who is currently AFK'),
+        .setDescription('View who is currently AFK (moderator only)')
+        .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageGuild),
 
     new SlashCommandBuilder()
         .setName('avatar')
@@ -485,21 +486,25 @@ client.on(Events.InteractionCreate, async interaction => {
     }
 
     if (commandName === 'afklist') {
+        if (!member.permissions.has(PermissionsBitField.Flags.ManageGuild) && !member.permissions.has(PermissionsBitField.Flags.Administrator)) {
+            return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> You do not have permission to use this command.', flags: MessageFlags.Ephemeral });
+        }
+
         if (Object.keys(afkUsers).length === 0) {
             return interaction.reply({ content: '<:mg_question:1439893408041930894> No one is currently AFK.', flags: MessageFlags.Ephemeral });
         }
 
-        let afkList = '**Currently AFK:**\n\n';
+        let afkList = 'Currently AFK:\n\n';
         for (const userId in afkUsers) {
             const afkData = afkUsers[userId];
             const duration = calculateDuration(afkData.timestamp);
             
             try {
                 const member = await guild.members.fetch(userId);
-                const displayName = `**${member.nickname || member.displayName}**`;
-                afkList += `${displayName} — ${afkData.reason} (${duration})\n`;
+                const displayName = member.nickname || member.displayName;
+                afkList += '**' + displayName + '** — ' + afkData.reason + ' (' + duration + ')\n';
             } catch (e) {
-                afkList += `Unknown User — ${afkData.reason} (${duration})\n`;
+                afkList += 'Unknown User — ' + afkData.reason + ' (' + duration + ')\n';
             }
         }
 
