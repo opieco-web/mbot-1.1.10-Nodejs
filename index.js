@@ -692,8 +692,8 @@ client.on(Events.MessageCreate, async msg => {
     msg.mentions.users.forEach(async user => {
         if (afkUsers[user.id]) {
             const afkData = afkUsers[user.id];
-            const duration = calculateDuration(afkData.timestamp);
-            const replyMsg = await msg.reply(`<:mg_alert:1439893442065862698> ${user.tag} is AFK for ${duration} — ${afkData.reason}.`);
+            const timestampMs = Math.floor(afkData.timestamp / 1000);
+            const replyMsg = await msg.reply(`<:mg_alert:1439893442065862698> ${user.tag} is AFK for <t:${timestampMs}:R> — ${afkData.reason}.`);
             setTimeout(() => replyMsg.delete().catch(() => {}), 60000);
         }
     });
@@ -701,9 +701,9 @@ client.on(Events.MessageCreate, async msg => {
     // ----- Reset AFK on any message -----
     if (afkUsers[msg.author.id]) {
         const afkData = afkUsers[msg.author.id];
-        const duration = calculateDuration(afkData.timestamp);
+        const timestampMs = Math.floor(afkData.timestamp / 1000);
         delete afkUsers[msg.author.id];
-        await msg.reply(`<:1_yes_correct:1439893200981721140> Welcome back ${msg.author}! You were AFK for ${duration}.`);
+        await msg.reply(`<:1_yes_correct:1439893200981721140> Welcome back ${msg.author}! You were AFK for <t:${timestampMs}:R>.`);
     }
 
     // ----- Handle prefix commands -----
