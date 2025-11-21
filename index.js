@@ -39,7 +39,25 @@ const commands = [
         .addSubcommand(subcommand =>
             subcommand
                 .setName('reset')
-                .setDescription('Reset your nickname')),
+                .setDescription('Reset your nickname'))
+        .addSubcommandGroup(group =>
+            group
+                .setName('filter')
+                .setDescription('Manage banned words for nicknames')
+                .addSubcommand(subcommand =>
+                    subcommand
+                        .setName('add')
+                        .setDescription('Add a banned word')
+                        .addStringOption(option => option.setName('word').setDescription('Word to ban').setRequired(true)))
+                .addSubcommand(subcommand =>
+                    subcommand
+                        .setName('remove')
+                        .setDescription('Remove a banned word')
+                        .addStringOption(option => option.setName('word').setDescription('Word to unban').setRequired(true)))
+                .addSubcommand(subcommand =>
+                    subcommand
+                        .setName('list')
+                        .setDescription('View all banned words'))),
 
     // Prefix / AFK / Avatar commands
     new SlashCommandBuilder()
@@ -268,6 +286,7 @@ data.autoresponses = data.autoresponses || {}; // { guildId: [{trigger, type, re
 data.status = data.status || {}; // { type, text, emoji, streamUrl, presence, lastUpdatedBy, lastUpdatedAt }
 data.welcome = data.welcome || {}; // { guildId: { channelId, delay, enabled } }
 data.afk = data.afk || {}; // { userId: { reason: string, timestamp: number } }
+data.nicknameFilter = data.nicknameFilter || []; // [ word, word, ... ]
 
 // HELPER: Calculate AFK duration with smart format (shows only relevant units)
 function calculateDuration(time) {
@@ -305,6 +324,17 @@ function formatUptime(time) {
 // ------------------------
 function getPrefix(guildId) {
     return data.prefixes[guildId] || defaultPrefix;
+}
+
+// HELPER: Check if nickname contains banned words
+function containsBannedWord(nickname) {
+    const lowerNickname = nickname.toLowerCase();
+    for (const word of data.nicknameFilter) {
+        if (lowerNickname.includes(word.toLowerCase())) {
+            return word;
+        }
+    }
+    return null;
 }
 
 // ------------------------
@@ -451,6 +481,42 @@ client.on(Events.InteractionCreate, async interaction => {
                 return interaction.reply({ content: '<:1_yes_correct:1439893200981721140> Your nickname has been reset.', flags: MessageFlags.Ephemeral });
             } catch {
                 return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> Could not reset your nickname.', flags: MessageFlags.Ephemeral });
+            }
+        }
+
+        // Filter subcommands
+        if (interaction.options.getSubcommandGroup() === 'filter') {
+            if (!member.permissions.has(PermissionsBitField.Flags.ManageNicknames))
+                return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> You cannot use this command.', flags: MessageFlags.Ephemeral });
+
+            const filterSubcommand = interaction.options.getSubcommand();
+            const word = interaction.options.getString('word')?.toLowerCase();
+
+            if (filterSubcommand === 'add') {
+                if (data.nicknameFilter.includes(word))
+                    return interaction.reply({ content: `<:2_no_wrong:1439893245130838047> Word "${word}" is already banned.`, flags: MessageFlags.Ephemeral });
+
+                data.nicknameFilter.push(word);
+                fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
+                return interaction.reply({ content: `<:1_yes_correct:1439893200981721140> Word "${word}" has been added to the ban list.`, flags: MessageFlags.Ephemeral });
+            }
+
+            if (filterSubcommand === 'remove') {
+                const index = data.nicknameFilter.indexOf(word);
+                if (index === -1)
+                    return interaction.reply({ content: `<:2_no_wrong:1439893245130838047> Word "${word}" is not in the ban list.`, flags: MessageFlags.Ephemeral });
+
+                data.nicknameFilter.splice(index, 1);
+                fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
+                return interaction.reply({ content: `<:1_yes_correct:1439893200981721140> Word "${word}" has been removed from the ban list.`, flags: MessageFlags.Ephemeral });
+            }
+
+            if (filterSubcommand === 'list') {
+                if (data.nicknameFilter.length === 0)
+                    return interaction.reply({ content: '<:mg_question:1439893408041930894> No banned words configured.', flags: MessageFlags.Ephemeral });
+
+                const list = '**Banned Words:**\n' + data.nicknameFilter.map(w => '• ' + w).join('\n');
+                return interaction.reply({ content: list, flags: MessageFlags.Ephemeral });
             }
         }
     }
@@ -956,6 +1022,10 @@ client.on(Events.MessageCreate, async msg => {
     }
 
     if (data.mode === 'auto') {
+        const bannedWord = containsBannedWord(nickname);
+        if (bannedWord)
+            return msg.reply(`<:2_no_wrong:1439893245130838047> Nickname contains banned word: "${bannedWord}"`);
+
         try {
             const before = msg.member.nickname || msg.member.displayName;
             await msg.member.setNickname(nickname);
@@ -964,6 +1034,10 @@ client.on(Events.MessageCreate, async msg => {
             msg.reply('<:2_no_wrong:1439893245130838047> Failed to change nickname.');
         }
     } else if (data.mode === 'approval') {
+        const bannedWord = containsBannedWord(nickname);
+        if (bannedWord)
+            return msg.reply(`<:2_no_wrong:1439893245130838047> Nickname contains banned word: "${bannedWord}"`);
+
         const approveBtn = new ButtonBuilder()
             .setCustomId(`approve_${msg.author.id}`)
             .setLabel('Approve')
