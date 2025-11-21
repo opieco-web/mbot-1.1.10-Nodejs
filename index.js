@@ -58,6 +58,10 @@ const commands = [
         .addStringOption(option => option.setName('note').setDescription('AFK note').setRequired(false)),
 
     new SlashCommandBuilder()
+        .setName('afklist')
+        .setDescription('View who is currently AFK'),
+
+    new SlashCommandBuilder()
         .setName('avatar')
         .setDescription('Show avatar')
         .addUserOption(option => option.setName('user').setDescription('User to show').setRequired(false)),
@@ -480,6 +484,28 @@ client.on(Events.InteractionCreate, async interaction => {
         setTimeout(() => replyMsg.delete().catch(() => {}), 30000);
     }
 
+    if (commandName === 'afklist') {
+        if (Object.keys(afkUsers).length === 0) {
+            return interaction.reply({ content: '<:mg_question:1439893408041930894> No one is currently AFK.', flags: MessageFlags.Ephemeral });
+        }
+
+        let afkList = '**Currently AFK:**\n\n';
+        for (const userId in afkUsers) {
+            const afkData = afkUsers[userId];
+            const duration = calculateDuration(afkData.timestamp);
+            
+            try {
+                const member = await guild.members.fetch(userId);
+                const displayName = member.nickname || `**${member.displayName}**`;
+                afkList += `${displayName} — ${afkData.reason} (${duration})\n`;
+            } catch (e) {
+                afkList += `Unknown User — ${afkData.reason} (${duration})\n`;
+            }
+        }
+
+        return interaction.reply({ content: afkList, flags: MessageFlags.Ephemeral });
+    }
+
     if (commandName === 'avatar') {
         const target = interaction.options.getUser('user') || user;
         const avatarEmbed = new EmbedBuilder()
@@ -768,9 +794,17 @@ client.on(Events.MessageCreate, async msg => {
     msg.mentions.users.forEach(async user => {
         if (afkUsers[user.id]) {
             const afkData = afkUsers[user.id];
-            const timestampMs = Math.floor(afkData.timestamp / 1000);
-            const replyMsg = await msg.reply(`<:mg_alert:1439893442065862698> ${user.tag} is AFK for <t:${timestampMs}:R> — ${afkData.reason}.`);
-            setTimeout(() => replyMsg.delete().catch(() => {}), 60000);
+            const duration = calculateDuration(afkData.timestamp);
+            
+            try {
+                const member = await msg.guild.members.fetch(user.id);
+                const displayName = member.nickname || `**${member.displayName}**`;
+                const replyMsg = await msg.reply(`<:mg_alert:1439893442065862698> ${displayName} is AFK — ${afkData.reason} (${duration}).`);
+                setTimeout(() => replyMsg.delete().catch(() => {}), 60000);
+            } catch (e) {
+                const replyMsg = await msg.reply(`<:mg_alert:1439893442065862698> **${user.displayName}** is AFK — ${afkData.reason} (${duration}).`);
+                setTimeout(() => replyMsg.delete().catch(() => {}), 60000);
+            }
         }
     });
 
