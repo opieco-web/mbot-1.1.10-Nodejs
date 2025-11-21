@@ -28,18 +28,18 @@ const startTime = Date.now();
 const commands = [
     // Nickname commands
     new SlashCommandBuilder()
-        .setName('setchannel')
-        .setDescription('Select nickname request channel')
-        .addChannelOption(option => option.setName('channel').setDescription('Channel').setRequired(true)),
-
-    new SlashCommandBuilder()
-        .setName('mode')
-        .setDescription('Switch mode')
-        .addStringOption(option => option.setName('type').setDescription('auto / approval').setRequired(true)),
-
-    new SlashCommandBuilder()
-        .setName('reset')
-        .setDescription('Reset your nickname'),
+        .setName('nickname')
+        .setDescription('Manage nickname system')
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName('setup')
+                .setDescription('Setup nickname system channel and mode')
+                .addChannelOption(option => option.setName('channel').setDescription('Nickname request channel').setRequired(true))
+                .addStringOption(option => option.setName('mode').setDescription('Mode: auto or approval').setRequired(true)))
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName('reset')
+                .setDescription('Reset your nickname')),
 
     // Prefix / AFK / Avatar commands
     new SlashCommandBuilder()
@@ -425,34 +425,33 @@ client.on(Events.InteractionCreate, async interaction => {
     // ------------------------
     // NICKNAME SYSTEM
     // ------------------------
-    if (commandName === 'setchannel') {
-        if (!member.permissions.has(PermissionsBitField.Flags.ManageNicknames))
-            return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> You cannot use this command.', flags: MessageFlags.Ephemeral });
+    if (commandName === 'nickname') {
+        const subcommand = interaction.options.getSubcommand();
 
-        const channel = interaction.options.getChannel('channel');
-        data.channelId = channel.id;
-        fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
-        return interaction.reply({ content: `<:1_yes_correct:1439893200981721140> Nickname request channel set to ${channel}`, flags: MessageFlags.Ephemeral });
-    }
+        if (subcommand === 'setup') {
+            if (!member.permissions.has(PermissionsBitField.Flags.ManageNicknames))
+                return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> You cannot use this command.', flags: MessageFlags.Ephemeral });
 
-    if (commandName === 'mode') {
-        if (!member.permissions.has(PermissionsBitField.Flags.ManageNicknames))
-            return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> You cannot use this command.', flags: MessageFlags.Ephemeral });
+            const channel = interaction.options.getChannel('channel');
+            const mode = interaction.options.getString('mode').toLowerCase();
 
-        const type = interaction.options.getString('type').toLowerCase();
-        if (!['auto','approval'].includes(type)) return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> Mode must be auto or approval', flags: MessageFlags.Ephemeral });
+            if (!['auto', 'approval'].includes(mode))
+                return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> Mode must be auto or approval', flags: MessageFlags.Ephemeral });
 
-        data.mode = type;
-        fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
-        return interaction.reply({ content: `<:1_yes_correct:1439893200981721140> Mode set to **${type}**`, flags: MessageFlags.Ephemeral });
-    }
+            data.channelId = channel.id;
+            data.mode = mode;
+            fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
 
-    if (commandName === 'reset') {
-        try {
-            await member.setNickname(null);
-            return interaction.reply({ content: '<:1_yes_correct:1439893200981721140> Your nickname has been reset!', flags: MessageFlags.Ephemeral });
-        } catch {
-            return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> Could not reset your nickname.', flags: MessageFlags.Ephemeral });
+            return interaction.reply({ content: `<:1_yes_correct:1439893200981721140> Nickname system setup complete! Channel: ${channel}, Mode: **${mode}**`, flags: MessageFlags.Ephemeral });
+        }
+
+        if (subcommand === 'reset') {
+            try {
+                await member.setNickname(null);
+                return interaction.reply({ content: '<:1_yes_correct:1439893200981721140> Your nickname has been reset!', flags: MessageFlags.Ephemeral });
+            } catch {
+                return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> Could not reset your nickname.', flags: MessageFlags.Ephemeral });
+            }
         }
     }
 
