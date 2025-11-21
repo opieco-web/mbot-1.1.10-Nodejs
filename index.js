@@ -20,6 +20,7 @@ const client = new Client({
 });
 
 client.commands = new Collection();
+const startTime = Date.now();
 
 // ------------------------
 // COMMAND REGISTRATION
@@ -123,6 +124,12 @@ const commands = [
             subcommand
                 .setName('disable')
                 .setDescription('Disable welcome messages'))
+        .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageGuild),
+
+    // Ping command
+    new SlashCommandBuilder()
+        .setName('ping')
+        .setDescription('Show bot status and uptime (moderator only)')
         .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageGuild),
 
     // Status Management
@@ -252,9 +259,9 @@ data.status = data.status || {}; // { type, text, emoji, streamUrl, presence, la
 data.welcome = data.welcome || {}; // { guildId: { channelId, delay, enabled } }
 
 // HELPER: Calculate AFK duration
-function calculateDuration(startTime) {
+function calculateDuration(time) {
     const now = Date.now();
-    const diffMs = now - startTime;
+    const diffMs = now - time;
     const diffMins = Math.floor(diffMs / 60000);
     const diffHours = Math.floor(diffMins / 60);
     
@@ -263,6 +270,16 @@ function calculateDuration(startTime) {
         return mins > 0 ? `${diffHours}h ${mins}m` : `${diffHours}h`;
     }
     return `${diffMins}m`;
+}
+
+// HELPER: Format bot uptime
+function formatUptime(time) {
+    const now = Date.now();
+    const diffMs = now - time;
+    const days = Math.floor(diffMs / 86400000);
+    const hours = Math.floor((diffMs % 86400000) / 3600000);
+    const mins = Math.floor((diffMs % 3600000) / 60000);
+    return `${days}d ${hours}h ${mins}m`;
 }
 
 // ------------------------
@@ -393,6 +410,18 @@ client.on(Events.InteractionCreate, async interaction => {
     if (commandName === 'prefix') {
         const prefix = getPrefix(guildId);
         return interaction.reply({ content: `<:mg_question:1439893408041930894> Current prefix is: ${prefix}`, flags: MessageFlags.Ephemeral });
+    }
+
+    if (commandName === 'ping') {
+        const wsLatency = client.ws.ping;
+        const responseTime = Date.now() - interaction.createdTimestamp;
+        const uptime = formatUptime(startTime);
+        
+        const embed = new EmbedBuilder()
+            .setDescription(`📡 Pong!\nWebSocket: ${wsLatency}ms\nHosting Delay: ${wsLatency}ms\nResponse: ${responseTime}ms\nUptime: ${uptime}`)
+            .setColor(0x37373D);
+        
+        return interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
     }
 
     if (commandName === 'afk') {
@@ -779,6 +808,19 @@ client.on(Events.MessageCreate, async msg => {
         if (cmd === 'cf') {
             const result = Math.random() < 0.5 ? 'Heads' : 'Tails';
             return msg.reply({ content: `<:Tails:1441153955412312134> The coin landed on: **${result}**!` });
+        }
+
+        // Ping command
+        if (cmd === 'bp') {
+            const wsLatency = client.ws.ping;
+            const responseTime = Date.now() - msg.createdTimestamp;
+            const uptime = formatUptime(startTime);
+            
+            const embed = new EmbedBuilder()
+                .setDescription(`📡 Pong!\nWebSocket: ${wsLatency}ms\nHosting Delay: ${wsLatency}ms\nResponse: ${responseTime}ms\nUptime: ${uptime}`)
+                .setColor(0x37373D);
+            
+            return msg.reply({ embeds: [embed] });
         }
     }
 
