@@ -19,8 +19,8 @@ Preferred communication style: Simple, everyday language.
 - **Gateway Intents**: Configured for guilds, messages, message content, and guild members
 
 ## Data Storage
-- **JSON File Storage**: All bot configuration persists in `data.json`
-- **In-memory data loading**: Data is read on startup and presumably written back on changes
+- **JSON File Storage**: All bot configuration persists in `data.json` for reliability and security
+- **In-memory data loading**: Data is read on startup and written back on every change
 - **Data structure includes**:
   - `channelId`: Designated channel for nickname requests
   - `mode`: Either "auto" (automatic approval) or "approval" (manual review)
@@ -28,6 +28,7 @@ Preferred communication style: Simple, everyday language.
   - `autoresponses`: Trigger-based responses organized by guild ID, supporting react-type responses with custom emojis
   - `status`: Bot activity and presence configuration (type, text, emoji, streamUrl, presence, lastUpdatedBy, lastUpdatedAt)
   - `welcome`: Welcome message system configuration per guild (channelId, delay, enabled)
+  - `afk`: AFK status storage (userId: {reason, timestamp}) - persists across bot restarts
 
 ## Command System
 - **Slash Commands**: All interactions use Discord's native slash command API
@@ -38,13 +39,15 @@ Preferred communication style: Simple, everyday language.
   3. **Moderation Features**: `/autoresponse` with subcommands (`add`, `remove`, `list`) - all ephemeral
   4. **Welcome System**: `/welcome` with subcommands (`setchannel`, `delay`, `enable`, `disable`) - moderator-only, all ephemeral
   5. **Status Management**: `/status` with subcommands (`set`, `presence`, `emoji`, `remove`, `info`) - moderator-only, all ephemeral
-  6. **User Features**: `/afk`, `/avatar`
+  6. **User Features**: `/afk`, `/avatar`, `/ping` (moderator-only)
   7. **Fun Commands**: `/truthordare` (15 truths, 15 dares), `/coinflip` (public replies)
+  8. **Bot Monitoring**: `/ping` - Shows WebSocket latency, hosting delay, response time, and uptime (ephemeral)
 - **Prefix Commands**: Server-specific prefix (default `!`)
-  - `!afk` - Set AFK status (message deleted after 5s, reply after 60s)
+  - `!afk` - Set AFK status (message deleted after 5s, reply after 30s, persistent across bot restarts)
   - `!av` - Show user avatar
-  - `!tb` - Truth or Dare (same enhanced pool as slash command)
+  - `!td` - Truth or Dare (same enhanced pool as slash command)
   - `!cf` - Coin flip (public reply)
+  - `!bp` - Ping command (public reply)
 
 ## Permission Model
 - **Permission-based commands**: Uses `setDefaultMemberPermissions()` for admin commands
@@ -54,8 +57,18 @@ Preferred communication style: Simple, everyday language.
 - **Gateway Events**: Bot listens to Discord gateway events
 - **Message Content Intent**: Required for reading message content (auto-responses)
 - **Button Interactions**: Uses ActionRowBuilder and ButtonBuilder for interactive components
-- **Bot Ready Event**: Applies saved status and presence from data.json on startup
+- **Bot Ready Event**: Applies saved status and presence from data.json on startup, loads all AFK statuses
 - **GuildMemberAdd Event**: Sends welcome messages to new members with configurable delay
+- **MessageCreate Event**: Checks mentions for AFK users, handles AFK status removal on user return
+
+## AFK System (Persistent Storage)
+- **Persistent Storage**: All AFK data (userId, reason, timestamp) saved to data.json immediately
+- **Bot Restart Resilience**: AFK statuses loaded from data.json on bot startup via ClientReady event
+- **Concurrent Users**: Multiple users can set AFK simultaneously without conflicts (each user keyed by ID)
+- **Message Deletion Timers**: User command deleted after 5s, bot confirmation deleted after 30s, mention response deleted after 60s
+- **Mention Detection**: When AFK user is mentioned, bot replies with Discord relative timestamp
+- **Return Handling**: When AFK user sends any message, they're removed from AFK status and receive welcome-back message with duration
+- **Duration Format**: Uses Discord `<t:timestamp:R>` format for automatic relative time display (e.g., "5 minutes ago")
 
 ## Welcome Message System
 - **Automated Greetings**: Sends random welcome messages when new members join

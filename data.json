@@ -24,14 +24,14 @@
       {
         "trigger": "Vanity",
         "type": "text",
-        "response": "-# [**JOIN NOW**](https://discord.gg/mining-bangladesh-1296783492989980682)"
+        "response": "https://discord.gg/mining-bangladesh-1296783492989980682"
       }
     ]
   },
   "status": {
     "type": "Competing",
     "text": "m•bot - v3.1.7",
-    "emoji": "✨",
+    "emoji": "🎀",
     "streamUrl": null,
     "lastUpdatedBy": "1065350468928290828",
     "lastUpdatedAt": "2025-11-21T07:13:08.495Z",
@@ -40,14 +40,9 @@
   "welcome": {
     "1296783492989980682": {
       "channelId": "1296783493430513747",
-      "delay": 90,
+      "delay": 60,
       "enabled": true
     }
   },
-  "afk": {
-    "1108782022543032400": {
-      "reason": "disturb not",
-      "timestamp": 1763722537137
-    }
-  }
+  "afk": {}
 }
