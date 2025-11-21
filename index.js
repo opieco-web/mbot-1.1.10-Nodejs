@@ -1035,7 +1035,7 @@ client.on(Events.MessageCreate, async msg => {
             await msg.member.setNickname(nickname);
             msg.reply(`<:1_yes_correct:1439893200981721140> Your nickname has been changed from **${before}** to **${nickname}**`);
         } catch {
-            msg.reply('<:2_no_wrong:1439893245130838047> Failed to change nickname.');
+            msg.reply('<:warning:1441531830607151195> Failed to change nickname.');
         }
     } else if (data.mode === 'approval') {
         const bannedWord = containsBannedWord(nickname);
@@ -1072,7 +1072,7 @@ client.on(Events.MessageCreate, async msg => {
                     await msg.member.setNickname(nickname);
                     await i.update({ content: `<:1_yes_correct:1439893200981721140> ${msg.author} nickname approved: **${nickname}**`, components: [] });
                 } catch {
-                    await i.update({ content: '<:2_no_wrong:1439893245130838047> Failed to change nickname.', components: [] });
+                    await i.update({ content: '<:warning:1441531830607151195> Failed to change nickname.', components: [] });
                 }
             } else if (i.customId === `reject_${msg.author.id}`) {
                 await i.update({ content: `<:2_no_wrong:1439893245130838047> ${msg.author} nickname request rejected.`, components: [] });
