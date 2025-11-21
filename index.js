@@ -63,11 +63,6 @@ const commands = [
         .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageGuild),
 
     new SlashCommandBuilder()
-        .setName('userstatus')
-        .setDescription('View user statuses with a keyword')
-        .addStringOption(option => option.setName('keyword').setDescription('Search for this keyword in statuses').setRequired(true)),
-
-    new SlashCommandBuilder()
         .setName('avatar')
         .setDescription('Show avatar')
         .addUserOption(option => option.setName('user').setDescription('User to show').setRequired(false)),
