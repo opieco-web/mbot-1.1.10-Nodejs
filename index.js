@@ -587,7 +587,7 @@ client.on(Events.InteractionCreate, async interaction => {
 
             let list = '**Auto-Responses for this server:**\n\n';
             data.autoresponses[guildId].forEach((ar, index) => {
-                list += `${index + 1}. Trigger: \`${ar.trigger}\` | Type: \`${ar.type}\` | Response: \`${ar.response}\`\n`;
+                list += `${index + 1}. Trigger: ${ar.trigger} | Type: ${ar.type} | Response: ${ar.response}\n`;
             });
 
             return interaction.reply({ content: list, flags: MessageFlags.Ephemeral });
