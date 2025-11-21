@@ -496,7 +496,7 @@ client.on(Events.InteractionCreate, async interaction => {
             
             try {
                 const member = await guild.members.fetch(userId);
-                const displayName = member.nickname || `**${member.displayName}**`;
+                const displayName = `**${member.nickname || member.displayName}**`;
                 afkList += `${displayName} — ${afkData.reason} (${duration})\n`;
             } catch (e) {
                 afkList += `Unknown User — ${afkData.reason} (${duration})\n`;
@@ -798,7 +798,7 @@ client.on(Events.MessageCreate, async msg => {
             
             try {
                 const member = await msg.guild.members.fetch(user.id);
-                const displayName = member.nickname || `**${member.displayName}**`;
+                const displayName = `**${member.nickname || member.displayName}**`;
                 const replyMsg = await msg.reply(`<:mg_alert:1439893442065862698> ${displayName} is AFK — ${afkData.reason} (${duration}).`);
                 setTimeout(() => replyMsg.delete().catch(() => {}), 60000);
             } catch (e) {
