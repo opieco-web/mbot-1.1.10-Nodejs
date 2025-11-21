@@ -93,6 +93,38 @@ const commands = [
         .setName('coinflip')
         .setDescription('Flip a coin - Heads or Tails'),
 
+    // Welcome System
+    new SlashCommandBuilder()
+        .setName('welcome')
+        .setDescription('Manage welcome messages (moderator only)')
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName('setchannel')
+                .setDescription('Set the welcome message channel')
+                .addChannelOption(option =>
+                    option.setName('channel')
+                        .setDescription('Channel for welcome messages')
+                        .setRequired(true)))
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName('delay')
+                .setDescription('Set welcome message delay')
+                .addIntegerOption(option =>
+                    option.setName('seconds')
+                        .setDescription('Delay in seconds (0-300)')
+                        .setRequired(true)
+                        .setMinValue(0)
+                        .setMaxValue(300)))
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName('enable')
+                .setDescription('Enable welcome messages'))
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName('disable')
+                .setDescription('Disable welcome messages'))
+        .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageGuild),
+
     // Status Management
     new SlashCommandBuilder()
         .setName('status')
@@ -217,6 +249,7 @@ let afkUsers = {}; // { userId: note }
 data.prefixes = data.prefixes || {}; // { guildId: prefix }
 data.autoresponses = data.autoresponses || {}; // { guildId: [{trigger, type, response}] }
 data.status = data.status || {}; // { type, text, emoji, streamUrl, presence, lastUpdatedBy, lastUpdatedAt }
+data.welcome = data.welcome || {}; // { guildId: { channelId, delay, enabled } }
 
 // ------------------------
 // HELPER: get prefix per guild
@@ -224,6 +257,72 @@ data.status = data.status || {}; // { type, text, emoji, streamUrl, presence, la
 function getPrefix(guildId) {
     return data.prefixes[guildId] || defaultPrefix;
 }
+
+// ------------------------
+// WELCOME MESSAGES
+// ------------------------
+const welcomeMessages = [
+    "Hey {user}! Welcome to the squad! 🎉",
+    "Yo {user}! Glad you're here, let's vibe! ✨",
+    "{user} just joined! Ekdom perfect timing! 🔥",
+    "Welcome {user}! Amra wait korchilam! 💫",
+    "{user} has entered the chat! Let's goooo! 🚀",
+    "Ayee {user}! Welcome to the fam! 🌟",
+    "{user} just pulled up! Lesss gooo! 💪",
+    "Yooo {user}! Tomar jonno wait korchilam! ⭐",
+    "Welcome aboard {user}! Enjoy your stay! 🎊",
+    "{user} joined! Ekta fresh vibe! 🌈",
+    "Hey {user}! Ready to have some fun? 🎮",
+    "Welcome {user}! Cholo shuru kori! 🎯",
+    "{user} is here! Time to light it up! 💡",
+    "Ayoo {user}! Khub bhalo lagche! 😄",
+    "{user} joined the party! Let's rock! 🎸",
+    "Welcome {user}! Amader sathe thako! 🤝",
+    "{user} just landed! Feeling good! ☀️",
+    "Yoo {user}! Great to see you here! 👋",
+    "{user} arrived! Besh moja hobe! 🎭",
+    "Hey {user}! Let's make some memories! 📸",
+    "{user} is in! Ajke moja korbo! 🎪",
+    "Welcome {user}! Tumi amader ekjon! 💙",
+    "{user} just joined! Awesome energy! ⚡",
+    "Ayee {user}! Chill koro, enjoy koro! 🍃",
+    "{user} has arrived! Let's hang! 🌙",
+    "Welcome {user}! Bhalo theko always! 🌸",
+    "{user} joined! New adventure starts! 🗺️",
+    "Yo {user}! Tumake peyechhi! 🎁",
+    "{user} is here! Good vibes only! ✌️",
+    "Hey {user}! Amra ready! 🎬",
+    "{user} entered! Shobai mile moja! 🎉",
+    "Welcome {user}! Khela hobe! 🏆",
+    "{user} joined the crew! Epic! 🌊",
+    "Ayoo {user}! Tomar jonno special! 🌹",
+    "{user} is in the house! Yay! 🏠",
+    "Welcome {user}! Let's create magic! 🪄",
+    "{user} arrived! Ekdom fresh! 🍀",
+    "Hey {user}! Shobai tomake chene! 👀",
+    "{user} just joined! Stay awesome! 🌟",
+    "Yo {user}! Amader circle complete! ⭕",
+    "{user} has landed! Fun times ahead! 🎢",
+    "Welcome {user}! Bhalo lage tomar vibe! 💖",
+    "{user} is here! Let's do this! 💥",
+    "Ayee {user}! Chill mode on! 😎",
+    "{user} joined! Positive vibes! 🌻",
+    "Hey {user}! Amra eksathe! 🤗",
+    "{user} pulled up! Looking good! 👌",
+    "Welcome {user}! Ekta notun chapter! 📖",
+    "{user} arrived! Moja guarantee! 🎊",
+    "Yo {user}! Happy to have you! 💚",
+    "{user} is in! Ebar masti shuru! 🎈",
+    "Welcome {user}! Tumi special! 💎",
+    "{user} just joined! Keep smiling! 😊",
+    "Hey {user}! Let's vibe together! 🎵",
+    "{user} has arrived! Good energy! 🔆",
+    "Ayoo {user}! Amra ready for fun! 🎯",
+    "{user} joined! Shobai mile happy! 😄",
+    "Welcome {user}! Bhalo thakish! 🌺",
+    "{user} is here! Let's enjoy! 🎪",
+    "Yo {user}! Tumi awesome! 🌟"
+];
 
 // ------------------------
 // HANDLE SLASH COMMANDS
@@ -514,6 +613,56 @@ client.on(Events.InteractionCreate, async interaction => {
             return interaction.reply({ embeds: [statusEmbed], flags: MessageFlags.Ephemeral });
         }
     }
+
+    // ------------------------
+    // WELCOME SYSTEM
+    // ------------------------
+    if (commandName === 'welcome') {
+        if (!member.permissions.has(PermissionsBitField.Flags.ManageGuild) && !member.permissions.has(PermissionsBitField.Flags.Administrator)) {
+            return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> You do not have permission to use this command.', flags: MessageFlags.Ephemeral });
+        }
+
+        const subcommand = interaction.options.getSubcommand();
+
+        if (subcommand === 'setchannel') {
+            const channel = interaction.options.getChannel('channel');
+            
+            data.welcome[guildId] = data.welcome[guildId] || {};
+            data.welcome[guildId].channelId = channel.id;
+            fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
+
+            return interaction.reply({ content: `<:1_yes_correct:1439893200981721140> Welcome channel set to ${channel}`, flags: MessageFlags.Ephemeral });
+        }
+
+        if (subcommand === 'delay') {
+            const seconds = interaction.options.getInteger('seconds');
+            
+            data.welcome[guildId] = data.welcome[guildId] || {};
+            data.welcome[guildId].delay = seconds;
+            fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
+
+            return interaction.reply({ content: `<:1_yes_correct:1439893200981721140> Welcome message delay set to **${seconds} seconds**`, flags: MessageFlags.Ephemeral });
+        }
+
+        if (subcommand === 'enable') {
+            if (!data.welcome[guildId] || !data.welcome[guildId].channelId) {
+                return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> Please set a welcome channel first using `/welcome setchannel`', flags: MessageFlags.Ephemeral });
+            }
+
+            data.welcome[guildId].enabled = true;
+            fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
+
+            return interaction.reply({ content: '<:1_yes_correct:1439893200981721140> Welcome messages **enabled**!', flags: MessageFlags.Ephemeral });
+        }
+
+        if (subcommand === 'disable') {
+            data.welcome[guildId] = data.welcome[guildId] || {};
+            data.welcome[guildId].enabled = false;
+            fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
+
+            return interaction.reply({ content: '<:1_yes_correct:1439893200981721140> Welcome messages **disabled**!', flags: MessageFlags.Ephemeral });
+        }
+    }
 });
 
 // ------------------------
@@ -690,6 +839,34 @@ client.on(Events.MessageCreate, async msg => {
             collector.stop();
         });
     }
+});
+
+// ------------------------
+// GUILD MEMBER ADD (WELCOME SYSTEM)
+// ------------------------
+client.on(Events.GuildMemberAdd, async member => {
+    const guildId = member.guild.id;
+    
+    const welcomeConfig = data.welcome[guildId];
+    if (!welcomeConfig || !welcomeConfig.enabled || !welcomeConfig.channelId) {
+        return;
+    }
+
+    const delay = (typeof welcomeConfig.delay === 'number') ? welcomeConfig.delay : 0;
+
+    setTimeout(async () => {
+        try {
+            const channel = await member.guild.channels.fetch(welcomeConfig.channelId);
+            if (!channel) return;
+
+            const randomMessage = welcomeMessages[Math.floor(Math.random() * welcomeMessages.length)];
+            const welcomeText = randomMessage.replace('{user}', `<@${member.id}>`);
+
+            await channel.send(welcomeText);
+        } catch (error) {
+            console.error('Welcome message error:', error);
+        }
+    }, delay * 1000);
 });
 
 // ------------------------

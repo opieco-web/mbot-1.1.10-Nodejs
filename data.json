@@ -20,7 +20,21 @@
         "trigger": "<@1272065508367138902>",
         "type": "react",
         "response": "<:mg_h_hug:1439960872473854065>"
+      },
+      {
+        "trigger": "Vanity",
+        "type": "text",
+        "response": "-# [**JOIN NOW**](https://discord.gg/mining-bangladesh-1296783492989980682)"
       }
     ]
+  },
+  "status": {
+    "type": "Competing",
+    "text": "m.bot - v3.1.4",
+    "emoji": "✨",
+    "streamUrl": "https://youtu.be/Lw5ZxfHWMes?si=ZI-0khx2mc3NJMSc",
+    "lastUpdatedBy": "1065350468928290828",
+    "lastUpdatedAt": "2025-11-20T21:07:07.824Z",
+    "presence": "idle"
   }
 }
