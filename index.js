@@ -693,7 +693,7 @@ client.on(Events.MessageCreate, async msg => {
         if (afkUsers[user.id]) {
             const afkData = afkUsers[user.id];
             const duration = calculateDuration(afkData.timestamp);
-            const replyMsg = await msg.reply(`<:mg_alert:1439893442065862698> ${user.tag} is AFK — ${afkData.reason}. AFK for ${duration}.`);
+            const replyMsg = await msg.reply(`<:mg_alert:1439893442065862698> ${user.tag} is AFK for ${duration} — ${afkData.reason}.`);
             setTimeout(() => replyMsg.delete().catch(() => {}), 60000);
         }
     });
