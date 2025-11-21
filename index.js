@@ -264,18 +264,16 @@ data.status = data.status || {}; // { type, text, emoji, streamUrl, presence, la
 data.welcome = data.welcome || {}; // { guildId: { channelId, delay, enabled } }
 data.afk = data.afk || {}; // { userId: { reason: string, timestamp: number } }
 
-// HELPER: Calculate AFK duration
+// HELPER: Calculate AFK duration with full format (0h 0m 0s)
 function calculateDuration(time) {
     const now = Date.now();
     const diffMs = now - time;
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMins / 60);
+    const totalSeconds = Math.floor(diffMs / 1000);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
     
-    if (diffHours > 0) {
-        const mins = diffMins % 60;
-        return mins > 0 ? `${diffHours}h ${mins}m` : `${diffHours}h`;
-    }
-    return `${diffMins}m`;
+    return `**${hours}h ${minutes}m ${seconds}s**`;
 }
 
 // HELPER: Format bot uptime
@@ -779,11 +777,11 @@ client.on(Events.MessageCreate, async msg => {
     // ----- Reset AFK on any message -----
     if (afkUsers[msg.author.id]) {
         const afkData = afkUsers[msg.author.id];
-        const timestampMs = Math.floor(afkData.timestamp / 1000);
+        const duration = calculateDuration(afkData.timestamp);
         delete afkUsers[msg.author.id];
         delete data.afk[msg.author.id];
         fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
-        await msg.reply(`<:1_yes_correct:1439893200981721140> Welcome back ${msg.author}! You were AFK for <t:${timestampMs}:R>.`);
+        await msg.reply(`<:1_yes_correct:1439893200981721140> Welcome back ${msg.author}! You were AFK for ${duration}.`);
     }
 
     // ----- Handle prefix commands -----
