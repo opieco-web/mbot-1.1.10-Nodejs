@@ -447,10 +447,8 @@ client.on(Events.InteractionCreate, async interaction => {
 
         if (subcommand === 'reset') {
             try {
-                const before = member.nickname || 'None';
-                const after = member.displayName;
                 await member.setNickname(null);
-                return interaction.reply({ content: `<:1_yes_correct:1439893200981721140> Your nickname has been reset from **${before}** back to **${after}**.`, flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: '<:1_yes_correct:1439893200981721140> Your nickname has been reset.', flags: MessageFlags.Ephemeral });
             } catch {
                 return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> Could not reset your nickname.', flags: MessageFlags.Ephemeral });
             }
@@ -953,10 +951,8 @@ client.on(Events.MessageCreate, async msg => {
 
     const nickname = msg.content.trim();
     if (nickname.toLowerCase() === 'reset') {
-        const before = msg.member.nickname || 'None';
-        const after = msg.member.displayName;
         await msg.member.setNickname(null);
-        return msg.reply(`<:1_yes_correct:1439893200981721140> Your nickname has been reset from **${before}** back to **${after}**.`);
+        return msg.reply('<:1_yes_correct:1439893200981721140> Your nickname has been reset.');
     }
 
     if (data.mode === 'auto') {
