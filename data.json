@@ -30,11 +30,18 @@
   },
   "status": {
     "type": "Competing",
-    "text": "m.bot - v3.1.4",
+    "text": "m•bot - v3.1.7",
     "emoji": "✨",
-    "streamUrl": "https://youtu.be/Lw5ZxfHWMes?si=ZI-0khx2mc3NJMSc",
+    "streamUrl": null,
     "lastUpdatedBy": "1065350468928290828",
-    "lastUpdatedAt": "2025-11-20T21:07:07.824Z",
-    "presence": "idle"
+    "lastUpdatedAt": "2025-11-21T07:13:08.495Z",
+    "presence": "dnd"
+  },
+  "welcome": {
+    "1296783492989980682": {
+      "channelId": "1296783493430513747",
+      "delay": 120,
+      "enabled": true
+    }
   }
 }

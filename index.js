@@ -245,11 +245,25 @@ client.once(Events.ClientReady, () => {
 // DATA / PREFIX / AFK / AUTORESPONSE
 // ------------------------
 const defaultPrefix = '!';
-let afkUsers = {}; // { userId: note }
+let afkUsers = {}; // { userId: { reason: string, timestamp: number } }
 data.prefixes = data.prefixes || {}; // { guildId: prefix }
 data.autoresponses = data.autoresponses || {}; // { guildId: [{trigger, type, response}] }
 data.status = data.status || {}; // { type, text, emoji, streamUrl, presence, lastUpdatedBy, lastUpdatedAt }
 data.welcome = data.welcome || {}; // { guildId: { channelId, delay, enabled } }
+
+// HELPER: Calculate AFK duration
+function calculateDuration(startTime) {
+    const now = Date.now();
+    const diffMs = now - startTime;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMins / 60);
+    
+    if (diffHours > 0) {
+        const mins = diffMins % 60;
+        return mins > 0 ? `${diffHours}h ${mins}m` : `${diffHours}h`;
+    }
+    return `${diffMins}m`;
+}
 
 // ------------------------
 // HELPER: get prefix per guild
@@ -382,12 +396,12 @@ client.on(Events.InteractionCreate, async interaction => {
     }
 
     if (commandName === 'afk') {
-        const note = interaction.options.getString('note') || 'I am currently AFK.';
-        afkUsers[user.id] = note;
-        const replyMsg = await interaction.reply({ content: `<:mg_alert:1439893442065862698> AFK set: ${note}`, fetchReply: true, flags: MessageFlags.Ephemeral });
+        const reason = interaction.options.getString('note') || 'I am currently AFK.';
+        afkUsers[user.id] = { reason, timestamp: Date.now() };
+        const replyMsg = await interaction.reply({ content: `<:mg_alert:1439893442065862698> AFK set: ${reason}`, fetchReply: true, flags: MessageFlags.Ephemeral });
 
-        // Delete bot reply after 60s
-        setTimeout(() => replyMsg.delete().catch(() => {}), 60000);
+        // Delete bot reply after 30s
+        setTimeout(() => replyMsg.delete().catch(() => {}), 30000);
     }
 
     if (commandName === 'avatar') {
@@ -674,20 +688,23 @@ client.on(Events.MessageCreate, async msg => {
     const guildId = msg.guildId;
     const prefix = getPrefix(guildId);
 
-    // ----- Reset AFK on any message -----
-    if (afkUsers[msg.author.id]) {
-        delete afkUsers[msg.author.id];
-        const replyMsg = await msg.reply(`<:1_yes_correct:1439893200981721140> Welcome back! Your AFK status has been removed.`);
-        setTimeout(() => replyMsg.delete().catch(() => {}), 60000);
-    }
-
     // ----- Check mentions for AFK -----
     msg.mentions.users.forEach(async user => {
         if (afkUsers[user.id]) {
-            const replyMsg = await msg.reply(`<:mg_alert:1439893442065862698> ${user.tag} is AFK: ${afkUsers[user.id]}`);
+            const afkData = afkUsers[user.id];
+            const duration = calculateDuration(afkData.timestamp);
+            const replyMsg = await msg.reply(`<:mg_alert:1439893442065862698> ${user.tag} is AFK — ${afkData.reason}. AFK for ${duration}.`);
             setTimeout(() => replyMsg.delete().catch(() => {}), 60000);
         }
     });
+
+    // ----- Reset AFK on any message -----
+    if (afkUsers[msg.author.id]) {
+        const afkData = afkUsers[msg.author.id];
+        const duration = calculateDuration(afkData.timestamp);
+        delete afkUsers[msg.author.id];
+        await msg.reply(`<:1_yes_correct:1439893200981721140> Welcome back ${msg.author}! You were AFK for ${duration}.`);
+    }
 
     // ----- Handle prefix commands -----
     if (msg.content.startsWith(prefix)) {
@@ -696,15 +713,15 @@ client.on(Events.MessageCreate, async msg => {
 
         // AFK
         if (cmd === 'afk') {
-            const note = args.join(' ') || 'I am currently AFK.';
-            afkUsers[msg.author.id] = note;
+            const reason = args.join(' ') || 'I am currently AFK.';
+            afkUsers[msg.author.id] = { reason, timestamp: Date.now() };
 
-            const replyMsg = await msg.reply(`<:mg_alert:1439893442065862698> AFK set: ${note}`);
+            const replyMsg = await msg.reply(`<:mg_alert:1439893442065862698> AFK set: ${reason}`);
 
             // Delete user message after 5s
             setTimeout(() => msg.delete().catch(() => {}), 5000);
-            // Delete bot reply after 60s
-            setTimeout(() => replyMsg.delete().catch(() => {}), 60000);
+            // Delete bot reply after 30s
+            setTimeout(() => replyMsg.delete().catch(() => {}), 30000);
         }
 
         // Avatar
