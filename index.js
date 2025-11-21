@@ -63,6 +63,11 @@ const commands = [
         .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageGuild),
 
     new SlashCommandBuilder()
+        .setName('userstatus')
+        .setDescription('View user statuses with a keyword')
+        .addStringOption(option => option.setName('keyword').setDescription('Search for this keyword in statuses').setRequired(true)),
+
+    new SlashCommandBuilder()
         .setName('avatar')
         .setDescription('Show avatar')
         .addUserOption(option => option.setName('user').setDescription('User to show').setRequired(false)),
@@ -509,6 +514,36 @@ client.on(Events.InteractionCreate, async interaction => {
         }
 
         return interaction.reply({ content: afkList, flags: MessageFlags.Ephemeral });
+    }
+
+    if (commandName === 'userstatus') {
+        const keyword = interaction.options.getString('keyword').toLowerCase();
+        
+        try {
+            const members = await guild.members.fetch();
+            let statusList = 'User Statuses with ' + keyword + ':\n\n';
+            let found = false;
+
+            members.forEach(member => {
+                if (member.presence && member.presence.activities) {
+                    member.presence.activities.forEach(activity => {
+                        if (activity.state && activity.state.toLowerCase().includes(keyword)) {
+                            const displayName = member.nickname || member.displayName;
+                            statusList += '**' + displayName + '**: ' + activity.state + '\n';
+                            found = true;
+                        }
+                    });
+                }
+            });
+
+            if (!found) {
+                return interaction.reply({ content: '<:mg_question:1439893408041930894> No users found with that status keyword.', flags: MessageFlags.Ephemeral });
+            }
+
+            return interaction.reply({ content: statusList, flags: MessageFlags.Ephemeral });
+        } catch (e) {
+            return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> Error fetching user statuses.', flags: MessageFlags.Ephemeral });
+        }
     }
 
     if (commandName === 'avatar') {
