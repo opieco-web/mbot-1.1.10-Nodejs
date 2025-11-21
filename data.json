@@ -44,5 +44,10 @@
       "enabled": true
     }
   },
-  "afk": {}
+  "afk": {
+    "1108782022543032400": {
+      "reason": "keo ping e deina",
+      "timestamp": 1763731636038
+    }
+  }
 }
