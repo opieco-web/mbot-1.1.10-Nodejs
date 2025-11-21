@@ -43,5 +43,11 @@
       "delay": 90,
       "enabled": true
     }
+  },
+  "afk": {
+    "1108782022543032400": {
+      "reason": "disturb not",
+      "timestamp": 1763722537137
+    }
   }
 }

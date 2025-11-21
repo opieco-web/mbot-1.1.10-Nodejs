@@ -246,6 +246,11 @@ function applyBotStatus() {
 client.once(Events.ClientReady, () => {
     console.log(`${client.user.tag} is online!`);
     applyBotStatus();
+    
+    // Load AFK data from storage
+    if (data.afk) {
+        afkUsers = { ...data.afk };
+    }
 });
 
 // ------------------------
@@ -257,6 +262,7 @@ data.prefixes = data.prefixes || {}; // { guildId: prefix }
 data.autoresponses = data.autoresponses || {}; // { guildId: [{trigger, type, response}] }
 data.status = data.status || {}; // { type, text, emoji, streamUrl, presence, lastUpdatedBy, lastUpdatedAt }
 data.welcome = data.welcome || {}; // { guildId: { channelId, delay, enabled } }
+data.afk = data.afk || {}; // { userId: { reason: string, timestamp: number } }
 
 // HELPER: Calculate AFK duration
 function calculateDuration(time) {
@@ -468,6 +474,8 @@ client.on(Events.InteractionCreate, async interaction => {
     if (commandName === 'afk') {
         const reason = interaction.options.getString('note') || 'I am currently AFK.';
         afkUsers[user.id] = { reason, timestamp: Date.now() };
+        data.afk[user.id] = afkUsers[user.id];
+        fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
         const replyMsg = await interaction.reply({ content: `<:mg_alert:1439893442065862698> AFK set: ${reason}`, fetchReply: true, flags: MessageFlags.Ephemeral });
 
         // Delete bot reply after 30s
@@ -773,6 +781,8 @@ client.on(Events.MessageCreate, async msg => {
         const afkData = afkUsers[msg.author.id];
         const timestampMs = Math.floor(afkData.timestamp / 1000);
         delete afkUsers[msg.author.id];
+        delete data.afk[msg.author.id];
+        fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
         await msg.reply(`<:1_yes_correct:1439893200981721140> Welcome back ${msg.author}! You were AFK for <t:${timestampMs}:R>.`);
     }
 
@@ -785,6 +795,8 @@ client.on(Events.MessageCreate, async msg => {
         if (cmd === 'afk') {
             const reason = args.join(' ') || 'I am currently AFK.';
             afkUsers[msg.author.id] = { reason, timestamp: Date.now() };
+            data.afk[msg.author.id] = afkUsers[msg.author.id];
+            fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
 
             const replyMsg = await msg.reply(`<:mg_alert:1439893442065862698> AFK set: ${reason}`);
 
