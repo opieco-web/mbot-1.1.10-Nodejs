@@ -1,6 +1,6 @@
 # Overview
 
-This is a Discord bot built with discord.js v14 that provides nickname management, server customization, auto-response features, and fun interactive commands. The bot allows users to request nickname changes through a designated channel, with configurable approval modes (automatic or manual approval). It includes server-specific prefix management, custom auto-response triggers with reaction capabilities, AFK status system with timed message deletion, and entertainment commands like enhanced Truth or Dare and Coin Flip.
+This is a Discord bot built with discord.js v14 that provides nickname management, server customization, auto-response features, welcome messages, and fun interactive commands. The bot allows users to request nickname changes through a designated channel, with configurable approval modes (automatic or manual approval). It includes server-specific prefix management, custom auto-response triggers with reaction capabilities, AFK status system with timed message deletion, automated welcome messages for new members, and entertainment commands like enhanced Truth or Dare and Coin Flip.
 
 # User Preferences
 
@@ -27,6 +27,7 @@ Preferred communication style: Simple, everyday language.
   - `prefixes`: Server-specific command prefixes (object/map structure)
   - `autoresponses`: Trigger-based responses organized by guild ID, supporting react-type responses with custom emojis
   - `status`: Bot activity and presence configuration (type, text, emoji, streamUrl, presence, lastUpdatedBy, lastUpdatedAt)
+  - `welcome`: Welcome message system configuration per guild (channelId, delay, enabled)
 
 ## Command System
 - **Slash Commands**: All interactions use Discord's native slash command API
@@ -35,9 +36,10 @@ Preferred communication style: Simple, everyday language.
   1. **Nickname Management**: `/setchannel`, `/mode`, `/reset`
   2. **Server Configuration**: `/setprefix` (admin-only with ManageGuild permission), `/prefix`
   3. **Moderation Features**: `/autoresponse` with subcommands (`add`, `remove`, `list`) - all ephemeral
-  4. **Status Management**: `/status` with subcommands (`set`, `presence`, `emoji`, `remove`, `info`) - moderator-only, all ephemeral
-  5. **User Features**: `/afk`, `/avatar`
-  6. **Fun Commands**: `/truthordare` (15 truths, 15 dares), `/coinflip` (public replies)
+  4. **Welcome System**: `/welcome` with subcommands (`setchannel`, `delay`, `enable`, `disable`) - moderator-only, all ephemeral
+  5. **Status Management**: `/status` with subcommands (`set`, `presence`, `emoji`, `remove`, `info`) - moderator-only, all ephemeral
+  6. **User Features**: `/afk`, `/avatar`
+  7. **Fun Commands**: `/truthordare` (15 truths, 15 dares), `/coinflip` (public replies)
 - **Prefix Commands**: Server-specific prefix (default `!`)
   - `!afk` - Set AFK status (message deleted after 5s, reply after 60s)
   - `!av` - Show user avatar
@@ -53,6 +55,14 @@ Preferred communication style: Simple, everyday language.
 - **Message Content Intent**: Required for reading message content (auto-responses)
 - **Button Interactions**: Uses ActionRowBuilder and ButtonBuilder for interactive components
 - **Bot Ready Event**: Applies saved status and presence from data.json on startup
+- **GuildMemberAdd Event**: Sends welcome messages to new members with configurable delay
+
+## Welcome Message System
+- **Automated Greetings**: Sends random welcome messages when new members join
+- **Message Pool**: 60 pre-configured messages in English, Bangla, and Banglish mix (ages 15-20)
+- **Configurable Delay**: Set delay (0-300 seconds) before sending welcome message
+- **Per-Server Settings**: Each server can configure its own welcome channel, delay, and enable/disable status
+- **Permissions**: Welcome system management requires Manage Server or Administrator permissions
 
 ## Bot Status & Presence
 - **Activity Types**: Supports Playing, Listening, Watching, Competing, and Streaming (with URL validation for Twitch/YouTube)
