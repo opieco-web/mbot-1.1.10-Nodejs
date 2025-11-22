@@ -1252,11 +1252,18 @@ client.on(Events.InteractionCreate, async interaction => {
         const emoji = Math.random() < 0.5 ? '<a:croissant:1441783019139502112>' : '<a:cherry:1441782972486516946>';
         const choice = Math.random() < 0.5 ? decisionA : decisionB;
         
-        const text = `## ${emoji} ${style}\n\n**${choice}**`;
-        const textDisplay = new TextDisplayBuilder().setContent(text);
-        const container = new ContainerBuilder().addTextDisplayComponents(textDisplay);
-        
-        return interaction.reply({ content: ' ', components: [container], flags: MessageFlags.IsComponentsV2 });
+        return interaction.reply({
+            content: ' ',
+            components: [{
+                type: 17,
+                components: [
+                    { type: 10, content: `### ${emoji} ${style}` },
+                    { type: 14 },
+                    { type: 10, content: `**${choice}**` }
+                ]
+            }],
+            flags: 32768
+        });
     }
 
     // ------------------------
@@ -1778,11 +1785,18 @@ client.on(Events.MessageCreate, async msg => {
             const emoji = Math.random() < 0.5 ? '<a:croissant:1441783019139502112>' : '<a:cherry:1441782972486516946>';
             const choice = Math.random() < 0.5 ? optionA : optionB;
             
-            const text = `## ${emoji} ${style}\n\n**${choice}**`;
-            const textDisplay = new TextDisplayBuilder().setContent(text);
-            const container = new ContainerBuilder().addTextDisplayComponents(textDisplay);
-            
-            return msg.reply({ content: ' ', components: [container], flags: MessageFlags.IsComponentsV2 });
+            return msg.reply({
+                content: ' ',
+                components: [{
+                    type: 17,
+                    components: [
+                        { type: 10, content: `### ${emoji} ${style}` },
+                        { type: 14 },
+                        { type: 10, content: `**${choice}**` }
+                    ]
+                }],
+                flags: 32768
+            });
         }
 
         // Fun command: Coin Flip
