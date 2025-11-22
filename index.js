@@ -364,6 +364,20 @@ const commands = [
                         .setRequired(false)))
         .addSubcommand(subcommand =>
             subcommand
+                .setName('save')
+                .setDescription('Save a custom message to backup (no send)')
+                .addStringOption(option =>
+                    option
+                        .setName('title')
+                        .setDescription('Message title/name')
+                        .setRequired(true))
+                .addStringOption(option =>
+                    option
+                        .setName('content')
+                        .setDescription('Message content (plain text or JSON)')
+                        .setRequired(true)))
+        .addSubcommand(subcommand =>
+            subcommand
                 .setName('list')
                 .setDescription('View all saved custom messages (mod only)'))
         .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageGuild)
@@ -1466,6 +1480,34 @@ client.on(Events.InteractionCreate, async interaction => {
     // Custom Message Command - Send or list custom Component V2 messages
     if (commandName === 'custommessage') {
         const subcommand = interaction.options.getSubcommand();
+
+        if (subcommand === 'save') {
+            const title = interaction.options.getString('title');
+            const content = interaction.options.getString('content');
+
+            // Check if title already exists
+            if (data.customMessages[guildId]?.some(m => m.title === title)) {
+                const errorText = `### Failed\n\nMessage title "${title}" already exists.`;
+                const errorDisplay = new TextDisplayBuilder().setContent(errorText);
+                const errorContainer = new ContainerBuilder().addTextDisplayComponents(errorDisplay);
+                return interaction.reply({ content: ' ', components: [errorContainer], flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral });
+            }
+
+            // Save to backup
+            data.customMessages[guildId] = data.customMessages[guildId] || [];
+            data.customMessages[guildId].push({
+                id: `msg_${Date.now()}`,
+                title: title,
+                content: content,
+                created: new Date().toISOString()
+            });
+            fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
+
+            const successText = `### Saved\n\n✅ Message "${title}" saved to backup.\n\nUse in auto-responses with: \`select_from_backup: "${title}"\``;
+            const successDisplay = new TextDisplayBuilder().setContent(successText);
+            const successContainer = new ContainerBuilder().addTextDisplayComponents(successDisplay);
+            return interaction.reply({ content: ' ', components: [successContainer], flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral });
+        }
 
         if (subcommand === 'send') {
             const title = interaction.options.getString('title');
