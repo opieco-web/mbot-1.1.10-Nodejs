@@ -29,15 +29,15 @@
     ]
   },
   "status": {
-    "text": null,
-    "activityName": "H",
-    "type": null,
+    "text": "GTA",
+    "activityName": "VI",
+    "type": "Playing",
     "streamUrl": null,
-    "emoji": null,
-    "presence": "online",
-    "autoReload": false,
+    "emoji": "🚫",
+    "presence": "dnd",
+    "autoReload": true,
     "lastUpdatedBy": "1065350468928290828",
-    "lastUpdatedAt": "2025-11-22T07:12:44.094Z"
+    "lastUpdatedAt": "2025-11-22T07:21:23.383Z"
   },
   "welcome": {
     "1296783492989980682": {
@@ -50,6 +50,10 @@
     "1054967242497982476": {
       "reason": "😦🫶",
       "timestamp": 1763734032710
+    },
+    "1108782022543032400": {
+      "reason": "People need you to fulfill their needs",
+      "timestamp": 1763796106446
     }
   },
   "nicknameFilter": [

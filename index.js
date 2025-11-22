@@ -188,13 +188,8 @@ const commands = [
                 ))
         .addStringOption(option =>
             option
-                .setName('text')
-                .setDescription('Status text (e.g., "the game") - use with set action')
-                .setRequired(false))
-        .addStringOption(option =>
-            option
-                .setName('activity_name')
-                .setDescription('Activity name (e.g., "Minecraft") - use with set action')
+                .setName('activity_text')
+                .setDescription('Activity text (e.g., "Minecraft" or "Netflix") - use with set action')
                 .setRequired(false))
         .addStringOption(option =>
             option
@@ -750,8 +745,7 @@ client.on(Events.InteractionCreate, async interaction => {
         const action = interaction.options.getString('action');
 
         if (action === 'set') {
-            const text = interaction.options.getString('text');
-            const activityName = interaction.options.getString('activity_name');
+            const activityText = interaction.options.getString('activity_text');
             const activityType = interaction.options.getString('activity_type');
             const streamUrl = interaction.options.getString('stream_url');
             const emoji = interaction.options.getString('emoji');
@@ -765,8 +759,7 @@ client.on(Events.InteractionCreate, async interaction => {
                 }
             }
 
-            data.status.text = text || null;
-            data.status.activityName = activityName || null;
+            data.status.text = activityText || null;
             data.status.type = activityType || null;
             data.status.streamUrl = streamUrl || null;
             data.status.emoji = emoji || null;
@@ -780,8 +773,7 @@ client.on(Events.InteractionCreate, async interaction => {
 
             const parts = [];
             if (activityType) parts.push(`**${activityType}**`);
-            if (activityName) parts.push(`"${activityName}"`);
-            if (text) parts.push(`${text}`);
+            if (activityText) parts.push(`${activityText}`);
             if (emoji) parts.push(`${emoji}`);
             if (onlineStatus) parts.push(`Status: ${onlineStatus}`);
 
@@ -806,8 +798,7 @@ client.on(Events.InteractionCreate, async interaction => {
                 statusEmbed.setDescription('No custom status configured. Using default settings.');
             } else {
                 if (data.status.type) statusEmbed.addFields({ name: 'Activity Type', value: data.status.type, inline: true });
-                if (data.status.activityName) statusEmbed.addFields({ name: 'Activity Name', value: data.status.activityName, inline: true });
-                if (data.status.text) statusEmbed.addFields({ name: 'Status Text', value: data.status.text, inline: true });
+                if (data.status.text) statusEmbed.addFields({ name: 'Activity Text', value: data.status.text, inline: true });
                 if (data.status.emoji) statusEmbed.addFields({ name: 'Emoji', value: data.status.emoji, inline: true });
                 if (data.status.type === 'Streaming' && data.status.streamUrl) {
                     statusEmbed.addFields({ name: 'Stream URL', value: data.status.streamUrl, inline: false });
