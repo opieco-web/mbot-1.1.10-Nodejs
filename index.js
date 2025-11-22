@@ -1847,34 +1847,28 @@ client.on(Events.MessageCreate, async msg => {
     const nickname = msg.content.trim();
     if (nickname.toLowerCase() === 'reset') {
         await msg.member.setNickname(null);
-        const resetText = `## <:Correct:1440296238305116223> Nickname Reset\n\nYour nickname has been reset to default.`;
-        const textDisplay = new TextDisplayBuilder().setContent(resetText);
-        const container = new ContainerBuilder().addTextDisplayComponents(textDisplay);
-        await msg.reply({ content: ' ', components: [container], flags: MessageFlags.IsComponentsV2 });
+        await msg.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '### <:Correct:1440296238305116223> Reset' }, { type: 14, spacing: 1 }, { type: 10, content: 'Your nickname has been reset to default.' }] }], flags: 32768 });
         return;
     }
 
     if (data.nickname.mode === 'auto') {
         const bannedWord = containsBannedWord(nickname);
         if (bannedWord) {
-            await msg.reply({ content: `<:Bin:1441777857205637254> Cannot set "**${bannedWord}**" in nickname.`, flags: MessageFlags.Ephemeral });
+            await msg.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '### <:Bin:1441777857205637254> Cannot Set' }, { type: 14, spacing: 1 }, { type: 10, content: `Word "**${bannedWord}**" is not allowed.` }] }], flags: 32768 });
             return;
         }
 
         try {
             const before = msg.member.nickname || msg.member.displayName;
             await msg.member.setNickname(nickname);
-            await msg.reply({ content: `<:Correct:1440296238305116223> Nickname changed to **${nickname}**!`, flags: MessageFlags.Ephemeral }).catch(() => {});
+            await msg.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '### <:Correct:1440296238305116223> Changed' }, { type: 14, spacing: 1 }, { type: 10, content: `Your nickname is now **${nickname}**!` }] }], flags: 32768 }).catch(() => {});
         } catch {
-            const failedText = `## <:warning:1441531830607151195> Failed\n\nCouldn't change your nickname. Please try again or contact a moderator.`;
-            const textDisplay = new TextDisplayBuilder().setContent(failedText);
-            const container = new ContainerBuilder().addTextDisplayComponents(textDisplay);
-            await msg.reply({ content: ' ', components: [container], flags: MessageFlags.IsComponentsV2 }).catch(() => {});
+            await msg.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '### <:warning:1441531830607151195> Failed' }, { type: 14, spacing: 1 }, { type: 10, content: 'Couldn\'t change your nickname. Try again or contact a moderator.' }] }], flags: 32768 }).catch(() => {});
         }
     } else if (data.nickname.mode === 'approval') {
         const bannedWord = containsBannedWord(nickname);
         if (bannedWord) {
-            await msg.reply({ content: `<:Bin:1441777857205637254> Cannot set "**${bannedWord}**" in nickname.`, flags: MessageFlags.Ephemeral });
+            await msg.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '### <:Bin:1441777857205637254> Cannot Set' }, { type: 14, spacing: 1 }, { type: 10, content: `Word "**${bannedWord}**" is not allowed.` }] }], flags: 32768 });
             return;
         }
 
