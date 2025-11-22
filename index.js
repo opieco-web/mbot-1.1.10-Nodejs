@@ -1763,12 +1763,12 @@ client.on(Events.MessageCreate, async msg => {
         }
 
         // Fun command: Choose
-        if (cmd === 'choose') {
-            const parts = msg.content.substring(7).trim();
+        if (cmd === 'cos') {
+            const parts = msg.content.substring(5).trim();
             const [optionA, optionB] = parts.split(',').map(p => p.trim());
             
             if (!optionA || !optionB) {
-                const warnMsg = await msg.reply({ content: '⚠️ Format: `!choose <option A> , <option B>`', flags: MessageFlags.Ephemeral });
+                const warnMsg = await msg.reply({ content: '⚠️ Format: `!cos <option A> , <option B>`', flags: MessageFlags.Ephemeral });
                 setTimeout(() => warnMsg.delete().catch(() => {}), 5000);
                 return;
             }
