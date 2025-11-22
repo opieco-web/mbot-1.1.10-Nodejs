@@ -302,48 +302,52 @@ data.nicknameFilter = data.nicknameFilter || []; // [ word, word, ... ]
 // HELPER: Create Component V2 format for avatar display
 // mode: 'both' (default), 'server_only', 'default_only'
 function createAvatarComponent(username, defaultAvatarUrl, serverAvatarUrl = null, mode = 'both') {
-    const gallery = new MediaGalleryBuilder();
     let title = '';
+    const items = [];
     
     if (mode === 'server_only') {
-        gallery.addItems(
-            new MediaGalleryItemBuilder()
-                .setURL(serverAvatarUrl)
-                .setDescription(`${username}'s Server Avatar`)
-        );
+        items.push({
+            media: { url: serverAvatarUrl },
+            description: `${username}'s Server Avatar`
+        });
         title = `${username}'s Server Avatar`;
     } else if (mode === 'default_only') {
-        gallery.addItems(
-            new MediaGalleryItemBuilder()
-                .setURL(defaultAvatarUrl)
-                .setDescription(`${username}'s Discord Avatar`)
-        );
+        items.push({
+            media: { url: defaultAvatarUrl },
+            description: `${username}'s Discord Avatar`
+        });
         title = `${username}'s Discord Avatar`;
     } else {
         // Show both
         if (serverAvatarUrl) {
-            gallery.addItems(
-                new MediaGalleryItemBuilder()
-                    .setURL(serverAvatarUrl)
-                    .setDescription(`${username}'s Server Avatar`)
-            );
+            items.push({
+                media: { url: serverAvatarUrl },
+                description: `${username}'s Server Avatar`
+            });
         }
-        gallery.addItems(
-            new MediaGalleryItemBuilder()
-                .setURL(defaultAvatarUrl)
-                .setDescription(`${username}'s Discord Avatar`)
-        );
+        items.push({
+            media: { url: defaultAvatarUrl },
+            description: `${username}'s Discord Avatar`
+        });
         title = `${username}'s Avatar${serverAvatarUrl ? 's' : ''}`;
     }
     
-    const container = new ContainerBuilder()
-        .addTextDisplayComponents(
-            new TextDisplayBuilder().setContent(`## ${title}`)
-        )
-        .addMediaGalleryComponents(gallery);
-    
     return {
-        components: [container],
+        components: [
+            {
+                type: 27,
+                components: [
+                    {
+                        type: 26,
+                        content: `## ${title}`
+                    },
+                    {
+                        type: 12,
+                        items: items
+                    }
+                ]
+            }
+        ],
         flags: MessageFlags.IsComponentsV2
     };
 }
