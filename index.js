@@ -1789,11 +1789,7 @@ client.on(Events.MessageCreate, async msg => {
             const responseTime = Date.now() - msg.createdTimestamp;
             const uptime = formatUptime(startTime);
             
-            const embed = new EmbedBuilder()
-                .setDescription(`📡 Pong!\nWebSocket: ${wsLatency}ms\nHosting Delay: ${wsLatency}ms\nResponse: ${responseTime}ms\nUptime: ${uptime}`)
-                .setColor(0x37373D);
-            
-            return msg.reply({ embeds: [embed] });
+            return msg.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## 📡 Pong' }, { type: 14, spacing: 1 }, { type: 10, content: `WebSocket: ${wsLatency}ms\nHosting Delay: ${wsLatency}ms\nResponse: ${responseTime}ms\nUptime: ${uptime}` }] }], flags: 32768 });
         }
     }
 
