@@ -358,6 +358,16 @@ const commands = [
                 .setName('content')
                 .setDescription('Message content (optional)')
                 .setRequired(false))
+        .addBooleanOption(option =>
+            option
+                .setName('thumbnail')
+                .setDescription('Add a thumbnail image to the message (true/false)')
+                .setRequired(false))
+        .addStringOption(option =>
+            option
+                .setName('thumbnail_url')
+                .setDescription('Image URL for thumbnail (required if thumbnail is true)')
+                .setRequired(false))
         .addChannelOption(option =>
             option
                 .setName('channel')
@@ -1281,7 +1291,17 @@ client.on(Events.InteractionCreate, async interaction => {
     if (commandName === 'send') {
         const title = interaction.options.getString('title');
         const content = interaction.options.getString('content');
+        const hasThumbnail = interaction.options.getBoolean('thumbnail');
+        const thumbnailUrl = interaction.options.getString('thumbnail_url');
         const targetChannel = interaction.options.getChannel('channel') || interaction.channel;
+
+        // Validate thumbnail option
+        if (hasThumbnail && !thumbnailUrl) {
+            return interaction.reply({
+                content: `❌ If thumbnail is true, you must provide a thumbnail_url`,
+                flags: MessageFlags.Ephemeral
+            });
+        }
 
         try {
             // Build Component V2 structure with exact format
@@ -1300,6 +1320,14 @@ client.on(Events.InteractionCreate, async interaction => {
                     type: 10,
                     content: content
                 });
+            }
+
+            // Add thumbnail if enabled
+            if (hasThumbnail && thumbnailUrl) {
+                const thumbnailItem = new MediaGalleryItemBuilder()
+                    .setURL(thumbnailUrl);
+                const gallery = new MediaGalleryBuilder().addItems(thumbnailItem);
+                components.push(gallery);
             }
 
             const payload = {
