@@ -301,10 +301,27 @@ data.nicknameFilter = data.nicknameFilter || []; // [ word, word, ... ]
 
 // HELPER: Create Component V2 format for avatar display
 function createAvatarComponent(username, defaultAvatarUrl, serverAvatarUrl = null) {
-    const displayAvatar = serverAvatarUrl || defaultAvatarUrl;
+    const items = [];
+    
+    // Add server avatar first if available
+    if (serverAvatarUrl) {
+        items.push({
+            media: {
+                url: serverAvatarUrl
+            }
+        });
+    }
+    
+    // Add default avatar
+    items.push({
+        media: {
+            url: defaultAvatarUrl
+        }
+    });
+    
     const subtitle = serverAvatarUrl 
-        ? `-# [Server Avatar](${serverAvatarUrl}) • [Default Avatar](${defaultAvatarUrl})`
-        : `-# Default Avatar`;
+        ? `-# **Server Avatar** | **Default Avatar**`
+        : `-# **Default Discord Avatar**`;
     
     return {
         flags: 32768,
@@ -314,20 +331,14 @@ function createAvatarComponent(username, defaultAvatarUrl, serverAvatarUrl = nul
                 components: [
                     {
                         type: 10,
-                        content: `## ${username} Avatar\n${subtitle}`
+                        content: `## ${username}'s Avatar\n${subtitle}`
                     },
                     {
                         type: 14
                     },
                     {
                         type: 12,
-                        items: [
-                            {
-                                media: {
-                                    url: displayAvatar
-                                }
-                            }
-                        ]
+                        items: items
                     }
                 ]
             }
@@ -663,13 +674,12 @@ client.on(Events.InteractionCreate, async interaction => {
         let guildAvatar = null;
         
         try {
-            const member = await guild.members.fetch(target.id);
+            const member = await interaction.guild.members.fetch(target.id);
             // Check for server-specific avatar
             if (member.avatar) {
                 guildAvatar = member.avatarURL({ dynamic: true, size: 1024 });
             }
         } catch (e) {
-            console.error('Error fetching member:', e);
             // User not in guild or error fetching member
         }
         
