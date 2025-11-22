@@ -589,9 +589,15 @@ client.on(Events.InteractionCreate, async interaction => {
         if (subcommand === 'reset') {
             try {
                 await member.setNickname(null);
-                return interaction.reply({ content: '<:1_yes_correct:1439893200981721140> Your nickname has been reset.', flags: MessageFlags.Ephemeral });
+                const text = '### Reset\n\nNickname reset to default.';
+                const textDisplay = new TextDisplayBuilder().setContent(text);
+                const container = new ContainerBuilder().addTextDisplayComponents(textDisplay);
+                return interaction.reply({ content: ' ', components: [container], flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral });
             } catch {
-                return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> Could not reset your nickname.', flags: MessageFlags.Ephemeral });
+                const text = '### Failed\n\nCouldn\'t reset nickname.';
+                const textDisplay = new TextDisplayBuilder().setContent(text);
+                const container = new ContainerBuilder().addTextDisplayComponents(textDisplay);
+                return interaction.reply({ content: ' ', components: [container], flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral });
             }
         }
     }
@@ -1698,12 +1704,21 @@ client.on(Events.MessageCreate, async msg => {
             if (i.customId === `approve_${msg.author.id}`) {
                 try {
                     await msg.member.setNickname(nickname);
-                    await i.update({ content: `<:1_yes_correct:1439893200981721140> ${msg.author} nickname approved: **${nickname}**`, components: [] });
+                    const approvedText = `### Approved\n\n${msg.author} nickname set to **${nickname}**`;
+                    const textDisplay = new TextDisplayBuilder().setContent(approvedText);
+                    const container = new ContainerBuilder().addTextDisplayComponents(textDisplay);
+                    await i.update({ content: ' ', components: [container], flags: MessageFlags.IsComponentsV2 });
                 } catch {
-                    await i.update({ content: '<:warning:1441531830607151195> Failed to change nickname.', components: [] });
+                    const failedText = `### Failed\n\nCouldn't change nickname.`;
+                    const textDisplay = new TextDisplayBuilder().setContent(failedText);
+                    const container = new ContainerBuilder().addTextDisplayComponents(textDisplay);
+                    await i.update({ content: ' ', components: [container], flags: MessageFlags.IsComponentsV2 });
                 }
             } else if (i.customId === `reject_${msg.author.id}`) {
-                await i.update({ content: `<:2_no_wrong:1439893245130838047> ${msg.author} nickname request rejected.`, components: [] });
+                const rejectedText = `### Rejected\n\n${msg.author} request denied.`;
+                const textDisplay = new TextDisplayBuilder().setContent(rejectedText);
+                const container = new ContainerBuilder().addTextDisplayComponents(textDisplay);
+                await i.update({ content: ' ', components: [container], flags: MessageFlags.IsComponentsV2 });
             }
             collector.stop();
         });
