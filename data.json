@@ -25,6 +25,12 @@
         "trigger": "Vanity",
         "type": "text",
         "response": "https://discord.gg/mining-bangladesh-1296783492989980682"
+      },
+      {
+        "trigger": "test",
+        "type": "text",
+        "response": "{\n  \"flags\": 32768,\n  \"components\": [\n    {\n      \"type\": 17,\n      \"components\": [\n        {\n          \"type\": 10,\n          \"content\": \"## Test 34\"\n        },\n        {\n          \"type\": 14\n        },\n        {\n          \"type\": 10,\n          \"content\": \"!av to → see your avater set in mining server \\n!av df → see your avater set in default profile \"\n        }\n      ]\n    }\n  ]\n}",
+        "isFromBackup": false
       }
     ]
   },
