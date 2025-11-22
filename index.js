@@ -710,10 +710,10 @@ client.on(Events.InteractionCreate, async interaction => {
 
         if (action === 'add') {
             if (!word)
-                return interaction.reply({ embeds: [createModeratorEmbed('<:Error:1440296241090265088> Error', 'Please provide a word to ban.', 0xFF4444)], flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:Error:1440296241090265088> Error' }, { type: 14, spacing: 1 }, { type: 10, content: 'Please provide a word to ban.' }] }], flags: 32768 | MessageFlags.Ephemeral });
 
             if (data.nickname.filter.includes(word))
-                return interaction.reply({ embeds: [createModeratorEmbed('<:Error:1440296241090265088> Error', `Word "${word}" is already banned.`, 0xFF4444)], flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:Error:1440296241090265088> Error' }, { type: 14, spacing: 1 }, { type: 10, content: `Word "**${word}**" is already banned.` }] }], flags: 32768 | MessageFlags.Ephemeral });
 
             data.nickname.filter.push(word);
             fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
@@ -722,11 +722,11 @@ client.on(Events.InteractionCreate, async interaction => {
 
         if (action === 'remove') {
             if (!word)
-                return interaction.reply({ embeds: [createModeratorEmbed('<:Error:1440296241090265088> Error', 'Please provide a word to unban.', 0xFF4444)], flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:Error:1440296241090265088> Error' }, { type: 14, spacing: 1 }, { type: 10, content: 'Please provide a word to unban.' }] }], flags: 32768 | MessageFlags.Ephemeral });
 
             const index = data.nickname.filter.indexOf(word);
             if (index === -1)
-                return interaction.reply({ embeds: [createModeratorEmbed('<:Error:1440296241090265088> Error', `No ban found for "${word}".`, 0xFF4444)], flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:Error:1440296241090265088> Error' }, { type: 14, spacing: 1 }, { type: 10, content: `No ban found for "**${word}**".` }] }], flags: 32768 | MessageFlags.Ephemeral });
 
             data.nickname.filter.splice(index, 1);
             fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
