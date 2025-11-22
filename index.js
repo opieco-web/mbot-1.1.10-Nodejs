@@ -302,38 +302,33 @@ data.nicknameFilter = data.nicknameFilter || []; // [ word, word, ... ]
 // HELPER: Create Component V2 format for avatar display
 // mode: 'both' (default), 'server_only', 'default_only'
 function createAvatarComponent(username, defaultAvatarUrl, serverAvatarUrl = null, mode = 'both') {
-    const items = [];
+    const galleryComponent = {
+        type: 12
+    };
     let subtitle = '';
     
     if (mode === 'server_only') {
         // Show only server avatar
-        items.push({
-            media: {
-                url: serverAvatarUrl
-            }
-        });
+        galleryComponent.media = [{
+            url: serverAvatarUrl
+        }];
         subtitle = `-# **Server Avatar**`;
     } else if (mode === 'default_only') {
         // Show only default avatar
-        items.push({
-            media: {
-                url: defaultAvatarUrl
-            }
-        });
+        galleryComponent.media = [{
+            url: defaultAvatarUrl
+        }];
         subtitle = `-# **Discord Default Avatar**`;
     } else {
         // Show both (mode === 'both')
+        galleryComponent.media = [];
         if (serverAvatarUrl) {
-            items.push({
-                media: {
-                    url: serverAvatarUrl
-                }
+            galleryComponent.media.push({
+                url: serverAvatarUrl
             });
         }
-        items.push({
-            media: {
-                url: defaultAvatarUrl
-            }
+        galleryComponent.media.push({
+            url: defaultAvatarUrl
         });
         subtitle = serverAvatarUrl 
             ? `-# **Server Avatar** | **Default Avatar**`
@@ -353,10 +348,7 @@ function createAvatarComponent(username, defaultAvatarUrl, serverAvatarUrl = nul
                     {
                         type: 14
                     },
-                    {
-                        type: 12,
-                        items: items
-                    }
+                    galleryComponent
                 ]
             }
         ]
