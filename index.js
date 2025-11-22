@@ -787,12 +787,53 @@ client.on(Events.InteractionCreate, async interaction => {
         return interaction.reply({ content: `<:mg_question:1439893408041930894> Current prefix is: ${prefix}`, flags: MessageFlags.Ephemeral });
     }
 
-    if (commandName === 'ping') {
+    if (commandName === 'botinfo') {
+        const botName = client.user.username;
+        const botVersion = '4.2.6';
+        const botDescription = 'Nickname bot with server-specific prefix, AFK system, avatar view, fun commands, and auto-response moderation features';
+        const prefix = getPrefix(guildId);
         const wsLatency = client.ws.ping;
         const responseTime = Date.now() - interaction.createdTimestamp;
         const uptime = formatUptime(startTime);
+        const botAvatar = client.user.displayAvatarURL({ dynamic: true, size: 1024 });
         
-        return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## 📡 Ping' }, { type: 14, spacing: 1 }, { type: 10, content: `WebSocket: ${wsLatency}ms\nHosting Delay: ${wsLatency}ms\nResponse: ${responseTime}ms\nUptime: ${uptime}` }] }], flags: 32768 | MessageFlags.Ephemeral });
+        const infoText = `**${botDescription}**\n\n**Prefix:** \`${prefix}\`\n**Ping:** ${wsLatency}ms\n**Response Time:** ${responseTime}ms\n**Uptime:** ${uptime}\n**Total Commands:** 15+`;
+        
+        const payload = {
+            content: ' ',
+            components: [
+                {
+                    type: 17,
+                    components: [
+                        {
+                            type: 10,
+                            content: `## ${botName}│v${botVersion}`
+                        },
+                        {
+                            type: 14
+                        },
+                        {
+                            type: 9,
+                            components: [
+                                {
+                                    type: 10,
+                                    content: infoText
+                                }
+                            ],
+                            accessory: {
+                                type: 11,
+                                media: {
+                                    url: botAvatar
+                                }
+                            }
+                        }
+                    ]
+                }
+            ],
+            flags: 32768 | MessageFlags.Ephemeral
+        };
+        
+        return interaction.reply(payload);
     }
 
     if (commandName === 'afk') {
