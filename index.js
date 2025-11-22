@@ -672,15 +672,19 @@ client.on(Events.InteractionCreate, async interaction => {
         const target = interaction.options.getUser('user') || user;
         const showServerOnly = interaction.options.getBoolean('server');
         let guildAvatar = null;
+        let displayName = target.displayName;
         
         try {
             const member = await interaction.guild.members.fetch(target.id);
+            // Get server nickname if available, otherwise use display name
+            displayName = member.nickname || member.displayName || target.displayName;
             // Check for server-specific avatar
             if (member.avatar) {
                 guildAvatar = member.avatarURL({ dynamic: true, size: 1024 });
             }
         } catch (e) {
             // User not in guild or error fetching member
+            displayName = target.displayName;
         }
         
         const defaultAvatar = target.displayAvatarURL({ dynamic: true, size: 1024 });
@@ -689,16 +693,16 @@ client.on(Events.InteractionCreate, async interaction => {
         if (showServerOnly === true) {
             // Show server avatar only
             if (guildAvatar) {
-                response = createAvatarComponent(target.username, defaultAvatar, guildAvatar);
+                response = createAvatarComponent(displayName, defaultAvatar, guildAvatar);
             } else {
                 response = { content: '<:2_no_wrong:1439893245130838047> This user has no server-specific avatar set.', flags: MessageFlags.Ephemeral };
             }
         } else if (showServerOnly === false) {
             // Show default avatar only
-            response = createAvatarComponent(target.username, defaultAvatar, null);
+            response = createAvatarComponent(displayName, defaultAvatar, null);
         } else {
             // Show both (server if available, default always)
-            response = createAvatarComponent(target.username, defaultAvatar, guildAvatar);
+            response = createAvatarComponent(displayName, defaultAvatar, guildAvatar);
         }
         
         return interaction.reply(response);
@@ -994,6 +998,7 @@ client.on(Events.MessageCreate, async msg => {
             let targetUser = msg.author;
             let showServerOnly = false;
             let hasMention = false;
+            let displayName = msg.author.displayName;
             
             // Check if user mentioned
             if (msg.mentions.users.size > 0) {
@@ -1010,11 +1015,14 @@ client.on(Events.MessageCreate, async msg => {
             let guildAvatar = null;
             try {
                 const member = await msg.guild.members.fetch(targetUser.id);
+                // Get server nickname if available, otherwise use display name
+                displayName = member.nickname || member.displayName || targetUser.displayName;
                 if (member.avatar) {
                     guildAvatar = member.avatarURL({ dynamic: true, size: 1024 });
                 }
             } catch (e) {
-                // User not in guild
+                // User not in guild, use default display name
+                displayName = targetUser.displayName;
             }
             
             const defaultAvatar = targetUser.displayAvatarURL({ dynamic: true, size: 1024 });
@@ -1023,7 +1031,7 @@ client.on(Events.MessageCreate, async msg => {
                 return msg.reply('<:2_no_wrong:1439893245130838047> This user has no server-specific avatar.');
             }
             
-            const response = createAvatarComponent(targetUser.username, defaultAvatar, showServerOnly ? guildAvatar : null);
+            const response = createAvatarComponent(displayName, defaultAvatar, showServerOnly ? guildAvatar : null);
             return msg.reply(response);
         }
 
