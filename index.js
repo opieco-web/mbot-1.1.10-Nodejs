@@ -29,16 +29,16 @@ const commands = [
     // Nickname commands
     new SlashCommandBuilder()
         .setName('nickname')
-        .setDescription('Manage nickname system')
+        .setDescription('Manage nickname requests: /nickname setup #channel Auto/Approved OR /nickname reset')
         .addSubcommand(subcommand =>
             subcommand
                 .setName('setup')
-                .setDescription('Setup nickname system channel and mode')
+                .setDescription('Setup: Choose channel for nickname requests & approve mode (Auto approves instantly, Approved requires manual approval)')
                 .addChannelOption(option => option.setName('channel').setDescription('Nickname request channel').setRequired(true))
                 .addStringOption(option =>
                     option
                         .setName('mode')
-                        .setDescription('Approval mode')
+                        .setDescription('Auto = instant approval, Approved = manual approval via buttons')
                         .setRequired(true)
                         .addChoices(
                             { name: 'Auto', value: 'auto' },
@@ -47,15 +47,15 @@ const commands = [
         .addSubcommand(subcommand =>
             subcommand
                 .setName('reset')
-                .setDescription('Reset your nickname')),
+                .setDescription('Reset your nickname back to your username')),
 
     new SlashCommandBuilder()
         .setName('nicknamefilter')
-        .setDescription('Manage banned words for nicknames (moderator only)')
+        .setDescription('Ban words from nicknames: add/remove/list banned words (moderator only)')
         .addStringOption(option =>
             option
                 .setName('action')
-                .setDescription('add, remove, or list')
+                .setDescription('add = ban a word, remove = unban a word, list = show all banned words')
                 .setRequired(true)
                 .addChoices(
                     { name: 'add', value: 'add' },
@@ -65,49 +65,49 @@ const commands = [
         .addStringOption(option =>
             option
                 .setName('word')
-                .setDescription('Word to ban/unban (not needed for list)')
+                .setDescription('Word to ban or unban (not needed for list action)')
                 .setRequired(false))
         .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageNicknames),
 
     // Prefix / AFK / Avatar commands
     new SlashCommandBuilder()
         .setName('setprefix')
-        .setDescription('Set a new prefix (admin only)')
-        .addStringOption(option => option.setName('prefix').setDescription('New prefix').setRequired(true))
+        .setDescription('Change server prefix: /setprefix ! or /setprefix $ (admin only)')
+        .addStringOption(option => option.setName('prefix').setDescription('New prefix character(s)').setRequired(true))
         .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageGuild),
 
     new SlashCommandBuilder()
         .setName('prefix')
-        .setDescription('Show current prefix'),
+        .setDescription('Show the current server prefix for prefix commands'),
 
     new SlashCommandBuilder()
         .setName('afk')
-        .setDescription('Set your AFK status')
-        .addStringOption(option => option.setName('note').setDescription('AFK note').setRequired(false)),
+        .setDescription('Set AFK status: /afk optional reason - appear AFK and notify those who mention you')
+        .addStringOption(option => option.setName('note').setDescription('Reason for being AFK (optional)').setRequired(false)),
 
     new SlashCommandBuilder()
         .setName('afklist')
-        .setDescription('View who is currently AFK (moderator only)')
+        .setDescription('View all AFK users: shows who is AFK and their reason (moderator only)')
         .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageGuild),
 
     new SlashCommandBuilder()
         .setName('avatar')
-        .setDescription('Show avatar')
-        .addUserOption(option => option.setName('user').setDescription('User to show').setRequired(false)),
+        .setDescription('View avatar: /avatar alone for your avatar, /avatar @user for theirs')
+        .addUserOption(option => option.setName('user').setDescription('User to show avatar for (optional)').setRequired(false)),
 
     // Fun commands
     new SlashCommandBuilder()
         .setName('truthordare')
-        .setDescription('Pick a Truth or Dare'),
+        .setDescription('Play Truth or Dare: get a random truth question or dare challenge'),
 
     // Moderation: Auto response
     new SlashCommandBuilder()
         .setName('autoresponse')
-        .setDescription('Manage auto responses (mod only)')
+        .setDescription('Auto-respond to triggers: add word triggers → text/emoji responses, remove triggers, or list all (mod only)')
         .addStringOption(option =>
             option
                 .setName('action')
-                .setDescription('Action to perform')
+                .setDescription('add = create trigger, remove = delete trigger, list = show all triggers')
                 .setRequired(true)
                 .addChoices(
                     { name: 'add', value: 'add' },
@@ -117,12 +117,12 @@ const commands = [
         .addStringOption(option =>
             option
                 .setName('trigger')
-                .setDescription('Trigger word (required for add/remove)')
+                .setDescription('Trigger word (required for add/remove, e.g., "hello")')
                 .setRequired(false))
         .addStringOption(option =>
             option
                 .setName('type')
-                .setDescription('Response type (required for add)')
+                .setDescription('Response type: text = reply message, emoji = react with emoji (required for add)')
                 .setRequired(false)
                 .addChoices(
                     { name: 'text', value: 'text' },
@@ -131,55 +131,55 @@ const commands = [
         .addStringOption(option =>
             option
                 .setName('response')
-                .setDescription('Response text or emoji (optional for add)')
+                .setDescription('Response message or emoji (required for add)')
                 .setRequired(false))
         .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageMessages),
 
     // Fun: Coin Flip
     new SlashCommandBuilder()
         .setName('coinflip')
-        .setDescription('Flip a coin - Heads or Tails'),
+        .setDescription('Flip a coin: get random Heads or Tails result'),
 
     // Welcome System
     new SlashCommandBuilder()
         .setName('welcome')
-        .setDescription('Manage welcome messages (moderator only)')
+        .setDescription('Manage welcome messages: /welcome enable #channel 5s true OR /welcome disable (mod only)')
         .addSubcommand(subcommand =>
             subcommand
                 .setName('enable')
-                .setDescription('Enable welcome messages')
+                .setDescription('Enable: Pick channel, optional delay (5s/10s/1m/1h, default 120s), optionally view 100 welcome messages')
                 .addChannelOption(option =>
                     option.setName('setchannel')
-                        .setDescription('Channel for welcome messages')
+                        .setDescription('Channel where welcome messages are sent to new members')
                         .setRequired(true))
                 .addStringOption(option =>
                     option.setName('delaytime')
-                        .setDescription('Delay before sending (e.g., 5s, 10s, 1m, 1h) - default 120s')
+                        .setDescription('Delay before sending welcome (e.g., 5s, 10s, 1m, 1h) - default is 120s')
                         .setRequired(false))
                 .addBooleanOption(option =>
                     option.setName('list')
-                        .setDescription('Show all welcome messages')
+                        .setDescription('Show sample of welcome messages available (yes/no)')
                         .setRequired(false)))
         .addSubcommand(subcommand =>
             subcommand
                 .setName('disable')
-                .setDescription('Disable welcome messages'))
+                .setDescription('Disable welcome messages - new members won\'t receive greetings'))
         .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageGuild),
 
     // Ping command
     new SlashCommandBuilder()
         .setName('ping')
-        .setDescription('Show bot status and uptime (moderator only)')
+        .setDescription('Check bot health: shows WebSocket latency, hosting delay, response time, and uptime (mod only)')
         .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageGuild),
 
     // Status Management
     new SlashCommandBuilder()
         .setName('bot')
-        .setDescription('Manage bot status and activity (moderator only)')
+        .setDescription('Manage bot status: /bot set [options] OR /bot reset OR /bot view (mod only)')
         .addStringOption(option =>
             option
                 .setName('action')
-                .setDescription('Action to perform')
+                .setDescription('set = customize bot presence, reset = default status, view = show current status')
                 .setRequired(true)
                 .addChoices(
                     { name: 'set', value: 'set' },
@@ -189,17 +189,17 @@ const commands = [
         .addStringOption(option =>
             option
                 .setName('text')
-                .setDescription('Custom status text (for set action)')
+                .setDescription('Status text (e.g., "the game") - use with set action')
                 .setRequired(false))
         .addStringOption(option =>
             option
                 .setName('activity_name')
-                .setDescription('Activity name (for set action)')
+                .setDescription('Activity name (e.g., "Minecraft") - use with set action')
                 .setRequired(false))
         .addStringOption(option =>
             option
                 .setName('activity_type')
-                .setDescription('Activity type (for set action)')
+                .setDescription('What the bot is doing: Playing/Watching/Listening/Competing/Streaming - use with set action')
                 .setRequired(false)
                 .addChoices(
                     { name: 'Playing', value: 'Playing' },
@@ -211,17 +211,17 @@ const commands = [
         .addStringOption(option =>
             option
                 .setName('stream_url')
-                .setDescription('Twitch/YouTube URL (only for Streaming type)')
+                .setDescription('Twitch or YouTube URL (only for Streaming activity type)')
                 .setRequired(false))
         .addStringOption(option =>
             option
                 .setName('emoji')
-                .setDescription('Optional emoji (for set action)')
+                .setDescription('Emoji to add before status text (optional, e.g., 🎮) - use with set action')
                 .setRequired(false))
         .addStringOption(option =>
             option
                 .setName('online_status')
-                .setDescription('Online status (for set action)')
+                .setDescription('Bot visibility: Online/Idle/Do Not Disturb/Invisible - use with set action')
                 .setRequired(false)
                 .addChoices(
                     { name: 'Online', value: 'online' },
@@ -232,7 +232,7 @@ const commands = [
         .addBooleanOption(option =>
             option
                 .setName('auto_reload')
-                .setDescription('Auto reload status after restart (for set action)')
+                .setDescription('Keep this status after bot restarts (yes/no) - use with set action')
                 .setRequired(false))
         .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageGuild)
 ].map(cmd => cmd.toJSON());

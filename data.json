@@ -29,13 +29,15 @@
     ]
   },
   "status": {
-    "type": "Competing",
-    "text": "m•bot - v3.1.7",
-    "emoji": "🎀",
+    "text": null,
+    "activityName": "H",
+    "type": null,
     "streamUrl": null,
+    "emoji": null,
+    "presence": "online",
+    "autoReload": false,
     "lastUpdatedBy": "1065350468928290828",
-    "lastUpdatedAt": "2025-11-21T19:10:40.950Z",
-    "presence": "idle"
+    "lastUpdatedAt": "2025-11-22T07:12:44.094Z"
   },
   "welcome": {
     "1296783492989980682": {
