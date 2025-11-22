@@ -292,12 +292,33 @@ client.once(Events.ClientReady, () => {
 // ------------------------
 const defaultPrefix = '!';
 let afkUsers = {}; // { userId: { reason: string, timestamp: number } }
+const commandCooldowns = new Map(); // { userId: { commandName: timestamp } }
 data.prefixes = data.prefixes || {}; // { guildId: prefix }
 data.autoresponses = data.autoresponses || {}; // { guildId: [{trigger, type, response}] }
 data.status = data.status || {}; // { type, text, emoji, streamUrl, presence, lastUpdatedBy, lastUpdatedAt }
 data.welcome = data.welcome || {}; // { guildId: { channelId, delay, enabled } }
 data.afk = data.afk || {}; // { userId: { reason: string, timestamp: number } }
 data.nicknameFilter = data.nicknameFilter || []; // [ word, word, ... ]
+
+// HELPER: Check cooldown and warn user
+function checkAndWarnCooldown(userId, commandName, cooldownMs = 5000) {
+    const now = Date.now();
+    if (!commandCooldowns.has(userId)) {
+        commandCooldowns.set(userId, {});
+    }
+    
+    const userCooldowns = commandCooldowns.get(userId);
+    const lastUsed = userCooldowns[commandName];
+    
+    if (lastUsed && (now - lastUsed) < cooldownMs) {
+        const remainingMs = cooldownMs - (now - lastUsed);
+        const remainingSecs = Math.ceil(remainingMs / 1000);
+        return remainingSecs;
+    }
+    
+    userCooldowns[commandName] = now;
+    return 0;
+}
 
 // HELPER: Create Component V2 format for avatar display
 // mode: 'both' (default), 'server_only', 'default_only'
@@ -735,39 +756,117 @@ client.on(Events.InteractionCreate, async interaction => {
     // FUN COMMAND: Truth or Dare
     // ------------------------
     if (commandName === 'truthordare') {
+        const cooldownRemaining = checkAndWarnCooldown(user.id, 'truthordare', 5000);
+        if (cooldownRemaining > 0) {
+            return interaction.reply({ content: `⏳ Slow down! You can use this command again in **${cooldownRemaining}s**.`, flags: MessageFlags.Ephemeral });
+        }
+
         const truths = [
-            "What's your biggest fear?",
-            "Have you ever lied to your best friend?",
-            "What's your secret hobby?",
-            "What's the most embarrassing thing you've done?",
-            "Who was your first crush?",
-            "What's a secret you've never told anyone?",
-            "Have you ever cheated on a test?",
-            "What's your biggest regret?",
-            "What's the worst gift you've ever received?",
-            "Have you ever ghosted someone?",
-            "What's something you're glad your parents don't know about?",
-            "What's your most unpopular opinion?",
-            "Have you ever pretended to be sick to skip school or work?",
-            "What's the longest you've gone without showering?",
-            "What's a weird habit you have?"
+            "What's your favorite thing about your best friend?",
+            "If you could have any superpower, what would it be?",
+            "What's your favorite memory from this year?",
+            "What makes you laugh the most?",
+            "What's your biggest dream?",
+            "If you could travel anywhere, where would you go?",
+            "What's something new you learned recently?",
+            "What's your favorite movie or show?",
+            "What's your favorite food?",
+            "What would you do with a million dollars?",
+            "What's the nicest thing someone has done for you?",
+            "What talent would you like to have?",
+            "What's your favorite sport or activity?",
+            "If you could meet anyone, who would it be?",
+            "What makes you feel happy?",
+            "What's your favorite animal?",
+            "What's the best advice you've ever received?",
+            "What do you want to be when you grow up?",
+            "What's your favorite book or book series?",
+            "What would be your ideal weekend?",
+            "What's something you're really good at?",
+            "If you could have any pet, what would it be?",
+            "What's your favorite game to play?",
+            "What's the funniest thing that happened to you?",
+            "What's your favorite subject in school?",
+            "If you could learn anything, what would it be?",
+            "What's your favorite holiday and why?",
+            "What makes you feel proud?",
+            "What's your favorite way to spend time with friends?",
+            "What's the coolest thing you've seen?",
+            "What's your favorite season and why?",
+            "What kind of music do you like?",
+            "What's something you want to improve about yourself?",
+            "What's your favorite childhood memory?",
+            "What would your ideal birthday be?",
+            "What's the best compliment you've received?",
+            "What's your favorite emoji and why?",
+            "What's something that makes you feel calm?",
+            "What's your favorite day of the week and why?",
+            "What's something you're curious about?",
+            "What would be your perfect dinner?",
+            "What's your favorite way to exercise?",
+            "What's the most interesting thing about you?",
+            "What's your favorite meme or joke?",
+            "What's something you want to learn?",
+            "If you could be any character, who would it be?",
+            "What's your favorite YouTube channel or creator?",
+            "What's something that always cheers you up?",
+            "What's your favorite board game or card game?",
+            "What's something you're thankful for?",
+            "What's your biggest accomplishment?",
+            "What's the most interesting place you've been?"
         ];
         const dares = [
-            "Do 10 push-ups.",
-            "Sing a song loudly.",
-            "Post a funny selfie.",
-            "Send a voice message singing the alphabet.",
-            "Change your nickname to something embarrassing for 1 hour.",
-            "React to the last 5 messages with random emojis.",
-            "Share the last photo in your camera roll.",
+            "Do 10 jumping jacks right now.",
+            "Sing your favorite song.",
+            "Draw a picture of your friend.",
+            "Do a funny dance move.",
+            "Tell a joke to make everyone laugh.",
+            "Speak in a silly accent for the next 5 messages.",
+            "Give someone a compliment.",
+            "Do 5 push-ups or sit-ups.",
+            "Hug someone (if safe to do so).",
+            "Make a funny face and take a selfie.",
+            "Describe your day in 3 words.",
+            "Share something embarrassing (funny) about yourself.",
+            "Show everyone your best smile.",
             "Do your best impression of a celebrity.",
-            "Type your next message with your eyes closed.",
-            "Compliment everyone online right now.",
-            "Send a message in all caps for the next 5 minutes.",
-            "Share an embarrassing story from your childhood.",
-            "Let someone else write your status for 24 hours.",
-            "Do 20 jumping jacks and post a video.",
-            "Text a random contact 'I miss you' without context."
+            "Create a TikTok or short video.",
+            "Compliment everyone in the chat.",
+            "Spin around 5 times without getting dizzy.",
+            "Act out your favorite movie scene.",
+            "Tell everyone your most unpopular opinion.",
+            "Do a handstand (or try to).",
+            "Make a silly sound that makes people laugh.",
+            "Wear something silly for the next hour.",
+            "Say something nice about everyone here.",
+            "Teach someone a cool skill you have.",
+            "Do the Floss dance.",
+            "Mimic someone in the group.",
+            "Do a funny voice for your next message.",
+            "Share your most recent selfie.",
+            "Give the best high-five ever.",
+            "Do a cool magic trick or illusion.",
+            "Make the silliest face you can.",
+            "Draw something amazing in 2 minutes.",
+            "Sing a line from a popular song.",
+            "Do a cartwheel or somersault.",
+            "Tell a scary story.",
+            "Do your best YouTuber intro.",
+            "Create a funny meme.",
+            "Do your best superhero pose.",
+            "Tell three compliments to different people.",
+            "Do a battle rap verse.",
+            "Show off your talent.",
+            "Do your best game show host impression.",
+            "Create a silly TikTok dance.",
+            "Tell everyone your guilty pleasure.",
+            "Do the smoothest walk ever.",
+            "Share your most controversial food take.",
+            "Beatbox for 10 seconds.",
+            "Do your best Anime pose.",
+            "Tell a story with only one word at a time.",
+            "Do your best villain laugh.",
+            "Give the best motivational speech ever."
         ];
         const pick = Math.random() < 0.5 ? 'Truth' : 'Dare';
         const question = pick === 'Truth' ? truths[Math.floor(Math.random()*truths.length)] : dares[Math.floor(Math.random()*dares.length)];
@@ -783,6 +882,11 @@ client.on(Events.InteractionCreate, async interaction => {
     // FUN COMMAND: Coin Flip
     // ------------------------
     if (commandName === 'coinflip') {
+        const cooldownRemaining = checkAndWarnCooldown(user.id, 'coinflip', 5000);
+        if (cooldownRemaining > 0) {
+            return interaction.reply({ content: `⏳ Slow down! You can use this command again in **${cooldownRemaining}s**.`, flags: MessageFlags.Ephemeral });
+        }
+
         const result = Math.random() < 0.5 ? 'Heads' : 'Tails';
         const emoji = result === 'Heads' ? '🪙' : '<:Tails:1441153955412312134>';
         
@@ -1071,39 +1175,116 @@ client.on(Events.MessageCreate, async msg => {
 
         // Fun command: Truth or Dare
         if (cmd === 'td') {
+            const cooldownRemaining = checkAndWarnCooldown(msg.author.id, 'td', 5000);
+            if (cooldownRemaining > 0) {
+                const warnMsg = await msg.reply({ content: `⏳ Slow down! You can use this command again in **${cooldownRemaining}s**.`, flags: MessageFlags.Ephemeral });
+                setTimeout(() => warnMsg.delete().catch(() => {}), 5000);
+                return;
+            }
+
             const truths = [
-                "What's your biggest fear?",
-                "Have you ever lied to your best friend?",
-                "What's your secret hobby?",
-                "What's the most embarrassing thing you've done?",
-                "Who was your first crush?",
-                "What's a secret you've never told anyone?",
-                "Have you ever cheated on a test?",
-                "What's your biggest regret?",
-                "What's the worst gift you've ever received?",
-                "Have you ever ghosted someone?",
-                "What's something you're glad your parents don't know about?",
-                "What's your most unpopular opinion?",
-                "Have you ever pretended to be sick to skip school or work?",
-                "What's the longest you've gone without showering?",
-                "What's a weird habit you have?"
+                "What's your favorite thing about your best friend?",
+                "If you could have any superpower, what would it be?",
+                "What's your favorite memory from this year?",
+                "What makes you laugh the most?",
+                "What's your biggest dream?",
+                "If you could travel anywhere, where would you go?",
+                "What's something new you learned recently?",
+                "What's your favorite movie or show?",
+                "What's your favorite food?",
+                "What would you do with a million dollars?",
+                "What's the nicest thing someone has done for you?",
+                "What talent would you like to have?",
+                "What's your favorite sport or activity?",
+                "If you could meet anyone, who would it be?",
+                "What makes you feel happy?",
+                "What's your favorite animal?",
+                "What's the best advice you've ever received?",
+                "What do you want to be when you grow up?",
+                "What's your favorite book or book series?",
+                "What would be your ideal weekend?",
+                "What's something you're really good at?",
+                "If you could have any pet, what would it be?",
+                "What's your favorite game to play?",
+                "What's the funniest thing that happened to you?",
+                "What's your favorite subject in school?",
+                "If you could learn anything, what would it be?",
+                "What's your favorite holiday and why?",
+                "What makes you feel proud?",
+                "What's your favorite way to spend time with friends?",
+                "What's the coolest thing you've seen?",
+                "What's your favorite season and why?",
+                "What kind of music do you like?",
+                "What's something you want to improve about yourself?",
+                "What's your favorite childhood memory?",
+                "What would your ideal birthday be?",
+                "What's the best compliment you've received?",
+                "What's your favorite emoji and why?",
+                "What's something that makes you feel calm?",
+                "What's your favorite day of the week and why?",
+                "What's something you're curious about?",
+                "What would be your perfect dinner?",
+                "What's your favorite way to exercise?",
+                "What's the most interesting thing about you?",
+                "What's your favorite meme or joke?",
+                "What's something you want to learn?",
+                "If you could be any character, who would it be?",
+                "What's your favorite YouTube channel or creator?",
+                "What's something that always cheers you up?",
+                "What's your favorite board game or card game?",
+                "What's something you're thankful for?"
             ];
             const dares = [
-                "Do 10 push-ups.",
-                "Sing a song loudly.",
-                "Post a funny selfie.",
-                "Send a voice message singing the alphabet.",
-                "Change your nickname to something embarrassing for 1 hour.",
-                "React to the last 5 messages with random emojis.",
-                "Share the last photo in your camera roll.",
+                "Do 10 jumping jacks right now.",
+                "Sing your favorite song.",
+                "Draw a picture of your friend.",
+                "Do a funny dance move.",
+                "Tell a joke to make everyone laugh.",
+                "Speak in a silly accent for the next 5 messages.",
+                "Give someone a compliment.",
+                "Do 5 push-ups or sit-ups.",
+                "Hug someone (if safe to do so).",
+                "Make a funny face and take a selfie.",
+                "Describe your day in 3 words.",
+                "Share something embarrassing (funny) about yourself.",
+                "Show everyone your best smile.",
                 "Do your best impression of a celebrity.",
-                "Type your next message with your eyes closed.",
-                "Compliment everyone online right now.",
-                "Send a message in all caps for the next 5 minutes.",
-                "Share an embarrassing story from your childhood.",
-                "Let someone else write your status for 24 hours.",
-                "Do 20 jumping jacks and post a video.",
-                "Text a random contact 'I miss you' without context."
+                "Create a TikTok or short video.",
+                "Compliment everyone in the chat.",
+                "Spin around 5 times without getting dizzy.",
+                "Act out your favorite movie scene.",
+                "Tell everyone your most unpopular opinion.",
+                "Do a handstand (or try to).",
+                "Make a silly sound that makes people laugh.",
+                "Wear something silly for the next hour.",
+                "Say something nice about everyone here.",
+                "Teach someone a cool skill you have.",
+                "Do the Floss dance.",
+                "Mimic someone in the group.",
+                "Do a funny voice for your next message.",
+                "Share your most recent selfie.",
+                "Give the best high-five ever.",
+                "Do a cool magic trick or illusion.",
+                "Make the silliest face you can.",
+                "Draw something amazing in 2 minutes.",
+                "Sing a line from a popular song.",
+                "Do a cartwheel or somersault.",
+                "Tell a scary story.",
+                "Do your best YouTuber intro.",
+                "Create a funny meme.",
+                "Do your best superhero pose.",
+                "Tell three compliments to different people.",
+                "Do a battle rap verse.",
+                "Show off your talent.",
+                "Do your best game show host impression.",
+                "Create a silly TikTok dance.",
+                "Tell everyone your guilty pleasure.",
+                "Do the smoothest walk ever.",
+                "Share your most controversial food take.",
+                "Beatbox for 10 seconds.",
+                "Do your best Anime pose.",
+                "Tell a story with only one word at a time.",
+                "Do your best villain laugh."
             ];
             const pick = Math.random() < 0.5 ? 'Truth' : 'Dare';
             const question = pick === 'Truth' ? truths[Math.floor(Math.random()*truths.length)] : dares[Math.floor(Math.random()*dares.length)];
@@ -1117,6 +1298,13 @@ client.on(Events.MessageCreate, async msg => {
 
         // Fun command: Coin Flip
         if (cmd === 'cf') {
+            const cooldownRemaining = checkAndWarnCooldown(msg.author.id, 'cf', 5000);
+            if (cooldownRemaining > 0) {
+                const warnMsg = await msg.reply({ content: `⏳ Slow down! You can use this command again in **${cooldownRemaining}s**.`, flags: MessageFlags.Ephemeral });
+                setTimeout(() => warnMsg.delete().catch(() => {}), 5000);
+                return;
+            }
+
             const result = Math.random() < 0.5 ? 'Heads' : 'Tails';
             const emoji = result === 'Heads' ? '🪙' : '<:Tails:1441153955412312134>';
             
