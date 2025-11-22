@@ -1340,12 +1340,12 @@ client.on(Events.InteractionCreate, async interaction => {
 
             await targetChannel.send(payload);
             return interaction.reply({
-                content: `✅ Message sent to ${targetChannel}`,
+                content: `<:Correct:1440296238305116223> Message sent to ${targetChannel}`,
                 flags: MessageFlags.Ephemeral
             });
         } catch (error) {
             return interaction.reply({
-                content: `❌ Failed to send message: ${error.message}`,
+                content: `<:Error:1440296241090265088> Failed to send message: ${error.message}`,
                 flags: MessageFlags.Ephemeral
             });
         }
