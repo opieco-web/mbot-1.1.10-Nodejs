@@ -322,7 +322,22 @@ const commands = [
                     { name: 'Do Not Disturb', value: 'dnd' },
                     { name: 'Invisible', value: 'invisible' }
                 ))
-        .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageGuild)
+        .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageGuild),
+
+    // Choose command
+    new SlashCommandBuilder()
+        .setName('choose')
+        .setDescription('Let the bot randomly choose between two options')
+        .addStringOption(option =>
+            option
+                .setName('decisiona')
+                .setDescription('First option')
+                .setRequired(true))
+        .addStringOption(option =>
+            option
+                .setName('decisionb')
+                .setDescription('Second option')
+                .setRequired(true))
 ].map(cmd => cmd.toJSON());
 
 const rest = new REST({ version: '10' }).setToken(TOKEN);
@@ -1226,6 +1241,25 @@ client.on(Events.InteractionCreate, async interaction => {
     }
 
     // ------------------------
+    // FUN COMMAND: Choose
+    // ------------------------
+    if (commandName === 'choose') {
+        const decisionA = interaction.options.getString('decisiona');
+        const decisionB = interaction.options.getString('decisionb');
+        
+        const styles = ['I choose…', 'I picked…', "I'll go for…", 'My decision is…', "I'm choosing…"];
+        const style = styles[Math.floor(Math.random() * styles.length)];
+        const emoji = Math.random() < 0.5 ? '<a:croissant:1441783019139502112>' : '<a:cherry:1441782972486516946>';
+        const choice = Math.random() < 0.5 ? decisionA : decisionB;
+        
+        const text = `## ${emoji} ${style}\n\n**${choice}**`;
+        const textDisplay = new TextDisplayBuilder().setContent(text);
+        const container = new ContainerBuilder().addTextDisplayComponents(textDisplay);
+        
+        return interaction.reply({ content: ' ', components: [container], flags: MessageFlags.IsComponentsV2 });
+    }
+
+    // ------------------------
     // FUN COMMAND: Coin Flip
     // ------------------------
     if (commandName === 'coinflip') {
@@ -1722,6 +1756,29 @@ client.on(Events.MessageCreate, async msg => {
             const question = pick === 'Truth' ? truths[Math.floor(Math.random()*truths.length)] : dares[Math.floor(Math.random()*dares.length)];
             
             const text = `### ${pick}\n\n${question}`;
+            const textDisplay = new TextDisplayBuilder().setContent(text);
+            const container = new ContainerBuilder().addTextDisplayComponents(textDisplay);
+            
+            return msg.reply({ content: ' ', components: [container], flags: MessageFlags.IsComponentsV2 });
+        }
+
+        // Fun command: Choose
+        if (cmd === 'choose') {
+            const parts = msg.content.substring(7).trim();
+            const [optionA, optionB] = parts.split(',').map(p => p.trim());
+            
+            if (!optionA || !optionB) {
+                const warnMsg = await msg.reply({ content: '⚠️ Format: `!choose <option A> , <option B>`', flags: MessageFlags.Ephemeral });
+                setTimeout(() => warnMsg.delete().catch(() => {}), 5000);
+                return;
+            }
+            
+            const styles = ['I choose…', 'I picked…', "I'll go for…", 'My decision is…', "I'm choosing…"];
+            const style = styles[Math.floor(Math.random() * styles.length)];
+            const emoji = Math.random() < 0.5 ? '<a:croissant:1441783019139502112>' : '<a:cherry:1441782972486516946>';
+            const choice = Math.random() < 0.5 ? optionA : optionB;
+            
+            const text = `## ${emoji} ${style}\n\n**${choice}**`;
             const textDisplay = new TextDisplayBuilder().setContent(text);
             const container = new ContainerBuilder().addTextDisplayComponents(textDisplay);
             
