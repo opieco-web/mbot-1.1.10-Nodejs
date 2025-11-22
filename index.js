@@ -298,6 +298,42 @@ data.welcome = data.welcome || {}; // { guildId: { channelId, delay, enabled } }
 data.afk = data.afk || {}; // { userId: { reason: string, timestamp: number } }
 data.nicknameFilter = data.nicknameFilter || []; // [ word, word, ... ]
 
+// HELPER: Create Component V2 format for avatar display
+function createAvatarComponent(username, defaultAvatarUrl, serverAvatarUrl = null) {
+    const displayAvatar = serverAvatarUrl || defaultAvatarUrl;
+    const subtitle = serverAvatarUrl 
+        ? `-# [Server Avatar](${serverAvatarUrl}) • [Default Avatar](${defaultAvatarUrl})`
+        : `-# Default Avatar`;
+    
+    return {
+        flags: 32768,
+        components: [
+            {
+                type: 17,
+                components: [
+                    {
+                        type: 10,
+                        content: `## ${username} Avatar\n${subtitle}`
+                    },
+                    {
+                        type: 14
+                    },
+                    {
+                        type: 12,
+                        items: [
+                            {
+                                media: {
+                                    url: displayAvatar
+                                }
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    };
+}
+
 // HELPER: Calculate AFK duration with smart format (shows only relevant units)
 function calculateDuration(time) {
     const now = Date.now();
