@@ -174,8 +174,8 @@ const commands = [
 
     // Status Management
     new SlashCommandBuilder()
-        .setName('bot')
-        .setDescription('Manage bot status: /bot set [options] OR /bot reset OR /bot view (mod only)')
+        .setName('status')
+        .setDescription('Manage bot status: /status set [options] OR /status reset OR /status view (mod only)')
         .addStringOption(option =>
             option
                 .setName('action')
@@ -746,7 +746,7 @@ client.on(Events.InteractionCreate, async interaction => {
     // ------------------------
     // BOT MANAGEMENT (Status)
     // ------------------------
-    if (commandName === 'bot') {
+    if (commandName === 'status') {
         const action = interaction.options.getString('action');
 
         if (action === 'set') {
