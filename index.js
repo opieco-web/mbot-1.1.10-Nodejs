@@ -1527,6 +1527,113 @@ client.on(Events.InteractionCreate, async interaction => {
         }
     }
 
+    // Component V2 Builder Command
+    if (commandName === 'buildcomponent') {
+        const subcommand = interaction.options.getSubcommand();
+        const session = getBuilderSession(interaction.user.id);
+
+        if (subcommand === 'add') {
+            const type = interaction.options.getString('type');
+            const content = interaction.options.getString('content');
+            const label = interaction.options.getString('label');
+            const url = interaction.options.getString('url');
+            const style = interaction.options.getInteger('style');
+
+            let component = null;
+            if (type === 'text') {
+                if (!content) return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> Text content required for text component.', flags: MessageFlags.Ephemeral });
+                component = createTextComponent(content);
+            } else if (type === 'button') {
+                if (!label) return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> Label required for button component.', flags: MessageFlags.Ephemeral });
+                component = createButtonComponent(label, url, style);
+            } else if (type === 'media') {
+                if (!url) return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> URL required for media component.', flags: MessageFlags.Ephemeral });
+                component = createMediaComponent(url);
+            } else if (type === 'file') {
+                if (!url) return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> URL required for file component.', flags: MessageFlags.Ephemeral });
+                component = createFileComponent(url);
+            } else if (type === 'separator') {
+                component = createSeparator();
+            } else if (type === 'row') {
+                component = createRow();
+            }
+
+            if (component) {
+                session.components.push(component);
+                const list = formatComponentsList(session.components);
+                const text = `### Added ${type}\n\n${list}`;
+                const textDisplay = new TextDisplayBuilder().setContent(text);
+                const container = new ContainerBuilder().addTextDisplayComponents(textDisplay);
+                return interaction.reply({ content: ' ', components: [container], flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral });
+            }
+        }
+
+        if (subcommand === 'remove') {
+            const index = interaction.options.getInteger('index');
+            if (index < 0 || index >= session.components.length) {
+                return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> Invalid component index.', flags: MessageFlags.Ephemeral });
+            }
+            session.components.splice(index, 1);
+            const list = formatComponentsList(session.components);
+            const text = `### Removed\n\n${list}`;
+            const textDisplay = new TextDisplayBuilder().setContent(text);
+            const container = new ContainerBuilder().addTextDisplayComponents(textDisplay);
+            return interaction.reply({ content: ' ', components: [container], flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral });
+        }
+
+        if (subcommand === 'move') {
+            const from = interaction.options.getInteger('from');
+            const to = interaction.options.getInteger('to');
+            if (from < 0 || from >= session.components.length || to < 0 || to >= session.components.length) {
+                return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> Invalid component indices.', flags: MessageFlags.Ephemeral });
+            }
+            const [moved] = session.components.splice(from, 1);
+            session.components.splice(to, 0, moved);
+            const list = formatComponentsList(session.components);
+            const text = `### Moved\n\n${list}`;
+            const textDisplay = new TextDisplayBuilder().setContent(text);
+            const container = new ContainerBuilder().addTextDisplayComponents(textDisplay);
+            return interaction.reply({ content: ' ', components: [container], flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral });
+        }
+
+        if (subcommand === 'view') {
+            const list = formatComponentsList(session.components);
+            const jsonPreview = JSON.stringify(buildComponentJSON(session.components), null, 2).substring(0, 1500);
+            const text = `### Current Layout\n\n${list}\n\n\`\`\`json\n${jsonPreview}\n\`\`\``;
+            const textDisplay = new TextDisplayBuilder().setContent(text);
+            const container = new ContainerBuilder().addTextDisplayComponents(textDisplay);
+            return interaction.reply({ content: ' ', components: [container], flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral });
+        }
+
+        if (subcommand === 'clear') {
+            session.components = [];
+            const text = `### Cleared\n\nAll components removed.`;
+            const textDisplay = new TextDisplayBuilder().setContent(text);
+            const container = new ContainerBuilder().addTextDisplayComponents(textDisplay);
+            return interaction.reply({ content: ' ', components: [container], flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral });
+        }
+
+        if (subcommand === 'send') {
+            if (session.components.length === 0) {
+                return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> No components to send. Use `/buildcomponent add` first.', flags: MessageFlags.Ephemeral });
+            }
+            const targetChannel = interaction.options.getChannel('channel') || interaction.channel;
+            try {
+                await targetChannel.send(buildComponentJSON(session.components));
+                session.components = [];
+                const text = `### Sent\n\nComponent message sent to ${targetChannel}`;
+                const textDisplay = new TextDisplayBuilder().setContent(text);
+                const container = new ContainerBuilder().addTextDisplayComponents(textDisplay);
+                return interaction.reply({ content: ' ', components: [container], flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral });
+            } catch (error) {
+                const text = `### Failed\n\nCouldn't send message.`;
+                const textDisplay = new TextDisplayBuilder().setContent(text);
+                const container = new ContainerBuilder().addTextDisplayComponents(textDisplay);
+                return interaction.reply({ content: ' ', components: [container], flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral });
+            }
+        }
+    }
+
     if (commandName === 'welcome') {
         const subcommand = interaction.options.getSubcommand();
 
