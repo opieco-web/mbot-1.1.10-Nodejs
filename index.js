@@ -1304,7 +1304,11 @@ client.on(Events.InteractionCreate, async interaction => {
                 type: 14
             });
 
-            // 3. Add content with optional thumbnail accessory
+            // 3. Add content with thumbnail accessory (default to bot avatar)
+            const thumbnailUrl = thumbnailAttachment 
+                ? thumbnailAttachment.url 
+                : client.user.displayAvatarURL({ dynamic: true, size: 1024 });
+
             const contentComponent = {
                 type: 9,
                 components: [
@@ -1312,18 +1316,14 @@ client.on(Events.InteractionCreate, async interaction => {
                         type: 10,
                         content: content || ''
                     }
-                ]
-            };
-
-            // Add thumbnail accessory if provided
-            if (thumbnailAttachment) {
-                contentComponent.accessory = {
+                ],
+                accessory: {
                     type: 11,
                     media: {
-                        url: thumbnailAttachment.url
+                        url: thumbnailUrl
                     }
-                };
-            }
+                }
+            };
 
             components.push(contentComponent);
 
