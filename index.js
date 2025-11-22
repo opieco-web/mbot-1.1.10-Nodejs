@@ -327,17 +327,22 @@ const commands = [
     // Choose command
     new SlashCommandBuilder()
         .setName('choose')
-        .setDescription('Let the bot randomly choose between two options')
+        .setDescription('Let the bot randomly choose between options')
         .addStringOption(option =>
             option
-                .setName('decisiona')
-                .setDescription('First option')
+                .setName('subjecta')
+                .setDescription('First subject')
                 .setRequired(true))
         .addStringOption(option =>
             option
-                .setName('decisionb')
-                .setDescription('Second option')
+                .setName('subjectb')
+                .setDescription('Second subject')
                 .setRequired(true))
+        .addStringOption(option =>
+            option
+                .setName('subjectc')
+                .setDescription('Third subject (optional)')
+                .setRequired(false))
 ].map(cmd => cmd.toJSON());
 
 const rest = new REST({ version: '10' }).setToken(TOKEN);
@@ -1224,13 +1229,17 @@ client.on(Events.InteractionCreate, async interaction => {
     // FUN COMMAND: Choose
     // ------------------------
     if (commandName === 'choose') {
-        const decisionA = interaction.options.getString('decisiona');
-        const decisionB = interaction.options.getString('decisionb');
+        const subjectA = interaction.options.getString('subjecta');
+        const subjectB = interaction.options.getString('subjectb');
+        const subjectC = interaction.options.getString('subjectc');
+        
+        const subjects = [subjectA, subjectB];
+        if (subjectC) subjects.push(subjectC);
         
         const styles = ['I choose…', 'I picked…', "I'll go for…", 'My decision is…', "I'm choosing…"];
         const style = styles[Math.floor(Math.random() * styles.length)];
         const emoji = Math.random() < 0.5 ? '<a:croissant:1441783019139502112>' : '<a:cherry:1441782972486516946>';
-        const choice = Math.random() < 0.5 ? decisionA : decisionB;
+        const choice = subjects[Math.floor(Math.random() * subjects.length)];
         
         return interaction.reply({
             content: ' ',
@@ -1776,10 +1785,10 @@ client.on(Events.MessageCreate, async msg => {
         // Fun command: Choose
         if (cmd === 'cs') {
             const parts = msg.content.substring(4).trim();
-            const [optionA, optionB] = parts.split(',').map(p => p.trim());
+            const subjects = parts.split(',').map(p => p.trim());
             
-            if (!optionA || !optionB) {
-                const warnMsg = await msg.reply({ content: '<:warning:1441531830607151195> Format: `!cs <option A> , <option B>`', flags: MessageFlags.Ephemeral });
+            if (subjects.length < 2) {
+                const warnMsg = await msg.reply({ content: '<:warning:1441531830607151195> Format: `!cs <Subject A> , <Subject B>` or `!cs <Subject A> , <Subject B> , <Subject C>`', flags: MessageFlags.Ephemeral });
                 setTimeout(() => warnMsg.delete().catch(() => {}), 5000);
                 return;
             }
@@ -1787,7 +1796,7 @@ client.on(Events.MessageCreate, async msg => {
             const styles = ['I choose…', 'I picked…', "I'll go for…", 'My decision is…', "I'm choosing…"];
             const style = styles[Math.floor(Math.random() * styles.length)];
             const emoji = Math.random() < 0.5 ? '<a:croissant:1441783019139502112>' : '<a:cherry:1441782972486516946>';
-            const choice = Math.random() < 0.5 ? optionA : optionB;
+            const choice = subjects[Math.floor(Math.random() * subjects.length)];
             
             return msg.reply({
                 content: ' ',
