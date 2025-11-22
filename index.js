@@ -69,7 +69,7 @@ function tryParseAndSendComponent(msg, responseText) {
         
         // If it has "separator" field, add as Separator
         if (jsonData.separator === true) {
-            container.addComponent({ type: 14 });
+            container.addComponent({ type: 14, spacing: 1 });
         }
         
         // If it has multiple text blocks, add all of them
@@ -80,7 +80,7 @@ function tryParseAndSendComponent(msg, responseText) {
                     container.addTextDisplayComponents(textDisplay);
                 }
                 if (block.separator === true) {
-                    container.addComponent({ type: 14 });
+                    container.addComponent({ type: 14, spacing: 1 });
                 }
             }
         }
@@ -697,9 +697,9 @@ client.on(Events.InteractionCreate, async interaction => {
         if (subcommand === 'reset') {
             try {
                 await member.setNickname(null);
-                return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## Reset' }, { type: 14 }, { type: 10, content: 'Nickname reset to default.' }] }], flags: 32768 | MessageFlags.Ephemeral });
+                return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## Reset' }, { type: 14, spacing: 1 }, { type: 10, content: 'Nickname reset to default.' }] }], flags: 32768 | MessageFlags.Ephemeral });
             } catch {
-                return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## Failed' }, { type: 14 }, { type: 10, content: 'Couldn\'t reset nickname.' }] }], flags: 32768 | MessageFlags.Ephemeral });
+                return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## Failed' }, { type: 14, spacing: 1 }, { type: 10, content: 'Couldn\'t reset nickname.' }] }], flags: 32768 | MessageFlags.Ephemeral });
             }
         }
     }
@@ -1227,7 +1227,7 @@ client.on(Events.InteractionCreate, async interaction => {
         const pick = Math.random() < 0.5 ? 'Truth' : 'Dare';
         const question = pick === 'Truth' ? truths[Math.floor(Math.random()*truths.length)] : dares[Math.floor(Math.random()*dares.length)];
         
-        return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: `## ${pick}` }, { type: 14 }, { type: 10, content: question }] }], flags: 32768 });
+        return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: `## ${pick}` }, { type: 14, spacing: 1 }, { type: 10, content: question }] }], flags: 32768 });
     }
 
     // ------------------------
@@ -1248,7 +1248,7 @@ client.on(Events.InteractionCreate, async interaction => {
                 type: 17,
                 components: [
                     { type: 10, content: `### ${emoji} ${style}` },
-                    { type: 14 },
+                    { type: 14, spacing: 1 },
                     { type: 10, content: `**${choice}**` }
                 ]
             }],
@@ -1268,7 +1268,7 @@ client.on(Events.InteractionCreate, async interaction => {
         const result = Math.random() < 0.5 ? 'Heads' : 'Tails';
         const emoji = result === 'Heads' ? '🪙' : '<:Tails:1441153955412312134>';
         
-        return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: `## ${emoji} Coin Flip` }, { type: 14 }, { type: 10, content: `The coin landed on: **${result}**!` }] }], flags: 32768 });
+        return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: `## ${emoji} Coin Flip` }, { type: 14, spacing: 1 }, { type: 10, content: `The coin landed on: **${result}**!` }] }], flags: 32768 });
     }
 
     // ------------------------
@@ -1322,7 +1322,7 @@ client.on(Events.InteractionCreate, async interaction => {
                 : `Emoji: ${finalResponse}`;
             const addTitle = `## <:Correct:1440296238305116223> Auto-Response Added`;
             const addContent = `**Trigger:** ${trigger}\n**Response Type:** ${type.charAt(0).toUpperCase() + type.slice(1)}\n**Response:** ${displayText}`;
-            return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: addTitle }, { type: 14 }, { type: 10, content: addContent }] }], flags: 32768 | MessageFlags.Ephemeral });
+            return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: addTitle }, { type: 14, spacing: 1 }, { type: 10, content: addContent }] }], flags: 32768 | MessageFlags.Ephemeral });
         }
 
         if (action === 'remove') {
@@ -1343,7 +1343,7 @@ client.on(Events.InteractionCreate, async interaction => {
             fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
             const removeTitle = `## <:Correct:1440296238305116223> Auto-Response Removed`;
             const removeContent = `**Trigger:** ${trigger}\n\nThis auto-response has been successfully removed from your server.`;
-            return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: removeTitle }, { type: 14 }, { type: 10, content: removeContent }] }], flags: 32768 | MessageFlags.Ephemeral });
+            return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: removeTitle }, { type: 14, spacing: 1 }, { type: 10, content: removeContent }] }], flags: 32768 | MessageFlags.Ephemeral });
         }
 
         if (action === 'list') {
@@ -1364,7 +1364,7 @@ client.on(Events.InteractionCreate, async interaction => {
 
             const listTitle = `## 🔄 Auto-Responses Configured`;
             const listContent = `${list}\n**Total:** ${data.autoresponse[guildId].length} response(s) active`;
-            return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: listTitle }, { type: 14 }, { type: 10, content: listContent }] }], flags: 32768 | MessageFlags.Ephemeral });
+            return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: listTitle }, { type: 14, spacing: 1 }, { type: 10, content: listContent }] }], flags: 32768 | MessageFlags.Ephemeral });
         }
     }
 
@@ -1774,7 +1774,7 @@ client.on(Events.MessageCreate, async msg => {
                     type: 17,
                     components: [
                         { type: 10, content: `### ${emoji} ${style}` },
-                        { type: 14 },
+                        { type: 14, spacing: 1 },
                         { type: 10, content: `**${choice}**` }
                     ]
                 }],
