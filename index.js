@@ -819,7 +819,8 @@ client.on(Events.InteractionCreate, async interaction => {
 
             let list = '';
             data.autoresponses[guildId].forEach((ar, index) => {
-                list += `${index + 1}. **${ar.trigger}** (${ar.type})\n`;
+                const response = ar.response ? `\`${ar.response.substring(0, 50)}${ar.response.length > 50 ? '...' : ''}\`` : '(empty)';
+                list += `${index + 1}. **${ar.trigger}** (${ar.type})\n   → ${response}\n`;
             });
 
             return interaction.reply({ embeds: [createModeratorEmbed('🔄 Auto-Responses', list, 0x2F3136)], flags: MessageFlags.Ephemeral });
