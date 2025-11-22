@@ -96,22 +96,35 @@ const commands = [
     new SlashCommandBuilder()
         .setName('autoresponse')
         .setDescription('Manage auto responses (mod only)')
-        .addSubcommand(subcommand =>
-            subcommand
-                .setName('add')
-                .setDescription('Add an auto response')
-                .addStringOption(option => option.setName('trigger').setDescription('Trigger word').setRequired(true))
-                .addStringOption(option => option.setName('type').setDescription('Response type: text or react').setRequired(true))
-                .addStringOption(option => option.setName('response').setDescription('Text or emoji').setRequired(true)))
-        .addSubcommand(subcommand =>
-            subcommand
-                .setName('remove')
-                .setDescription('Remove an auto response')
-                .addStringOption(option => option.setName('trigger').setDescription('Trigger word to remove').setRequired(true)))
-        .addSubcommand(subcommand =>
-            subcommand
-                .setName('list')
-                .setDescription('List all auto responses'))
+        .addStringOption(option =>
+            option
+                .setName('action')
+                .setDescription('Action to perform')
+                .setRequired(true)
+                .addChoices(
+                    { name: 'add', value: 'add' },
+                    { name: 'remove', value: 'remove' },
+                    { name: 'list', value: 'list' }
+                ))
+        .addStringOption(option =>
+            option
+                .setName('trigger')
+                .setDescription('Trigger word (required for add/remove)')
+                .setRequired(false))
+        .addStringOption(option =>
+            option
+                .setName('type')
+                .setDescription('Response type (required for add)')
+                .setRequired(false)
+                .addChoices(
+                    { name: 'text', value: 'text' },
+                    { name: 'emoji', value: 'emoji' }
+                ))
+        .addStringOption(option =>
+            option
+                .setName('response')
+                .setDescription('Response text or emoji (optional for add)')
+                .setRequired(false))
         .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageMessages),
 
     // Fun: Coin Flip
@@ -670,24 +683,27 @@ client.on(Events.InteractionCreate, async interaction => {
     // MODERATION: Auto-response
     // ------------------------
     if (commandName === 'autoresponse') {
-        const subcommand = interaction.options.getSubcommand();
+        const action = interaction.options.getString('action');
+        const trigger = interaction.options.getString('trigger');
+        const type = interaction.options.getString('type');
+        const response = interaction.options.getString('response');
 
-        if (subcommand === 'add') {
-            const trigger = interaction.options.getString('trigger');
-            const type = interaction.options.getString('type').toLowerCase();
-            const response = interaction.options.getString('response');
-
-            if (!['text','react'].includes(type)) return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> Type must be "text" or "react"', flags: MessageFlags.Ephemeral });
+        if (action === 'add') {
+            if (!trigger)
+                return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> Trigger is required for add action.', flags: MessageFlags.Ephemeral });
+            if (!type)
+                return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> Type is required for add action.', flags: MessageFlags.Ephemeral });
 
             data.autoresponses[guildId] = data.autoresponses[guildId] || [];
-            data.autoresponses[guildId].push({ trigger, type, response });
+            data.autoresponses[guildId].push({ trigger, type, response: response || '' });
             fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
 
-            return interaction.reply({ content: `<:1_yes_correct:1439893200981721140> Auto-response added for "${trigger}"`, flags: MessageFlags.Ephemeral });
+            return interaction.reply({ content: `<:1_yes_correct:1439893200981721140> Auto-response added for **"${trigger}"** (${type})`, flags: MessageFlags.Ephemeral });
         }
 
-        if (subcommand === 'remove') {
-            const trigger = interaction.options.getString('trigger');
+        if (action === 'remove') {
+            if (!trigger)
+                return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> Trigger is required for remove action.', flags: MessageFlags.Ephemeral });
 
             if (!data.autoresponses[guildId] || data.autoresponses[guildId].length === 0) {
                 return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> No auto-responses configured for this server.', flags: MessageFlags.Ephemeral });
@@ -697,21 +713,21 @@ client.on(Events.InteractionCreate, async interaction => {
             data.autoresponses[guildId] = data.autoresponses[guildId].filter(ar => ar.trigger !== trigger);
 
             if (data.autoresponses[guildId].length === initialLength) {
-                return interaction.reply({ content: `<:2_no_wrong:1439893245130838047> No auto-response found for trigger "${trigger}"`, flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: `<:2_no_wrong:1439893245130838047> No auto-response found for trigger **"${trigger}"**`, flags: MessageFlags.Ephemeral });
             }
 
             fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
-            return interaction.reply({ content: `<:1_yes_correct:1439893200981721140> Auto-response removed for "${trigger}"`, flags: MessageFlags.Ephemeral });
+            return interaction.reply({ content: `<:1_yes_correct:1439893200981721140> Auto-response removed for **"${trigger}"**`, flags: MessageFlags.Ephemeral });
         }
 
-        if (subcommand === 'list') {
+        if (action === 'list') {
             if (!data.autoresponses[guildId] || data.autoresponses[guildId].length === 0) {
                 return interaction.reply({ content: '<:mg_question:1439893408041930894> No auto-responses configured for this server.', flags: MessageFlags.Ephemeral });
             }
 
             let list = '**Auto-Responses for this server:**\n\n';
             data.autoresponses[guildId].forEach((ar, index) => {
-                list += `${index + 1}. Trigger: ${ar.trigger} | Type: ${ar.type} | Response: ${ar.response}\n`;
+                list += `${index + 1}. **${ar.trigger}** (${ar.type}) → ${ar.response || '(no response)'}\n`;
             });
 
             return interaction.reply({ content: list, flags: MessageFlags.Ephemeral });
