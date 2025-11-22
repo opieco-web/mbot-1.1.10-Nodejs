@@ -239,7 +239,10 @@ await rest.put(Routes.applicationCommands(CLIENT_ID), { body: commands });
 // HELPER: Apply saved status
 // ------------------------
 function applyBotStatus() {
-    const presenceData = { status: 'online' };
+    const presenceData = {
+        status: data.status.presence || 'online',
+        activities: []
+    };
     
     if (data.status.type && data.status.text) {
         const activityTypeMap = {
@@ -250,14 +253,15 @@ function applyBotStatus() {
             'Streaming': ActivityType.Streaming
         };
 
+        let name = data.status.text;
+        if (data.status.emoji) {
+            name = `${data.status.emoji} ${name}`;
+        }
+
         const activity = {
-            name: data.status.text,
+            name: name,
             type: activityTypeMap[data.status.type]
         };
-
-        if (data.status.emoji) {
-            activity.name = `${data.status.emoji} ${activity.name}`;
-        }
 
         if (data.status.type === 'Streaming' && data.status.streamUrl) {
             activity.url = data.status.streamUrl;
@@ -265,8 +269,6 @@ function applyBotStatus() {
 
         presenceData.activities = [activity];
     }
-
-    presenceData.status = data.status.presence || 'online';
     
     client.user.setPresence(presenceData);
 }
@@ -761,24 +763,20 @@ client.on(Events.InteractionCreate, async interaction => {
                 }
             }
 
-            data.status.text = activityText;
-            data.status.type = activityType;
-            data.status.streamUrl = streamUrl || null;
-            data.status.emoji = emoji || null;
-            data.status.presence = onlineStatus || 'online';
-            data.status.lastUpdatedBy = user.id;
-            data.status.lastUpdatedAt = new Date().toISOString();
+            data.status = {
+                text: activityText,
+                type: activityType,
+                emoji: emoji || null,
+                streamUrl: streamUrl || null,
+                presence: onlineStatus || 'online',
+                lastUpdatedBy: user.id,
+                lastUpdatedAt: new Date().toISOString()
+            };
             fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
-
             applyBotStatus();
 
-            const parts = [];
-            if (activityType) parts.push(`**${activityType}**`);
-            if (activityText) parts.push(`${activityText}`);
-            if (emoji) parts.push(`${emoji}`);
-            if (onlineStatus) parts.push(`Status: ${onlineStatus}`);
-
-            return interaction.reply({ content: `<:1_yes_correct:1439893200981721140> Bot status updated: ${parts.join(' • ')}`, flags: MessageFlags.Ephemeral });
+            const displayText = emoji ? `${emoji} ${activityText}` : activityText;
+            return interaction.reply({ content: `<:1_yes_correct:1439893200981721140> Status updated: **${activityType}** ${displayText}`, flags: MessageFlags.Ephemeral });
         }
 
         if (action === 'reset') {
@@ -786,30 +784,34 @@ client.on(Events.InteractionCreate, async interaction => {
             fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
             applyBotStatus();
 
-            return interaction.reply({ content: '<:1_yes_correct:1439893200981721140> Bot status reset.', flags: MessageFlags.Ephemeral });
+            return interaction.reply({ content: '<:1_yes_correct:1439893200981721140> Status cleared. Bot is now online with no activity.', flags: MessageFlags.Ephemeral });
         }
 
         if (action === 'view') {
             const statusEmbed = new EmbedBuilder()
-                .setTitle('🤖 Bot Status Information')
+                .setTitle('🤖 Current Bot Status')
                 .setColor(0x37373D)
                 .setTimestamp();
 
-            if (!data.status.type && !data.status.text) {
-                statusEmbed.setDescription('No custom status set. Bot is online.');
+            if (!data.status.text || !data.status.type) {
+                statusEmbed.setDescription('✅ Bot is online with no custom activity set.');
             } else {
-                if (data.status.type) statusEmbed.addFields({ name: 'Activity Type', value: data.status.type, inline: true });
-                if (data.status.text) statusEmbed.addFields({ name: 'Activity Text', value: data.status.text, inline: true });
-                if (data.status.emoji) statusEmbed.addFields({ name: 'Emoji', value: data.status.emoji, inline: true });
+                const displayName = data.status.emoji ? `${data.status.emoji} ${data.status.text}` : data.status.text;
+                statusEmbed.addFields({ name: 'Activity', value: `**${data.status.type}** ${displayName}`, inline: false });
+                
                 if (data.status.type === 'Streaming' && data.status.streamUrl) {
                     statusEmbed.addFields({ name: 'Stream URL', value: data.status.streamUrl, inline: false });
                 }
-                statusEmbed.addFields({ name: 'Online Status', value: data.status.presence || 'online', inline: true });
+                
+                statusEmbed.addFields({ name: 'Visibility', value: data.status.presence || 'online', inline: true });
+                
                 if (data.status.lastUpdatedBy) {
-                    statusEmbed.addFields({ name: 'Last Updated By', value: `<@${data.status.lastUpdatedBy}>`, inline: true });
+                    statusEmbed.addFields({ name: 'Updated By', value: `<@${data.status.lastUpdatedBy}>`, inline: true });
                 }
+                
                 if (data.status.lastUpdatedAt) {
-                    statusEmbed.addFields({ name: 'Last Updated At', value: new Date(data.status.lastUpdatedAt).toLocaleString(), inline: false });
+                    const date = new Date(data.status.lastUpdatedAt);
+                    statusEmbed.addFields({ name: 'Updated', value: `<t:${Math.floor(date.getTime() / 1000)}:R>`, inline: true });
                 }
             }
 
