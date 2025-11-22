@@ -1254,9 +1254,8 @@ client.on(Events.InteractionCreate, async interaction => {
         }
 
         const result = Math.random() < 0.5 ? 'Heads' : 'Tails';
-        const emoji = result === 'Heads' ? '🪙' : '<:Tails:1441153955412312134>';
         
-        return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: `## ${emoji} Coin Flip` }, { type: 14, spacing: 1 }, { type: 10, content: `The coin landed on: **${result}**!` }] }], flags: 32768 });
+        return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '### <:Tails:1441153955412312134> Coin Flip' }, { type: 14, spacing: 1 }, { type: 10, content: `The coin landed on: **${result}**!` }] }], flags: 32768 });
     }
 
     // ------------------------
@@ -1776,9 +1775,8 @@ client.on(Events.MessageCreate, async msg => {
             }
 
             const result = Math.random() < 0.5 ? 'Heads' : 'Tails';
-            const emoji = result === 'Heads' ? '🪙' : '<:Tails:1441153955412312134>';
             
-            return msg.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: `## ${emoji} Coin Flip` }, { type: 14, spacing: 1 }, { type: 10, content: `The coin landed on: **${result}**!` }] }], flags: 32768 });
+            return msg.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '### <:Tails:1441153955412312134> Coin Flip' }, { type: 14, spacing: 1 }, { type: 10, content: `The coin landed on: **${result}**!` }] }], flags: 32768 });
         }
 
         // Ping command
