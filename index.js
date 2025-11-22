@@ -156,7 +156,7 @@ const commands = [
         .addStringOption(option =>
             option
                 .setName('type')
-                .setDescription('Response type: text = reply message, emoji = react with emoji (required for add)')
+                .setDescription('Response type: text = custom message, emoji = react with emoji (required for add)')
                 .setRequired(false)
                 .addChoices(
                     { name: 'text', value: 'text' },
@@ -165,8 +165,9 @@ const commands = [
         .addStringOption(option =>
             option
                 .setName('response')
-                .setDescription('Response message or emoji (required for add)')
-                .setRequired(false))
+                .setDescription('For text: select saved custom message name | For emoji: reaction emoji')
+                .setRequired(false)
+                .setAutocomplete(true))
         .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageMessages),
 
     // Fun: Coin Flip
@@ -1238,12 +1239,21 @@ client.on(Events.InteractionCreate, async interaction => {
                 return interaction.reply({ embeds: [createModeratorEmbed('❌ Error', 'Trigger is required.', 0xFF4444)], flags: MessageFlags.Ephemeral });
             if (!type)
                 return interaction.reply({ embeds: [createModeratorEmbed('❌ Error', 'Response type is required.', 0xFF4444)], flags: MessageFlags.Ephemeral });
+            if (!response)
+                return interaction.reply({ embeds: [createModeratorEmbed('❌ Error', 'Response is required.', 0xFF4444)], flags: MessageFlags.Ephemeral });
 
             data.autoresponses[guildId] = data.autoresponses[guildId] || [];
-            data.autoresponses[guildId].push({ trigger, type, response: response || '' });
+            // For text type, store customMessage ID; for emoji, store emoji directly
+            data.autoresponses[guildId].push({ 
+                trigger, 
+                type, 
+                response: response,
+                customMessageId: type === 'text' ? response : null
+            });
             fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
 
-            return interaction.reply({ embeds: [createModeratorEmbed('✅ Auto-Response Added', `**Trigger:** ${trigger}\n**Type:** ${type}`, 0x44FF44)], flags: MessageFlags.Ephemeral });
+            const displayText = type === 'text' ? `Custom Message: ${response}` : `Emoji: ${response}`;
+            return interaction.reply({ embeds: [createModeratorEmbed('✅ Auto-Response Added', `**Trigger:** ${trigger}\n**Response:** ${displayText}`, 0x44FF44)], flags: MessageFlags.Ephemeral });
         }
 
         if (action === 'remove') {
@@ -1272,8 +1282,8 @@ client.on(Events.InteractionCreate, async interaction => {
 
             let list = '';
             data.autoresponses[guildId].forEach((ar, index) => {
-                const response = ar.response ? `${ar.response.substring(0, 50)}${ar.response.length > 50 ? '...' : ''}` : '(empty)';
-                list += `${index + 1}. **${ar.trigger}** (${ar.type})\n   → ${response}\n`;
+                const responseDisplay = ar.type === 'text' ? `Custom Message: ${ar.response}` : `Emoji: ${ar.response}`;
+                list += `${index + 1}. **${ar.trigger}** (${ar.type})\n   → ${responseDisplay}\n`;
             });
 
             return interaction.reply({ embeds: [createModeratorEmbed('🔄 Auto-Responses', list, 0x2F3136)], flags: MessageFlags.Ephemeral });
@@ -1791,7 +1801,26 @@ client.on(Events.MessageCreate, async msg => {
         for (const ar of data.autoresponses[guildId]) {
             if (msg.content.includes(ar.trigger)) {
                 if (ar.type === 'text') {
-                    msg.reply(ar.response).catch(() => {});
+                    // For text type: ar.response contains the custom message name
+                    const customMsg = data.customMessages[guildId]?.find(m => m.title === ar.response);
+                    if (customMsg) {
+                        // Reconstruct Component V2 message from saved data
+                        const container = new ContainerBuilder();
+                        
+                        // Add title
+                        const titleDisplay = new TextDisplayBuilder().setContent(`### ${customMsg.title}`);
+                        container.addTextDisplayComponents(titleDisplay);
+                        
+                        // Add any stored content (basic format - extend if needed)
+                        if (customMsg.content) {
+                            const contentDisplay = new TextDisplayBuilder().setContent(customMsg.content);
+                            container.addTextDisplayComponents(contentDisplay);
+                        }
+                        
+                        msg.reply({ content: ' ', components: [container], flags: MessageFlags.IsComponentsV2 }).catch(() => {});
+                    } else {
+                        msg.reply(ar.response).catch(() => {});
+                    }
                 } else if (ar.type === 'react') {
                     msg.react(ar.response).catch(() => {});
                 }
