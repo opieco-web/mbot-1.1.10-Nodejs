@@ -299,40 +299,44 @@ data.welcome = data.welcome || {}; // { guildId: { channelId, delay, enabled } }
 data.afk = data.afk || {}; // { userId: { reason: string, timestamp: number } }
 data.nicknameFilter = data.nicknameFilter || []; // [ word, word, ... ]
 
-// HELPER: Create avatar display using embeds
+// HELPER: Create Component V2 format for avatar display
 // mode: 'both' (default), 'server_only', 'default_only'
 function createAvatarComponent(username, defaultAvatarUrl, serverAvatarUrl = null, mode = 'both') {
-    const embeds = [];
+    const items = [];
     
     if (mode === 'server_only') {
-        embeds.push({
-            title: `${username}'s Server Avatar`,
-            image: { url: serverAvatarUrl },
-            color: 0x3498db
+        items.push({
+            media: { url: serverAvatarUrl },
+            description: `${username}'s Server Avatar`
         });
     } else if (mode === 'default_only') {
-        embeds.push({
-            title: `${username}'s Discord Default Avatar`,
-            image: { url: defaultAvatarUrl },
-            color: 0x3498db
+        items.push({
+            media: { url: defaultAvatarUrl },
+            description: `${username}'s Discord Default Avatar`
         });
     } else {
         // Show both
         if (serverAvatarUrl) {
-            embeds.push({
-                title: `${username}'s Server Avatar`,
-                image: { url: serverAvatarUrl },
-                color: 0x3498db
+            items.push({
+                media: { url: serverAvatarUrl },
+                description: `${username}'s Server Avatar`
             });
         }
-        embeds.push({
-            title: `${username}'s Discord Default Avatar`,
-            image: { url: defaultAvatarUrl },
-            color: 0x3498db
+        items.push({
+            media: { url: defaultAvatarUrl },
+            description: `${username}'s Discord Default Avatar`
         });
     }
     
-    return { embeds, flags: MessageFlags.Ephemeral };
+    return {
+        flags: MessageFlags.IsComponentsV2,
+        components: [
+            {
+                type: 12,
+                items: items
+            }
+        ]
+    };
 }
 
 // HELPER: Calculate AFK duration with smart format (shows only relevant units)
