@@ -28,7 +28,15 @@
       }
     ]
   },
-  "status": {},
+  "status": {
+    "text": null,
+    "type": null,
+    "streamUrl": null,
+    "emoji": "🎀",
+    "presence": "dnd",
+    "lastUpdatedBy": "1065350468928290828",
+    "lastUpdatedAt": "2025-11-22T07:42:26.417Z"
+  },
   "welcome": {
     "1296783492989980682": {
       "channelId": "1296783493430513747",

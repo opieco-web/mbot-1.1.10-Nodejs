@@ -241,7 +241,7 @@ await rest.put(Routes.applicationCommands(CLIENT_ID), { body: commands });
 function applyBotStatus() {
     const presenceData = { status: 'online' };
     
-    if (data.status.type && data.status.text) {
+    if (data.status.type || data.status.text) {
         const activityTypeMap = {
             'Playing': ActivityType.Playing,
             'Listening': ActivityType.Listening,
@@ -251,12 +251,12 @@ function applyBotStatus() {
         };
 
         const activity = {
-            name: data.status.text,
-            type: activityTypeMap[data.status.type]
+            name: data.status.text || 'Something',
+            type: activityTypeMap[data.status.type] || ActivityType.Playing
         };
 
         if (data.status.emoji) {
-            activity.name = `${data.status.emoji} ${data.status.text}`;
+            activity.name = `${data.status.emoji} ${activity.name}`;
         }
 
         if (data.status.type === 'Streaming' && data.status.streamUrl) {
@@ -782,9 +782,9 @@ client.on(Events.InteractionCreate, async interaction => {
         if (action === 'reset') {
             data.status = {};
             fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
-            client.user.setPresence({ status: 'online', activities: [] });
+            applyBotStatus();
 
-            return interaction.reply({ content: '<:1_yes_correct:1439893200981721140> Bot reset to default presence (online, no activity).', flags: MessageFlags.Ephemeral });
+            return interaction.reply({ content: '<:1_yes_correct:1439893200981721140> Bot reset to default presence.', flags: MessageFlags.Ephemeral });
         }
 
         if (action === 'view') {
