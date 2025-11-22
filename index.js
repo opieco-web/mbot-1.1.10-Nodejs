@@ -25,6 +25,12 @@ const CLIENT_ID = process.env.DISCORD_CLIENT_ID;
 // PATTERN for editing:
 // await message.edit({ content: ' ', components: [container], flags: MessageFlags.IsComponentsV2 });
 //
+// JSON TO COMPONENT PATTERN (for auto-responses):
+// You can provide JSON in the response field like:
+// {"text": "### Title\n\nContent here"} → Renders as TextDisplay
+// {"separator": true} → Renders as Separator
+// The bot automatically detects and converts valid JSON to Component V2
+//
 // KEY RULES:
 // 1. Content must be single space ' ' when using Component V2
 // 2. All components go inside ContainerBuilder
@@ -39,6 +45,45 @@ const BOT_VERSION = packageJson.version;
 
 const dataFile = './data.json';
 let data = JSON.parse(fs.readFileSync(dataFile, 'utf8'));
+
+// Helper: Try to parse response as JSON and send as Component V2
+function tryParseAndSendComponent(msg, responseText) {
+    try {
+        const jsonData = JSON.parse(responseText);
+        const container = new ContainerBuilder();
+        
+        // If it has "text" field, add as TextDisplay
+        if (jsonData.text) {
+            const textDisplay = new TextDisplayBuilder().setContent(jsonData.text);
+            container.addTextDisplayComponents(textDisplay);
+        }
+        
+        // If it has "separator" field, add as Separator
+        if (jsonData.separator === true) {
+            container.addComponent({ type: 14 });
+        }
+        
+        // If it has multiple text blocks, add all of them
+        if (Array.isArray(jsonData.blocks)) {
+            for (const block of jsonData.blocks) {
+                if (block.text) {
+                    const textDisplay = new TextDisplayBuilder().setContent(block.text);
+                    container.addTextDisplayComponents(textDisplay);
+                }
+                if (block.separator === true) {
+                    container.addComponent({ type: 14 });
+                }
+            }
+        }
+        
+        // Send as Component V2
+        msg.reply({ content: ' ', components: [container], flags: MessageFlags.IsComponentsV2 }).catch(() => {});
+        return true;
+    } catch (e) {
+        // Not valid JSON or parsing failed, return false to send as plain text
+        return false;
+    }
+}
 
 // ------------------------
 // Initialize client
@@ -1854,8 +1899,11 @@ client.on(Events.MessageCreate, async msg => {
                             msg.reply(`⚠️ Saved message "${ar.response}" not found.`).catch(() => {});
                         }
                     } else {
-                        // Plain text response
-                        msg.reply(ar.response).catch(() => {});
+                        // Plain text or JSON response - try to parse as Component V2 first
+                        const isComponent = tryParseAndSendComponent(msg, ar.response);
+                        if (!isComponent) {
+                            msg.reply(ar.response).catch(() => {});
+                        }
                     }
                 } else if (ar.type === 'react') {
                     msg.react(ar.response).catch(() => {});

@@ -48,5 +48,15 @@
   "nicknameFilter": [
     "gay",
     "hogalala"
-  ]
+  ],
+  "customMessages": {
+    "1296783492989980682": [
+      {
+        "id": "1441758789115314207",
+        "title": "How To Avatar",
+        "channelId": "1296783493430513747",
+        "created": "2025-11-22T11:54:42.135Z"
+      }
+    ]
+  }
 }
