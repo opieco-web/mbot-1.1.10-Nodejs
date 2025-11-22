@@ -1733,11 +1733,7 @@ client.on(Events.MessageCreate, async msg => {
             const pick = Math.random() < 0.5 ? 'Truth' : 'Dare';
             const question = pick === 'Truth' ? truths[Math.floor(Math.random()*truths.length)] : dares[Math.floor(Math.random()*dares.length)];
             
-            const text = `### ${pick}\n\n${question}`;
-            const textDisplay = new TextDisplayBuilder().setContent(text);
-            const container = new ContainerBuilder().addTextDisplayComponents(textDisplay);
-            
-            return msg.reply({ content: ' ', components: [container], flags: MessageFlags.IsComponentsV2 });
+            return msg.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: `## ${pick}` }, { type: 14, spacing: 1 }, { type: 10, content: question }] }], flags: 32768 });
         }
 
         // Fun command: Choose
@@ -1782,11 +1778,7 @@ client.on(Events.MessageCreate, async msg => {
             const result = Math.random() < 0.5 ? 'Heads' : 'Tails';
             const emoji = result === 'Heads' ? '🪙' : '<:Tails:1441153955412312134>';
             
-            const text = `### ${emoji} Coin Flip\n\nThe coin landed on: **${result}**!`;
-            const textDisplay = new TextDisplayBuilder().setContent(text);
-            const container = new ContainerBuilder().addTextDisplayComponents(textDisplay);
-            
-            return msg.reply({ content: ' ', components: [container], flags: MessageFlags.IsComponentsV2 });
+            return msg.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: `## ${emoji} Coin Flip` }, { type: 14, spacing: 1 }, { type: 10, content: `The coin landed on: **${result}**!` }] }], flags: 32768 });
         }
 
         // Ping command
