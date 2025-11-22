@@ -1276,6 +1276,57 @@ client.on(Events.InteractionCreate, async interaction => {
     }
 
     // ------------------------
+    // SEND MESSAGE COMMAND
+    // ------------------------
+    if (commandName === 'send') {
+        const title = interaction.options.getString('title');
+        const content = interaction.options.getString('content');
+        const targetChannel = interaction.options.getChannel('channel') || interaction.channel;
+
+        try {
+            // Build Component V2 structure with exact format
+            const components = [
+                {
+                    type: 10,
+                    content: `## ${title}`
+                },
+                {
+                    type: 14
+                }
+            ];
+
+            if (content) {
+                components.push({
+                    type: 10,
+                    content: content
+                });
+            }
+
+            const payload = {
+                content: ' ',
+                components: [
+                    {
+                        type: 17,
+                        components: components
+                    }
+                ],
+                flags: 32768
+            };
+
+            await targetChannel.send(payload);
+            return interaction.reply({
+                content: `✅ Message sent to ${targetChannel}`,
+                flags: MessageFlags.Ephemeral
+            });
+        } catch (error) {
+            return interaction.reply({
+                content: `❌ Failed to send message: ${error.message}`,
+                flags: MessageFlags.Ephemeral
+            });
+        }
+    }
+
+    // ------------------------
     // FUN COMMAND: Coin Flip
     // ------------------------
     if (commandName === 'coinflip') {
