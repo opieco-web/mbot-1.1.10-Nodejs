@@ -241,7 +241,7 @@ await rest.put(Routes.applicationCommands(CLIENT_ID), { body: commands });
 function applyBotStatus() {
     const presenceData = { status: 'online' };
     
-    if (data.status.type || data.status.text) {
+    if (data.status.type && data.status.text) {
         const activityTypeMap = {
             'Playing': ActivityType.Playing,
             'Listening': ActivityType.Listening,
@@ -251,8 +251,8 @@ function applyBotStatus() {
         };
 
         const activity = {
-            name: data.status.text || 'Something',
-            type: activityTypeMap[data.status.type] || ActivityType.Playing
+            name: data.status.text,
+            type: activityTypeMap[data.status.type]
         };
 
         if (data.status.emoji) {
@@ -264,12 +264,6 @@ function applyBotStatus() {
         }
 
         presenceData.activities = [activity];
-    } else {
-        // Default: show bot name and version
-        presenceData.activities = [{
-            name: `${BOT_NAME} v${BOT_VERSION}`,
-            type: ActivityType.Playing
-        }];
     }
 
     presenceData.status = data.status.presence || 'online';
@@ -743,6 +737,10 @@ client.on(Events.InteractionCreate, async interaction => {
     // BOT MANAGEMENT (Status)
     // ------------------------
     if (commandName === 'status') {
+        if (!interaction.member.permissions.has(PermissionsBitField.Flags.ManageGuild)) {
+            return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> You need ManageGuild permission to use this command.', flags: MessageFlags.Ephemeral });
+        }
+
         const action = interaction.options.getString('action');
 
         if (action === 'set') {
@@ -752,6 +750,10 @@ client.on(Events.InteractionCreate, async interaction => {
             const emoji = interaction.options.getString('emoji');
             const onlineStatus = interaction.options.getString('online_status');
 
+            if (!activityType || !activityText) {
+                return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> You must provide both activity type and activity text.', flags: MessageFlags.Ephemeral });
+            }
+
             if (activityType === 'Streaming' && streamUrl) {
                 const validStreamUrl = streamUrl.match(/^https?:\/\/(www\.)?(twitch\.tv|youtube\.com|youtu\.be)\/.+$/i);
                 if (!validStreamUrl) {
@@ -759,8 +761,8 @@ client.on(Events.InteractionCreate, async interaction => {
                 }
             }
 
-            data.status.text = activityText || null;
-            data.status.type = activityType || null;
+            data.status.text = activityText;
+            data.status.type = activityType;
             data.status.streamUrl = streamUrl || null;
             data.status.emoji = emoji || null;
             data.status.presence = onlineStatus || 'online';
@@ -784,7 +786,7 @@ client.on(Events.InteractionCreate, async interaction => {
             fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
             applyBotStatus();
 
-            return interaction.reply({ content: '<:1_yes_correct:1439893200981721140> Bot reset to default presence.', flags: MessageFlags.Ephemeral });
+            return interaction.reply({ content: '<:1_yes_correct:1439893200981721140> Bot status reset.', flags: MessageFlags.Ephemeral });
         }
 
         if (action === 'view') {
@@ -793,8 +795,8 @@ client.on(Events.InteractionCreate, async interaction => {
                 .setColor(0x37373D)
                 .setTimestamp();
 
-            if (!data.status.type && !data.status.presence) {
-                statusEmbed.setDescription('No custom status configured. Using default settings.');
+            if (!data.status.type && !data.status.text) {
+                statusEmbed.setDescription('No custom status set. Bot is online.');
             } else {
                 if (data.status.type) statusEmbed.addFields({ name: 'Activity Type', value: data.status.type, inline: true });
                 if (data.status.text) statusEmbed.addFields({ name: 'Activity Text', value: data.status.text, inline: true });
