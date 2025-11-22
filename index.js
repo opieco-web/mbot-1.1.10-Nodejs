@@ -35,7 +35,15 @@ const commands = [
                 .setName('setup')
                 .setDescription('Setup nickname system channel and mode')
                 .addChannelOption(option => option.setName('channel').setDescription('Nickname request channel').setRequired(true))
-                .addStringOption(option => option.setName('mode').setDescription('Mode: auto or approval').setRequired(true)))
+                .addStringOption(option =>
+                    option
+                        .setName('mode')
+                        .setDescription('Approval mode')
+                        .setRequired(true)
+                        .addChoices(
+                            { name: 'Auto', value: 'auto' },
+                            { name: 'Approved', value: 'approval' }
+                        )))
         .addSubcommand(subcommand =>
             subcommand
                 .setName('reset')
