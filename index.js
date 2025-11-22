@@ -4,6 +4,11 @@ import fs from 'fs';
 const TOKEN = process.env.DISCORD_BOT_TOKEN;
 const CLIENT_ID = process.env.DISCORD_CLIENT_ID;
 
+// Get bot name and version from package.json
+const packageJson = JSON.parse(fs.readFileSync('./package.json', 'utf8'));
+const BOT_NAME = packageJson.name;
+const BOT_VERSION = packageJson.version;
+
 const dataFile = './data.json';
 let data = JSON.parse(fs.readFileSync(dataFile, 'utf8'));
 
@@ -239,12 +244,7 @@ await rest.put(Routes.applicationCommands(CLIENT_ID), { body: commands });
 // HELPER: Apply saved status
 // ------------------------
 function applyBotStatus() {
-    if (!data.status.type && !data.status.presence) {
-        client.user.setPresence({ status: 'online' });
-        return;
-    }
-
-    const presenceData = {};
+    const presenceData = { status: 'online' };
     
     if (data.status.type && data.status.text) {
         const activityTypeMap = {
@@ -269,6 +269,12 @@ function applyBotStatus() {
         }
 
         presenceData.activities = [activity];
+    } else {
+        // Default: show bot name and version
+        presenceData.activities = [{
+            name: `${BOT_NAME} v${BOT_VERSION}`,
+            type: ActivityType.Playing
+        }];
     }
 
     presenceData.status = data.status.presence || 'online';

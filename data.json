@@ -29,15 +29,14 @@
     ]
   },
   "status": {
-    "text": "GTA",
-    "activityName": "VI",
-    "type": "Playing",
+    "text": "m•bot - v4.2.6",
+    "type": "Watching",
     "streamUrl": null,
-    "emoji": "🚫",
+    "emoji": "🥔",
     "presence": "dnd",
     "autoReload": true,
     "lastUpdatedBy": "1065350468928290828",
-    "lastUpdatedAt": "2025-11-22T07:21:23.383Z"
+    "lastUpdatedAt": "2025-11-22T07:27:49.824Z"
   },
   "welcome": {
     "1296783492989980682": {
