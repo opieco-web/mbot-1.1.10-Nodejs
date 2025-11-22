@@ -1851,44 +1851,30 @@ client.on(Events.MessageCreate, async msg => {
         const textDisplay = new TextDisplayBuilder().setContent(resetText);
         const container = new ContainerBuilder().addTextDisplayComponents(textDisplay);
         await msg.reply({ content: ' ', components: [container], flags: MessageFlags.IsComponentsV2 });
-        msg.delete().catch(() => {});
         return;
     }
 
     if (data.nickname.mode === 'auto') {
         const bannedWord = containsBannedWord(nickname);
         if (bannedWord) {
-            const bannedText = `## <:Bin:1441777857205637254> Cannot Set Nickname\n\nThe word **"${bannedWord}"** is not allowed in nicknames.\n\nPlease choose a different nickname.`;
-            const textDisplay = new TextDisplayBuilder().setContent(bannedText);
-            const container = new ContainerBuilder().addTextDisplayComponents(textDisplay);
-            await msg.reply({ content: ' ', components: [container], flags: MessageFlags.IsComponentsV2 });
-            msg.delete().catch(() => {});
+            await msg.reply({ content: `<:Bin:1441777857205637254> Cannot set "**${bannedWord}**" in nickname.`, flags: MessageFlags.Ephemeral });
             return;
         }
 
         try {
             const before = msg.member.nickname || msg.member.displayName;
             await msg.member.setNickname(nickname);
-            const changedText = `## <:Correct:1440296238305116223> Nickname Changed\n\n**Before:** ${before}\n**After:** ${nickname}\n\nYour nickname has been successfully updated!`;
-            const textDisplay = new TextDisplayBuilder().setContent(changedText);
-            const container = new ContainerBuilder().addTextDisplayComponents(textDisplay);
-            await msg.reply({ content: ' ', components: [container], flags: MessageFlags.IsComponentsV2 }).catch(() => {});
-            msg.delete().catch(() => {});
+            await msg.reply({ content: `<:Correct:1440296238305116223> Nickname changed to **${nickname}**!`, flags: MessageFlags.Ephemeral }).catch(() => {});
         } catch {
             const failedText = `## <:warning:1441531830607151195> Failed\n\nCouldn't change your nickname. Please try again or contact a moderator.`;
             const textDisplay = new TextDisplayBuilder().setContent(failedText);
             const container = new ContainerBuilder().addTextDisplayComponents(textDisplay);
             await msg.reply({ content: ' ', components: [container], flags: MessageFlags.IsComponentsV2 }).catch(() => {});
-            msg.delete().catch(() => {});
         }
     } else if (data.nickname.mode === 'approval') {
         const bannedWord = containsBannedWord(nickname);
         if (bannedWord) {
-            const bannedText = `## <:Bin:1441777857205637254> Cannot Set Nickname\n\nThe word **"${bannedWord}"** is not allowed in nicknames.\n\nPlease choose a different nickname.`;
-            const textDisplay = new TextDisplayBuilder().setContent(bannedText);
-            const container = new ContainerBuilder().addTextDisplayComponents(textDisplay);
-            await msg.reply({ content: ' ', components: [container], flags: MessageFlags.IsComponentsV2 });
-            msg.delete().catch(() => {});
+            await msg.reply({ content: `<:Bin:1441777857205637254> Cannot set "**${bannedWord}**" in nickname.`, flags: MessageFlags.Ephemeral });
             return;
         }
 
@@ -1915,7 +1901,6 @@ client.on(Events.MessageCreate, async msg => {
             components: [container],
             flags: MessageFlags.IsComponentsV2
         });
-        msg.delete().catch(() => {});
 
         const filter = i => i.user.id !== msg.author.id;
         const collector = requestMsg.createMessageComponentCollector({ filter, time: 3600000 });
