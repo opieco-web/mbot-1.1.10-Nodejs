@@ -33,7 +33,7 @@ const commands = [
         .addSubcommand(subcommand =>
             subcommand
                 .setName('setup')
-                .setDescription('Setup: Choose channel for nickname requests & approve mode (Auto approves instantly, Approved requires manual approval)')
+                .setDescription('Set channel and mode: Auto (instant) or Approved (manual)')
                 .addChannelOption(option => option.setName('channel').setDescription('Nickname request channel').setRequired(true))
                 .addStringOption(option =>
                     option
@@ -147,7 +147,7 @@ const commands = [
         .addSubcommand(subcommand =>
             subcommand
                 .setName('enable')
-                .setDescription('Enable: Pick channel, optional delay (5s/10s/1m/1h, default 120s), optionally view 100 welcome messages')
+                .setDescription('Enable welcomes: set channel, delay (5s/1m/1h), view messages')
                 .addChannelOption(option =>
                     option.setName('setchannel')
                         .setDescription('Channel where welcome messages are sent to new members')
@@ -179,7 +179,7 @@ const commands = [
         .addStringOption(option =>
             option
                 .setName('action')
-                .setDescription('set = customize bot presence, reset = default status, view = show current status')
+                .setDescription('set = customize, reset = default, view = show current status')
                 .setRequired(true)
                 .addChoices(
                     { name: 'set', value: 'set' },
