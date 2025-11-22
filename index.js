@@ -1290,46 +1290,42 @@ client.on(Events.InteractionCreate, async interaction => {
         const targetChannel = interaction.options.getChannel('channel') || interaction.channel;
 
         try {
-            // Build Component V2 structure
+            // Build Component V2 structure - Common builder format
             const components = [];
 
-            if (thumbnailAttachment) {
-                // Add title with thumbnail accessory
-                components.push({
-                    type: 9,
-                    components: [
-                        {
-                            type: 10,
-                            content: `## ${title}`
-                        }
-                    ],
-                    accessory: {
-                        type: 11,
-                        media: {
-                            url: thumbnailAttachment.url
-                        }
-                    }
-                });
-            } else {
-                // Add title without accessory
-                components.push({
-                    type: 10,
-                    content: `## ${title}`
-                });
-            }
+            // 1. Add title
+            components.push({
+                type: 10,
+                content: title
+            });
 
-            // Add separator
+            // 2. Add separator
             components.push({
                 type: 14
             });
 
-            // Add content if provided
-            if (content) {
-                components.push({
-                    type: 10,
-                    content: content
-                });
+            // 3. Add content with optional thumbnail accessory
+            const contentComponent = {
+                type: 9,
+                components: [
+                    {
+                        type: 10,
+                        content: content || ''
+                    }
+                ]
+            };
+
+            // Add thumbnail accessory if provided
+            if (thumbnailAttachment) {
+                contentComponent.accessory = {
+                    type: 11,
+                    media: {
+                        url: thumbnailAttachment.url
+                    }
+                };
             }
+
+            components.push(contentComponent);
 
             const payload = {
                 content: ' ',
