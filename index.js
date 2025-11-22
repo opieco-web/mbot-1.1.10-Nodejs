@@ -1963,13 +1963,54 @@ client.on(Events.MessageCreate, async msg => {
             return msg.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '### <:Tails:1441153955412312134> Coin Flip' }, { type: 14, spacing: 1 }, { type: 10, content: `The coin landed on: **${result}**!` }] }], flags: 32768 });
         }
 
-        // Ping command
-        if (cmd === 'bp') {
+        // Bot Info command
+        if (cmd === 'bi') {
+            const botName = client.user.username;
+            const botVersion = '4.2.6';
+            const botDescription = 'Nickname bot with server-specific prefix, AFK system, avatar view, fun commands, and auto-response moderation features';
+            const prefix = getPrefix(guildId);
             const wsLatency = client.ws.ping;
             const responseTime = Date.now() - msg.createdTimestamp;
             const uptime = formatUptime(startTime);
+            const botAvatar = client.user.displayAvatarURL({ dynamic: true, size: 1024 });
             
-            return msg.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## 📡 Ping' }, { type: 14, spacing: 1 }, { type: 10, content: `WebSocket: ${wsLatency}ms\nHosting Delay: ${wsLatency}ms\nResponse: ${responseTime}ms\nUptime: ${uptime}` }] }], flags: 32768 });
+            const infoText = `**${botDescription}**\n\n**Prefix:** \`${prefix}\`\n**Ping:** ${wsLatency}ms\n**Response Time:** ${responseTime}ms\n**Uptime:** ${uptime}\n**Total Commands:** 15+`;
+            
+            const payload = {
+                content: ' ',
+                components: [
+                    {
+                        type: 17,
+                        components: [
+                            {
+                                type: 10,
+                                content: `## ${botName}│v${botVersion}`
+                            },
+                            {
+                                type: 14
+                            },
+                            {
+                                type: 9,
+                                components: [
+                                    {
+                                        type: 10,
+                                        content: infoText
+                                    }
+                                ],
+                                accessory: {
+                                    type: 11,
+                                    media: {
+                                        url: botAvatar
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                ],
+                flags: 32768
+            };
+            
+            return msg.reply(payload);
         }
     }
 
