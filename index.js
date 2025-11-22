@@ -98,7 +98,8 @@ const commands = [
     new SlashCommandBuilder()
         .setName('avatar')
         .setDescription('View user avatar')
-        .addUserOption(option => option.setName('user').setDescription('User to show avatar for (optional)').setRequired(false)),
+        .addUserOption(option => option.setName('user').setDescription('User to show avatar for (optional)').setRequired(false))
+        .addBooleanOption(option => option.setName('server').setDescription('Show server avatar only (true/false)').setRequired(false)),
 
     // Fun commands
     new SlashCommandBuilder()
@@ -658,6 +659,7 @@ client.on(Events.InteractionCreate, async interaction => {
 
     if (commandName === 'avatar') {
         const target = interaction.options.getUser('user') || user;
+        const showServerOnly = interaction.options.getBoolean('server');
         let guildAvatar = null;
         
         try {
@@ -671,25 +673,23 @@ client.on(Events.InteractionCreate, async interaction => {
         
         const defaultAvatar = target.displayAvatarURL({ dynamic: true, size: 1024 });
         
-        if (guildAvatar) {
-            const avatarEmbed = new EmbedBuilder()
-                .setTitle(`${target.username} Avatar`)
-                .setColor(0x37373D)
-                .addFields(
-                    { name: 'Server Avatar', value: `[View](${guildAvatar})`, inline: true },
-                    { name: 'Default Avatar', value: `[View](${defaultAvatar})`, inline: true }
-                )
-                .setImage(guildAvatar)
-                .setThumbnail(defaultAvatar);
-            return interaction.reply({ embeds: [avatarEmbed], flags: MessageFlags.Ephemeral });
+        let response;
+        if (showServerOnly === true) {
+            // Show server avatar only
+            if (guildAvatar) {
+                response = createAvatarComponent(target.username, defaultAvatar, guildAvatar);
+            } else {
+                response = { content: '<:2_no_wrong:1439893245130838047> This user has no server-specific avatar.', flags: MessageFlags.Ephemeral };
+            }
+        } else if (showServerOnly === false) {
+            // Show default avatar only
+            response = createAvatarComponent(target.username, defaultAvatar, null);
         } else {
-            const avatarEmbed = new EmbedBuilder()
-                .setTitle(`${target.username} Avatar`)
-                .setImage(defaultAvatar)
-                .setColor(0x37373D)
-                .setDescription('Using default avatar (no server-specific avatar set)');
-            return interaction.reply({ embeds: [avatarEmbed], flags: MessageFlags.Ephemeral });
+            // Show both if available
+            response = createAvatarComponent(target.username, defaultAvatar, guildAvatar);
         }
+        
+        return interaction.reply(response);
     }
 
     // ------------------------
@@ -979,12 +979,37 @@ client.on(Events.MessageCreate, async msg => {
 
         // Avatar
         if (cmd === 'av') {
-            const user = msg.mentions.users.first() || msg.author;
-            const avatarEmbed = new EmbedBuilder()
-                .setTitle(`${user.tag}'s Avatar`)
-                .setImage(user.displayAvatarURL({ dynamic: true, size: 1024 }))
-                .setColor(0x37373D);
-            return msg.reply({ embeds: [avatarEmbed] });
+            let targetUser = msg.author;
+            let showServerOnly = false;
+            
+            // Check if user mentioned
+            if (msg.mentions.users.size > 0) {
+                targetUser = msg.mentions.users.first();
+            }
+            
+            // Check for 's' parameter to show server avatar only
+            if (args.length > 0 && args[0].toLowerCase() === 's') {
+                showServerOnly = true;
+            }
+            
+            let guildAvatar = null;
+            try {
+                const member = await msg.guild.members.fetch(targetUser.id);
+                if (member.avatar) {
+                    guildAvatar = member.avatarURL({ dynamic: true, size: 1024 });
+                }
+            } catch (e) {
+                // User not in guild
+            }
+            
+            const defaultAvatar = targetUser.displayAvatarURL({ dynamic: true, size: 1024 });
+            
+            if (showServerOnly && !guildAvatar) {
+                return msg.reply('<:2_no_wrong:1439893245130838047> This user has no server-specific avatar.');
+            }
+            
+            const response = createAvatarComponent(targetUser.username, defaultAvatar, showServerOnly ? guildAvatar : guildAvatar);
+            return msg.reply(response);
         }
 
         // Fun command: Truth or Dare
