@@ -337,7 +337,6 @@ function createAvatarComponent(username, defaultAvatarUrl, serverAvatarUrl = nul
     }
     
     const container = new ContainerBuilder()
-        .setAccentColor(0x5865F2)
         .addTextDisplayComponents(
             new TextDisplayBuilder().setContent(`## ${title}`)
         )
