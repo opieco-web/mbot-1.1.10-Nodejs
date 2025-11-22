@@ -653,14 +653,20 @@ client.on(Events.InteractionCreate, async interaction => {
 
     if (commandName === 'afklist') {
         if (!member.permissions.has(PermissionsBitField.Flags.ManageGuild) && !member.permissions.has(PermissionsBitField.Flags.Administrator)) {
-            return interaction.reply({ embeds: [createModeratorEmbed('🚫 Permission Denied', 'You need ManageGuild permission.', 0xFF4444)], flags: MessageFlags.Ephemeral });
+            const text = '### 🚫 Permission Denied\n\nYou need ManageGuild permission.';
+            const textDisplay = new TextDisplayBuilder().setContent(text);
+            const container = new ContainerBuilder().addTextDisplayComponents(textDisplay);
+            return interaction.reply({ content: ' ', components: [container], flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral });
         }
 
         if (Object.keys(afkUsers).length === 0) {
-            return interaction.reply({ embeds: [createModeratorEmbed('⏱️ AFK Status', 'No users are currently AFK.', 0x2F3136)], flags: MessageFlags.Ephemeral });
+            const text = '### ⏱️ AFK Status\n\nNo users are currently AFK.';
+            const textDisplay = new TextDisplayBuilder().setContent(text);
+            const container = new ContainerBuilder().addTextDisplayComponents(textDisplay);
+            return interaction.reply({ content: ' ', components: [container], flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral });
         }
 
-        let afkList = '';
+        let afkList = '### 🚫 Currently AFK\n\n';
         for (const userId in afkUsers) {
             const afkData = afkUsers[userId];
             const duration = calculateDuration(afkData.timestamp);
@@ -679,7 +685,9 @@ client.on(Events.InteractionCreate, async interaction => {
             }
         }
 
-        return interaction.reply({ embeds: [createModeratorEmbed('🚫 Currently AFK', afkList, 0x2F3136)], flags: MessageFlags.Ephemeral });
+        const textDisplay = new TextDisplayBuilder().setContent(afkList);
+        const container = new ContainerBuilder().addTextDisplayComponents(textDisplay);
+        return interaction.reply({ content: ' ', components: [container], flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral });
     }
 
     if (commandName === 'avatar') {
@@ -763,7 +771,12 @@ client.on(Events.InteractionCreate, async interaction => {
         ];
         const pick = Math.random() < 0.5 ? 'Truth' : 'Dare';
         const question = pick === 'Truth' ? truths[Math.floor(Math.random()*truths.length)] : dares[Math.floor(Math.random()*dares.length)];
-        return interaction.reply({ content: `**${pick}:** ${question}` });
+        
+        const text = `### 🎮 ${pick}\n\n${question}`;
+        const textDisplay = new TextDisplayBuilder().setContent(text);
+        const container = new ContainerBuilder().addTextDisplayComponents(textDisplay);
+        
+        return interaction.reply({ content: ' ', components: [container], flags: MessageFlags.IsComponentsV2 });
     }
 
     // ------------------------
@@ -771,7 +784,13 @@ client.on(Events.InteractionCreate, async interaction => {
     // ------------------------
     if (commandName === 'coinflip') {
         const result = Math.random() < 0.5 ? 'Heads' : 'Tails';
-        return interaction.reply({ content: `<:Tails:1441153955412312134> The coin landed on: **${result}**!` });
+        const emoji = result === 'Heads' ? '🪙' : '<:Tails:1441153955412312134>';
+        
+        const text = `### ${emoji} Coin Flip\n\nThe coin landed on: **${result}**!`;
+        const textDisplay = new TextDisplayBuilder().setContent(text);
+        const container = new ContainerBuilder().addTextDisplayComponents(textDisplay);
+        
+        return interaction.reply({ content: ' ', components: [container], flags: MessageFlags.IsComponentsV2 });
     }
 
     // ------------------------
@@ -1088,13 +1107,24 @@ client.on(Events.MessageCreate, async msg => {
             ];
             const pick = Math.random() < 0.5 ? 'Truth' : 'Dare';
             const question = pick === 'Truth' ? truths[Math.floor(Math.random()*truths.length)] : dares[Math.floor(Math.random()*dares.length)];
-            return msg.reply({ content: `**${pick}:** ${question}` });
+            
+            const text = `### 🎮 ${pick}\n\n${question}`;
+            const textDisplay = new TextDisplayBuilder().setContent(text);
+            const container = new ContainerBuilder().addTextDisplayComponents(textDisplay);
+            
+            return msg.reply({ content: ' ', components: [container], flags: MessageFlags.IsComponentsV2 });
         }
 
         // Fun command: Coin Flip
         if (cmd === 'cf') {
             const result = Math.random() < 0.5 ? 'Heads' : 'Tails';
-            return msg.reply({ content: `<:Tails:1441153955412312134> The coin landed on: **${result}**!` });
+            const emoji = result === 'Heads' ? '🪙' : '<:Tails:1441153955412312134>';
+            
+            const text = `### ${emoji} Coin Flip\n\nThe coin landed on: **${result}**!`;
+            const textDisplay = new TextDisplayBuilder().setContent(text);
+            const container = new ContainerBuilder().addTextDisplayComponents(textDisplay);
+            
+            return msg.reply({ content: ' ', components: [container], flags: MessageFlags.IsComponentsV2 });
         }
 
         // Ping command
@@ -1168,14 +1198,16 @@ client.on(Events.MessageCreate, async msg => {
 
         const row = new ActionRowBuilder().addComponents(approveBtn, rejectBtn);
 
-        const requestEmbed = new EmbedBuilder()
-            .setTitle('📝 Nickname Request')
-            .setDescription(`**User:** ${msg.author}\n**Requested:** "${nickname}"`)
-            .setColor(0x2F3136);
+        const requestText = `### 📝 Nickname Request\n\n**User:** ${msg.author}\n**Requested:** "${nickname}"`;
+        const textDisplay = new TextDisplayBuilder().setContent(requestText);
+        const container = new ContainerBuilder()
+            .addTextDisplayComponents(textDisplay)
+            .addActionRowComponents(row);
         
         const requestMsg = await msg.channel.send({
-            embeds: [requestEmbed],
-            components: [row]
+            content: ' ',
+            components: [container],
+            flags: MessageFlags.IsComponentsV2
         });
 
         const filter = i => i.user.id !== msg.author.id;
