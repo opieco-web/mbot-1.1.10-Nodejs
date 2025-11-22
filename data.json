@@ -1,30 +1,53 @@
 {
-  "channelId": "1305225655394242561",
-  "mode": "auto",
-  "prefixes": {
+  "bot": {
+    "status": {
+      "text": "মিনিং বাংলা│m•bot v4.2.6",
+      "type": "Competing",
+      "emoji": "🎀",
+      "presence": "dnd",
+      "lastUpdatedBy": "1065350468928290828",
+      "lastUpdatedAt": "2025-11-22T08:01:40.982Z"
+    }
+  },
+
+  "nickname": {
+    "channelId": "1305225655394242561",
+    "mode": "auto",
+    "filter": [
+      "gay",
+      "hogalala"
+    ]
+  },
+
+  "prefix": {
     "1440196646490214422": "."
   },
-  "autoresponses": {
+
+  "autoresponse": {
     "1296783492989980682": [
       {
         "trigger": "<@1065350468928290828>",
         "type": "react",
-        "response": "<a:mg_pixel_walking_fries:1439874950755258520>"
+        "response": "<a:mg_pixel_walking_fries:1439874950755258520>",
+        "isFromBackup": false
       },
       {
         "trigger": "<@1108782022543032400>",
         "type": "react",
-        "response": "<a:mg_heart_flowers:1318077522897928223>"
+        "response": "<a:mg_heart_flowers:1318077522897928223>",
+        "isFromBackup": false
       },
       {
         "trigger": "<@1272065508367138902>",
         "type": "react",
-        "response": "<:mg_h_hug:1439960872473854065>"
+        "response": "<:mg_h_hug:1439960872473854065>",
+        "isFromBackup": false
       },
       {
         "trigger": "Vanity",
         "type": "text",
-        "response": "https://discord.gg/mining-bangladesh-1296783492989980682"
+        "response": "https://discord.gg/mining-bangladesh-1296783492989980682",
+        "isFromBackup": false
       },
       {
         "trigger": "test",
@@ -34,14 +57,9 @@
       }
     ]
   },
-  "status": {
-    "text": "মিনিং বাংলা│m•bot v4.2.6",
-    "type": "Competing",
-    "emoji": "🎀",
-    "presence": "dnd",
-    "lastUpdatedBy": "1065350468928290828",
-    "lastUpdatedAt": "2025-11-22T08:01:40.982Z"
-  },
+
+  "afk": {},
+
   "welcome": {
     "1296783492989980682": {
       "channelId": "1296783493430513747",
@@ -49,12 +67,8 @@
       "enabled": true
     }
   },
-  "afk": {},
-  "nicknameFilter": [
-    "gay",
-    "hogalala"
-  ],
-  "customMessages": {
+
+  "custommessage": {
     "1296783492989980682": [
       {
         "title": "How To Avatar",
