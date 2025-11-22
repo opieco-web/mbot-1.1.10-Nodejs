@@ -664,10 +664,12 @@ client.on(Events.InteractionCreate, async interaction => {
         
         try {
             const member = await guild.members.fetch(target.id);
+            // Check for server-specific avatar
             if (member.avatar) {
                 guildAvatar = member.avatarURL({ dynamic: true, size: 1024 });
             }
         } catch (e) {
+            console.error('Error fetching member:', e);
             // User not in guild or error fetching member
         }
         
@@ -679,13 +681,13 @@ client.on(Events.InteractionCreate, async interaction => {
             if (guildAvatar) {
                 response = createAvatarComponent(target.username, defaultAvatar, guildAvatar);
             } else {
-                response = { content: '<:2_no_wrong:1439893245130838047> This user has no server-specific avatar.', flags: MessageFlags.Ephemeral };
+                response = { content: '<:2_no_wrong:1439893245130838047> This user has no server-specific avatar set.', flags: MessageFlags.Ephemeral };
             }
         } else if (showServerOnly === false) {
             // Show default avatar only
             response = createAvatarComponent(target.username, defaultAvatar, null);
         } else {
-            // Show both if available
+            // Show both (server if available, default always)
             response = createAvatarComponent(target.username, defaultAvatar, guildAvatar);
         }
         
@@ -1011,7 +1013,7 @@ client.on(Events.MessageCreate, async msg => {
                 return msg.reply('<:2_no_wrong:1439893245130838047> This user has no server-specific avatar.');
             }
             
-            const response = createAvatarComponent(targetUser.username, defaultAvatar, showServerOnly ? guildAvatar : guildAvatar);
+            const response = createAvatarComponent(targetUser.username, defaultAvatar, showServerOnly ? guildAvatar : null);
             return msg.reply(response);
         }
 
