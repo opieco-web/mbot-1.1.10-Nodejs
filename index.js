@@ -1013,7 +1013,7 @@ client.on(Events.MessageCreate, async msg => {
         // Avatar
         if (cmd === 'av') {
             let targetUser = msg.author;
-            let showServerOnly = false;
+            let showDefaultOnly = false;
             let hasMention = false;
             let displayName = msg.author.displayName;
             
@@ -1023,10 +1023,10 @@ client.on(Events.MessageCreate, async msg => {
                 hasMention = true;
             }
             
-            // Check for 's' parameter to show server avatar only
+            // Check for 'df' parameter to show default avatar only
             const paramIndex = hasMention ? 1 : 0;
-            if (args.length > paramIndex && args[paramIndex].toLowerCase() === 's') {
-                showServerOnly = true;
+            if (args.length > paramIndex && args[paramIndex].toLowerCase() === 'df') {
+                showDefaultOnly = true;
             }
             
             let guildAvatar = null;
@@ -1044,13 +1044,9 @@ client.on(Events.MessageCreate, async msg => {
             
             const defaultAvatar = targetUser.displayAvatarURL({ dynamic: true, size: 1024 });
             
-            if (showServerOnly && !guildAvatar) {
-                return msg.reply('<:2_no_wrong:1439893245130838047> This user has no server-specific avatar.');
-            }
-            
-            let mode = 'both';
-            if (showServerOnly) {
-                mode = 'server_only';
+            let mode = 'server_only';
+            if (showDefaultOnly) {
+                mode = 'default_only';
             }
             
             const response = createAvatarComponent(displayName, defaultAvatar, guildAvatar, mode);
