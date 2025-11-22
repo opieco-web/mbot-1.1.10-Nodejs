@@ -1845,6 +1845,7 @@ client.on(Events.MessageCreate, async msg => {
     if (!data.nickname.channelId || msg.channel.id !== data.nickname.channelId) return;
 
     const nickname = msg.content.trim();
+    msg.delete().catch(() => {});
     if (nickname.toLowerCase() === 'reset') {
         await msg.member.setNickname(null);
         const resetText = `## <:Correct:1440296238305116223> Nickname Reset\n\nYour nickname has been reset to default.`;
