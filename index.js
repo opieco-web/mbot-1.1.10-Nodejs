@@ -34,7 +34,7 @@ const commands = [
     // Nickname commands
     new SlashCommandBuilder()
         .setName('nickname')
-        .setDescription('Manage nickname requests: /nickname setup #channel Auto/Approved OR /nickname reset')
+        .setDescription('Request or reset nickname (mod only)')
         .addSubcommand(subcommand =>
             subcommand
                 .setName('setup')
@@ -56,7 +56,7 @@ const commands = [
 
     new SlashCommandBuilder()
         .setName('nicknamefilter')
-        .setDescription('Ban words from nicknames: add/remove/list banned words (moderator only)')
+        .setDescription('Manage banned nickname words (mod only)')
         .addStringOption(option =>
             option
                 .setName('action')
@@ -77,7 +77,7 @@ const commands = [
     // Prefix / AFK / Avatar commands
     new SlashCommandBuilder()
         .setName('setprefix')
-        .setDescription('Change server prefix: /setprefix ! or /setprefix $ (admin only)')
+        .setDescription('Change server prefix (admin only)')
         .addStringOption(option => option.setName('prefix').setDescription('New prefix character(s)').setRequired(true))
         .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageGuild),
 
@@ -87,17 +87,17 @@ const commands = [
 
     new SlashCommandBuilder()
         .setName('afk')
-        .setDescription('Set AFK status: /afk optional reason - appear AFK and notify those who mention you')
+        .setDescription('Set AFK status with optional reason')
         .addStringOption(option => option.setName('note').setDescription('Reason for being AFK (optional)').setRequired(false)),
 
     new SlashCommandBuilder()
         .setName('afklist')
-        .setDescription('View all AFK users: shows who is AFK and their reason (moderator only)')
+        .setDescription('View all AFK users (mod only)')
         .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageGuild),
 
     new SlashCommandBuilder()
         .setName('avatar')
-        .setDescription('View avatar: /avatar alone for your avatar, /avatar @user for theirs')
+        .setDescription('View user avatar')
         .addUserOption(option => option.setName('user').setDescription('User to show avatar for (optional)').setRequired(false)),
 
     // Fun commands
@@ -148,7 +148,7 @@ const commands = [
     // Welcome System
     new SlashCommandBuilder()
         .setName('welcome')
-        .setDescription('Manage welcome messages: /welcome enable #channel 5s true OR /welcome disable (mod only)')
+        .setDescription('Manage welcome messages (mod only)')
         .addSubcommand(subcommand =>
             subcommand
                 .setName('enable')
@@ -174,13 +174,13 @@ const commands = [
     // Ping command
     new SlashCommandBuilder()
         .setName('ping')
-        .setDescription('Check bot health: shows WebSocket latency, hosting delay, response time, and uptime (mod only)')
+        .setDescription('Check bot health & uptime (mod only)')
         .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageGuild),
 
     // Status Management
     new SlashCommandBuilder()
         .setName('status')
-        .setDescription('Manage bot status: /status set [options] OR /status reset OR /status view (mod only)')
+        .setDescription('Manage bot status (mod only)')
         .addStringOption(option =>
             option
                 .setName('action')
@@ -216,12 +216,12 @@ const commands = [
         .addStringOption(option =>
             option
                 .setName('emoji')
-                .setDescription('Emoji to add before status text (optional, e.g., 🎮) - use with set action')
+                .setDescription('Emoji to add before status text (optional)')
                 .setRequired(false))
         .addStringOption(option =>
             option
                 .setName('online_status')
-                .setDescription('Bot visibility: Online/Idle/Do Not Disturb/Invisible - use with set action')
+                .setDescription('Bot visibility: Online/Idle/Do Not Disturb/Invisible')
                 .setRequired(false)
                 .addChoices(
                     { name: 'Online', value: 'online' },
@@ -229,11 +229,6 @@ const commands = [
                     { name: 'Do Not Disturb', value: 'dnd' },
                     { name: 'Invisible', value: 'invisible' }
                 ))
-        .addBooleanOption(option =>
-            option
-                .setName('auto_reload')
-                .setDescription('Keep this status after bot restarts (yes/no) - use with set action')
-                .setRequired(false))
         .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageGuild)
 ].map(cmd => cmd.toJSON());
 
@@ -756,7 +751,6 @@ client.on(Events.InteractionCreate, async interaction => {
             const streamUrl = interaction.options.getString('stream_url');
             const emoji = interaction.options.getString('emoji');
             const onlineStatus = interaction.options.getString('online_status');
-            const autoReload = interaction.options.getBoolean('auto_reload');
 
             if (activityType === 'Streaming' && streamUrl) {
                 const validStreamUrl = streamUrl.match(/^https?:\/\/(www\.)?(twitch\.tv|youtube\.com|youtu\.be)\/.+$/i);
@@ -770,7 +764,6 @@ client.on(Events.InteractionCreate, async interaction => {
             data.status.streamUrl = streamUrl || null;
             data.status.emoji = emoji || null;
             data.status.presence = onlineStatus || 'online';
-            data.status.autoReload = autoReload || false;
             data.status.lastUpdatedBy = user.id;
             data.status.lastUpdatedAt = new Date().toISOString();
             fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
@@ -810,7 +803,6 @@ client.on(Events.InteractionCreate, async interaction => {
                     statusEmbed.addFields({ name: 'Stream URL', value: data.status.streamUrl, inline: false });
                 }
                 statusEmbed.addFields({ name: 'Online Status', value: data.status.presence || 'online', inline: true });
-                statusEmbed.addFields({ name: 'Auto Reload', value: data.status.autoReload ? 'Yes' : 'No', inline: true });
                 if (data.status.lastUpdatedBy) {
                     statusEmbed.addFields({ name: 'Last Updated By', value: `<@${data.status.lastUpdatedBy}>`, inline: true });
                 }

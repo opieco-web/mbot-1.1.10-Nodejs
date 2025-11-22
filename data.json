@@ -28,16 +28,7 @@
       }
     ]
   },
-  "status": {
-    "text": "m•bot - v4.2.6",
-    "type": "Watching",
-    "streamUrl": null,
-    "emoji": "🥔",
-    "presence": "dnd",
-    "autoReload": true,
-    "lastUpdatedBy": "1065350468928290828",
-    "lastUpdatedAt": "2025-11-22T07:27:49.824Z"
-  },
+  "status": {},
   "welcome": {
     "1296783492989980682": {
       "channelId": "1296783493430513747",
