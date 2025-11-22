@@ -819,7 +819,7 @@ client.on(Events.InteractionCreate, async interaction => {
 
             let list = '';
             data.autoresponses[guildId].forEach((ar, index) => {
-                const response = ar.response ? `\`${ar.response.substring(0, 50)}${ar.response.length > 50 ? '...' : ''}\`` : '(empty)';
+                const response = ar.response ? `${ar.response.substring(0, 50)}${ar.response.length > 50 ? '...' : ''}` : '(empty)';
                 list += `${index + 1}. **${ar.trigger}** (${ar.type})\n   → ${response}\n`;
             });
 
