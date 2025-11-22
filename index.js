@@ -1455,15 +1455,38 @@ client.on(Events.InteractionCreate, async interaction => {
             data.welcome[guildId].enabled = true;
             fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
 
-            let reply = `<:1_yes_correct:1439893200981721140> Welcome messages **enabled**!\nChannel: ${channel}\nDelay: **${delayStr || '120s'}**`;
-
             if (showList) {
-                reply += '\n\n**Welcome Message Samples:**\n';
-                reply += welcomeMessages.slice(0, 10).map((msg, i) => `${i + 1}. ${msg}`).join('\n');
-                reply += `\n...\n(${welcomeMessages.length} total messages available)`;
+                const sampleList = welcomeMessages.slice(0, 10).map((msg, i) => `${i + 1}. ${msg}`).join('\n');
+                const contentText = `**Channel:** ${channel}\n**Delay:** ${delayStr || '120s'}\n\n**Sample Messages:**\n${sampleList}\n\n... (${welcomeMessages.length} total messages available)`;
+                
+                return interaction.reply({ 
+                    content: ' ', 
+                    components: [{ 
+                        type: 17, 
+                        components: [
+                            { type: 10, content: '### <:1_yes_correct:1439893200981721140> Welcome Enabled' },
+                            { type: 14, spacing: 1 },
+                            { type: 10, content: contentText }
+                        ] 
+                    }], 
+                    flags: 32768 | MessageFlags.Ephemeral 
+                });
+            } else {
+                const contentText = `**Channel:** ${channel}\n**Delay:** ${delayStr || '120s'}`;
+                
+                return interaction.reply({ 
+                    content: ' ', 
+                    components: [{ 
+                        type: 17, 
+                        components: [
+                            { type: 10, content: '### <:1_yes_correct:1439893200981721140> Welcome Enabled' },
+                            { type: 14, spacing: 1 },
+                            { type: 10, content: contentText }
+                        ] 
+                    }], 
+                    flags: 32768 | MessageFlags.Ephemeral 
+                });
             }
-
-            return interaction.reply({ content: reply, flags: MessageFlags.Ephemeral });
         }
 
         if (subcommand === 'disable') {
@@ -1471,7 +1494,18 @@ client.on(Events.InteractionCreate, async interaction => {
             data.welcome[guildId].enabled = false;
             fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
 
-            return interaction.reply({ content: '<:1_yes_correct:1439893200981721140> Welcome messages **disabled**!', flags: MessageFlags.Ephemeral });
+            return interaction.reply({ 
+                content: ' ', 
+                components: [{ 
+                    type: 17, 
+                    components: [
+                        { type: 10, content: '### <:1_yes_correct:1439893200981721140> Welcome Disabled' },
+                        { type: 14, spacing: 1 },
+                        { type: 10, content: 'Welcome messages have been disabled for this server.' }
+                    ] 
+                }], 
+                flags: 32768 | MessageFlags.Ephemeral 
+            });
         }
     }
 });

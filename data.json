@@ -52,13 +52,17 @@
     "1108782022543032400": {
       "reason": "<@1065350468928290828> ar kotha bolbana amar shate",
       "timestamp": 1763834948084
+    },
+    "1054967242497982476": {
+      "reason": "jaiga ghumai <a:mg_pixel_walking_fries:1439874950755258520> <a:sleepp2:1441373106257133661> <a:mg_cat_popcateatpopcorn:1439970830301008002>",
+      "timestamp": 1763838812555
     }
   },
   "welcome": {
     "1296783492989980682": {
       "channelId": "1296783493430513747",
       "delay": 120000,
-      "enabled": true
+      "enabled": false
     }
   },
   "prefixes": {},
