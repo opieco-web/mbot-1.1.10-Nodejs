@@ -264,10 +264,10 @@ const commands = [
                 .setDescription('Disable welcome messages - new members won\'t receive greetings'))
         .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageGuild),
 
-    // Ping command
+    // Bot Info command
     new SlashCommandBuilder()
-        .setName('ping')
-        .setDescription('Check bot health & uptime (mod only)')
+        .setName('botinfo')
+        .setDescription('View comprehensive bot information, stats, and configuration')
         .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageGuild),
 
     // Status Management
