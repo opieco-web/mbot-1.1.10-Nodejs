@@ -622,11 +622,38 @@ client.on(Events.InteractionCreate, async interaction => {
 
     if (commandName === 'avatar') {
         const target = interaction.options.getUser('user') || user;
-        const avatarEmbed = new EmbedBuilder()
-            .setTitle(`${target.tag}'s Avatar`)
-            .setImage(target.displayAvatarURL({ dynamic: true, size: 1024 }))
-            .setColor(0x37373D);
-        return interaction.reply({ embeds: [avatarEmbed], flags: MessageFlags.Ephemeral });
+        let guildAvatar = null;
+        
+        try {
+            const member = await guild.members.fetch(target.id);
+            if (member.avatar) {
+                guildAvatar = member.avatarURL({ dynamic: true, size: 1024 });
+            }
+        } catch (e) {
+            // User not in guild or error fetching member
+        }
+        
+        const defaultAvatar = target.displayAvatarURL({ dynamic: true, size: 1024 });
+        
+        if (guildAvatar) {
+            const avatarEmbed = new EmbedBuilder()
+                .setTitle(`${target.username} Avatar`)
+                .setColor(0x37373D)
+                .addFields(
+                    { name: 'Server Avatar', value: `[View](${guildAvatar})`, inline: true },
+                    { name: 'Default Avatar', value: `[View](${defaultAvatar})`, inline: true }
+                )
+                .setImage(guildAvatar)
+                .setThumbnail(defaultAvatar);
+            return interaction.reply({ embeds: [avatarEmbed], flags: MessageFlags.Ephemeral });
+        } else {
+            const avatarEmbed = new EmbedBuilder()
+                .setTitle(`${target.username} Avatar`)
+                .setImage(defaultAvatar)
+                .setColor(0x37373D)
+                .setDescription('Using default avatar (no server-specific avatar set)');
+            return interaction.reply({ embeds: [avatarEmbed], flags: MessageFlags.Ephemeral });
+        }
     }
 
     // ------------------------
