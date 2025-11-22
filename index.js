@@ -358,24 +358,10 @@ const commands = [
                 .setName('content')
                 .setDescription('Message content (optional)')
                 .setRequired(false))
-        .addBooleanOption(option =>
+        .addAttachmentOption(option =>
             option
                 .setName('thumbnail')
-                .setDescription('Add a thumbnail image to the message (true/false)')
-                .setRequired(false))
-        .addStringOption(option =>
-            option
-                .setName('thumbnail_type')
-                .setDescription('Choose thumbnail source: media (file upload) or media_url (link)')
-                .setRequired(false)
-                .addChoices(
-                    { name: 'Media File', value: 'media' },
-                    { name: 'Media URL', value: 'media_url' }
-                ))
-        .addStringOption(option =>
-            option
-                .setName('thumbnail_url')
-                .setDescription('Image URL for thumbnail (use when thumbnail_type is media_url)')
+                .setDescription('Select media file for thumbnail (optional)')
                 .setRequired(false))
         .addChannelOption(option =>
             option
@@ -1300,48 +1286,14 @@ client.on(Events.InteractionCreate, async interaction => {
     if (commandName === 'send') {
         const title = interaction.options.getString('title');
         const content = interaction.options.getString('content');
-        const hasThumbnail = interaction.options.getBoolean('thumbnail');
-        const thumbnailType = interaction.options.getString('thumbnail_type');
-        const thumbnailUrl = interaction.options.getString('thumbnail_url');
+        const thumbnailAttachment = interaction.options.getAttachment('thumbnail');
         const targetChannel = interaction.options.getChannel('channel') || interaction.channel;
 
-        // Validate thumbnail options
-        if (hasThumbnail && !thumbnailType) {
-            return interaction.reply({
-                content: `❌ If thumbnail is true, you must select a thumbnail_type (media or media_url)`,
-                flags: MessageFlags.Ephemeral
-            });
-        }
-
-        if (hasThumbnail && thumbnailType === 'media_url' && !thumbnailUrl) {
-            return interaction.reply({
-                content: `❌ If thumbnail_type is media_url, you must provide a thumbnail_url`,
-                flags: MessageFlags.Ephemeral
-            });
-        }
-
         try {
-            let mediaUrl = null;
-
-            // Handle media file upload
-            if (hasThumbnail && thumbnailType === 'media') {
-                // For media file, we'd need to handle file attachments
-                // For now, show instruction
-                return interaction.reply({
-                    content: `❌ Media file upload from slash commands requires file attachment handling. Please use media_url option instead, or contact bot admin.`,
-                    flags: MessageFlags.Ephemeral
-                });
-            }
-
-            // Handle media URL
-            if (hasThumbnail && thumbnailType === 'media_url') {
-                mediaUrl = thumbnailUrl;
-            }
-
             // Build Component V2 structure
             const components = [];
 
-            if (hasThumbnail && mediaUrl) {
+            if (thumbnailAttachment) {
                 // Add title with thumbnail accessory
                 components.push({
                     type: 9,
@@ -1354,7 +1306,7 @@ client.on(Events.InteractionCreate, async interaction => {
                     accessory: {
                         type: 11,
                         media: {
-                            url: mediaUrl
+                            url: thumbnailAttachment.url
                         }
                     }
                 });
