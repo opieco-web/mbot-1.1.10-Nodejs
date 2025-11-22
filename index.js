@@ -981,14 +981,17 @@ client.on(Events.MessageCreate, async msg => {
         if (cmd === 'av') {
             let targetUser = msg.author;
             let showServerOnly = false;
+            let hasMention = false;
             
             // Check if user mentioned
             if (msg.mentions.users.size > 0) {
                 targetUser = msg.mentions.users.first();
+                hasMention = true;
             }
             
             // Check for 's' parameter to show server avatar only
-            if (args.length > 0 && args[0].toLowerCase() === 's') {
+            const paramIndex = hasMention ? 1 : 0;
+            if (args.length > paramIndex && args[paramIndex].toLowerCase() === 's') {
                 showServerOnly = true;
             }
             
