@@ -5,24 +5,31 @@ const TOKEN = process.env.DISCORD_BOT_TOKEN;
 const CLIENT_ID = process.env.DISCORD_CLIENT_ID;
 
 // ============================================
-// COMPONENT V2 PATTERN FOR EDITING MESSAGES
+// COMPONENT V2 STRUCTURE REFERENCE
 // ============================================
-// When editing messages, always use Component V2 format to avoid "Invalid Form Body" errors:
-// 
-// PATTERN: interaction.update({ content: ' ', components: [container], flags: MessageFlags.IsComponentsV2 });
-// 
-// Example:
-// const text = `### Header\n\nYour message content here`;
+// Component V2 supports these component types:
+// - type 1: ActionRow (container for buttons)
+// - type 2: Button (clickable button with custom_id or url)
+// - type 10: TextDisplay (text content - use TextDisplayBuilder)
+// - type 12: MediaGallery (images/media - use MediaGalleryBuilder)
+// - type 13: File (file attachment display)
+// - type 14: Separator (visual separator line)
+// - type 17: Container (main wrapper - use ContainerBuilder)
+//
+// PATTERN for sending:
+// const text = "Content here";
 // const textDisplay = new TextDisplayBuilder().setContent(text);
 // const container = new ContainerBuilder().addTextDisplayComponents(textDisplay);
-// await i.update({ content: ' ', components: [container], flags: MessageFlags.IsComponentsV2 });
+// await channel.send({ content: ' ', components: [container], flags: MessageFlags.IsComponentsV2 });
+//
+// PATTERN for editing:
+// await message.edit({ content: ' ', components: [container], flags: MessageFlags.IsComponentsV2 });
 //
 // KEY RULES:
-// 1. Always set content to a single space ' ' (not empty string)
-// 2. Use TextDisplayBuilder for text content
-// 3. Wrap with ContainerBuilder for Component V2
-// 4. Always include flags: MessageFlags.IsComponentsV2
-// 5. For ephemeral: Add | MessageFlags.Ephemeral to flags
+// 1. Content must be single space ' ' when using Component V2
+// 2. All components go inside ContainerBuilder
+// 3. Always include flags: MessageFlags.IsComponentsV2
+// 4. Multiple types can be combined in one container
 // ============================================
 
 // Get bot name and version from package.json
@@ -253,36 +260,49 @@ const commands = [
                 ))
         .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageGuild),
 
-    // Custom Message Command - Create fully customizable component messages
+    // Custom Message Command - Create component messages with title/content/media/separators
     new SlashCommandBuilder()
         .setName('custommessage')
-        .setDescription('Create a customizable component message (mod only)')
-        .addStringOption(option =>
-            option
-                .setName('title')
-                .setDescription('Message title (appears as ### Title)')
-                .setRequired(true))
-        .addStringOption(option =>
-            option
-                .setName('content')
-                .setDescription('Message content/body')
-                .setRequired(true))
-        .addChannelOption(option =>
-            option
-                .setName('channel')
-                .setDescription('Channel to send message to')
-                .setRequired(false))
-        .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageGuild),
-
-    // Edit Command - Edit your own messages
-    new SlashCommandBuilder()
-        .setName('edit')
-        .setDescription('Edit your last message')
-        .addStringOption(option =>
-            option
-                .setName('content')
-                .setDescription('New content for the message')
-                .setRequired(true))
+        .setDescription('Create custom Component V2 messages (mod only)')
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName('send')
+                .setDescription('Send a custom message: /custommessage send <title> <Content> <Media Gallery> <Separator> <Content>')
+                .addStringOption(option =>
+                    option
+                        .setName('title')
+                        .setDescription('Message title/header')
+                        .setRequired(true))
+                .addStringOption(option =>
+                    option
+                        .setName('content1')
+                        .setDescription('Content block 1')
+                        .setRequired(true))
+                .addStringOption(option =>
+                    option
+                        .setName('content2')
+                        .setDescription('Content block 2 (optional)')
+                        .setRequired(false))
+                .addStringOption(option =>
+                    option
+                        .setName('media_url')
+                        .setDescription('Media/image URL (optional)')
+                        .setRequired(false))
+                .addBooleanOption(option =>
+                    option
+                        .setName('add_separator')
+                        .setDescription('Add visual separator between sections (true/false)')
+                        .setRequired(false))
+                .addChannelOption(option =>
+                    option
+                        .setName('channel')
+                        .setDescription('Channel to send to (optional)')
+                        .setRequired(false)))
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName('list')
+                .setDescription('View all saved custom messages (mod only)'))
+        .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageGuild)
 ].map(cmd => cmd.toJSON());
 
 const rest = new REST({ version: '10' }).setToken(TOKEN);
@@ -351,20 +371,7 @@ data.status = data.status || {}; // { type, text, emoji, streamUrl, presence, la
 data.welcome = data.welcome || {}; // { guildId: { channelId, delay, enabled } }
 data.afk = data.afk || {}; // { userId: { reason: string, timestamp: number } }
 data.nicknameFilter = data.nicknameFilter || []; // [ word, word, ... ]
-
-// Message Cache - Track all bot responses per user for /edit command
-const messageCache = new Map(); // { userId: [{ messageId, channelId, timestamp, preview }, ...] }
-const MAX_CACHED_MESSAGES = 10;
-
-// HELPER: Cache bot message for /edit command
-function cacheMessage(userId, messageId, channelId, content) {
-    if (!messageCache.has(userId)) {
-        messageCache.set(userId, []);
-    }
-    const cache = messageCache.get(userId);
-    cache.unshift({ messageId, channelId, timestamp: Date.now(), preview: content.substring(0, 50) });
-    if (cache.length > MAX_CACHED_MESSAGES) cache.pop();
-}
+data.customMessages = data.customMessages || {}; // { guildId: [{ id, title, content, created }, ...] }
 
 // HELPER: Check cooldown and warn user
 function checkAndWarnCooldown(userId, commandName, cooldownMs = 5000) {
@@ -1357,61 +1364,92 @@ client.on(Events.InteractionCreate, async interaction => {
     // ------------------------
     // WELCOME SYSTEM
     // ------------------------
-    // Custom Message Command
+    // Custom Message Command - Send or list custom Component V2 messages
     if (commandName === 'custommessage') {
-        const title = interaction.options.getString('title');
-        const content = interaction.options.getString('content');
-        const targetChannel = interaction.options.getChannel('channel') || interaction.channel;
+        const subcommand = interaction.options.getSubcommand();
 
-        const text = `### ${title}\n\n${content}`;
-        const textDisplay = new TextDisplayBuilder().setContent(text);
-        const container = new ContainerBuilder().addTextDisplayComponents(textDisplay);
+        if (subcommand === 'send') {
+            const title = interaction.options.getString('title');
+            const content1 = interaction.options.getString('content1');
+            const content2 = interaction.options.getString('content2');
+            const mediaUrl = interaction.options.getString('media_url');
+            const addSeparator = interaction.options.getBoolean('add_separator');
+            const targetChannel = interaction.options.getChannel('channel') || interaction.channel;
 
-        try {
-            await targetChannel.send({ content: ' ', components: [container], flags: MessageFlags.IsComponentsV2 });
-            const successText = `### Message Created\n\nMessage sent to ${targetChannel}`;
-            const successDisplay = new TextDisplayBuilder().setContent(successText);
-            const successContainer = new ContainerBuilder().addTextDisplayComponents(successDisplay);
-            return interaction.reply({ content: ' ', components: [successContainer], flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral });
-        } catch (error) {
-            const errorText = `### Failed\n\nCouldn't send message.`;
-            const errorDisplay = new TextDisplayBuilder().setContent(errorText);
-            const errorContainer = new ContainerBuilder().addTextDisplayComponents(errorDisplay);
-            return interaction.reply({ content: ' ', components: [errorContainer], flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral });
+            try {
+                const container = new ContainerBuilder();
+
+                // Add title
+                const titleDisplay = new TextDisplayBuilder().setContent(`### ${title}`);
+                container.addTextDisplayComponents(titleDisplay);
+
+                // Add first content block
+                const content1Display = new TextDisplayBuilder().setContent(content1);
+                container.addTextDisplayComponents(content1Display);
+
+                // Add separator if requested
+                if (addSeparator) {
+                    // Use a TextDisplayBuilder with separator-like styling
+                    const sepDisplay = new TextDisplayBuilder().setContent('━━━━━━━━━━━━━━━━━━━━━━');
+                    container.addTextDisplayComponents(sepDisplay);
+                }
+
+                // Add media gallery if URL provided
+                if (mediaUrl) {
+                    const media = new MediaGalleryBuilder()
+                        .addItems(new MediaGalleryItemBuilder().setURL(mediaUrl).setDescription('Media'));
+                    container.addMediaGalleryComponents(media);
+                }
+
+                // Add second content block if provided
+                if (content2) {
+                    const content2Display = new TextDisplayBuilder().setContent(content2);
+                    container.addTextDisplayComponents(content2Display);
+                }
+
+                // Send the message
+                const sentMsg = await targetChannel.send({ content: ' ', components: [container], flags: MessageFlags.IsComponentsV2 });
+
+                // Save to data
+                data.customMessages[guildId] = data.customMessages[guildId] || [];
+                data.customMessages[guildId].push({
+                    id: sentMsg.id,
+                    title: title,
+                    channelId: targetChannel.id,
+                    created: new Date().toISOString()
+                });
+                fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
+
+                const successText = `### Created\n\nComponent message sent to ${targetChannel}`;
+                const successDisplay = new TextDisplayBuilder().setContent(successText);
+                const successContainer = new ContainerBuilder().addTextDisplayComponents(successDisplay);
+                return interaction.reply({ content: ' ', components: [successContainer], flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral });
+            } catch (error) {
+                const errorText = `### Failed\n\nCouldn't send message.`;
+                const errorDisplay = new TextDisplayBuilder().setContent(errorText);
+                const errorContainer = new ContainerBuilder().addTextDisplayComponents(errorDisplay);
+                return interaction.reply({ content: ' ', components: [errorContainer], flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral });
+            }
         }
-    }
 
-    // Edit Command - Edit any of your recent bot messages
-    if (commandName === 'edit') {
-        const newContent = interaction.options.getString('content');
-        const userId = interaction.user.id;
-
-        if (!messageCache.has(userId) || messageCache.get(userId).length === 0) {
-            return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> No previous messages to edit.', flags: MessageFlags.Ephemeral });
-        }
-
-        const cache = messageCache.get(userId);
-        const now = Date.now();
-        const validMsgs = cache.filter(m => (now - m.timestamp) <= 900000);
-
-        if (validMsgs.length === 0) {
-            return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> All cached messages are too old (15 min limit).', flags: MessageFlags.Ephemeral });
-        }
-
-        const targetMsg = validMsgs[0];
-
-        try {
-            const channel = await client.channels.fetch(targetMsg.channelId);
-            const message = await channel.messages.fetch(targetMsg.messageId);
-            
-            if (message.author.id !== client.user.id) {
-                return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> Can only edit bot messages.', flags: MessageFlags.Ephemeral });
+        if (subcommand === 'list') {
+            const messages = data.customMessages[guildId] || [];
+            if (messages.length === 0) {
+                const text = '### No Messages\n\nNo custom messages created yet.';
+                const textDisplay = new TextDisplayBuilder().setContent(text);
+                const container = new ContainerBuilder().addTextDisplayComponents(textDisplay);
+                return interaction.reply({ content: ' ', components: [container], flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral });
             }
 
-            await message.edit({ content: newContent, components: [] });
-            return interaction.reply({ content: '<:1_yes_correct:1439893200981721140> Message edited!', flags: MessageFlags.Ephemeral });
-        } catch (error) {
-            return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> Could not edit message.', flags: MessageFlags.Ephemeral });
+            let list = '### Saved Messages\n\n';
+            messages.forEach((msg, idx) => {
+                const date = new Date(msg.created);
+                list += `**${idx + 1}. ${msg.title}** (<t:${Math.floor(date.getTime() / 1000)}:R>)\n`;
+            });
+
+            const textDisplay = new TextDisplayBuilder().setContent(list);
+            const container = new ContainerBuilder().addTextDisplayComponents(textDisplay);
+            return interaction.reply({ content: ' ', components: [container], flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral });
         }
     }
 
