@@ -165,7 +165,12 @@ const commands = [
         .addStringOption(option =>
             option
                 .setName('response')
-                .setDescription('For text: select saved custom message name | For emoji: reaction emoji')
+                .setDescription('For text: write custom response | For emoji: reaction emoji')
+                .setRequired(false))
+        .addStringOption(option =>
+            option
+                .setName('select_from_backup')
+                .setDescription('For text type: select a saved custom message instead of typing')
                 .setRequired(false)
                 .setAutocomplete(true))
         .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageMessages),
@@ -1233,26 +1238,47 @@ client.on(Events.InteractionCreate, async interaction => {
         const trigger = interaction.options.getString('trigger');
         const type = interaction.options.getString('type');
         const response = interaction.options.getString('response');
+        const selectFromBackup = interaction.options.getString('select_from_backup');
 
         if (action === 'add') {
             if (!trigger)
                 return interaction.reply({ embeds: [createModeratorEmbed('❌ Error', 'Trigger is required.', 0xFF4444)], flags: MessageFlags.Ephemeral });
             if (!type)
                 return interaction.reply({ embeds: [createModeratorEmbed('❌ Error', 'Response type is required.', 0xFF4444)], flags: MessageFlags.Ephemeral });
-            if (!response)
-                return interaction.reply({ embeds: [createModeratorEmbed('❌ Error', 'Response is required.', 0xFF4444)], flags: MessageFlags.Ephemeral });
+
+            let finalResponse = null;
+            let isFromBackup = false;
+
+            if (type === 'text') {
+                if (selectFromBackup) {
+                    // User selected a saved custom message
+                    finalResponse = selectFromBackup;
+                    isFromBackup = true;
+                } else if (response) {
+                    // User typed custom text
+                    finalResponse = response;
+                    isFromBackup = false;
+                } else {
+                    return interaction.reply({ embeds: [createModeratorEmbed('❌ Error', 'Provide either custom text (response) or select a saved message (select_from_backup).', 0xFF4444)], flags: MessageFlags.Ephemeral });
+                }
+            } else if (type === 'emoji') {
+                if (!response)
+                    return interaction.reply({ embeds: [createModeratorEmbed('❌ Error', 'Emoji response is required.', 0xFF4444)], flags: MessageFlags.Ephemeral });
+                finalResponse = response;
+            }
 
             data.autoresponses[guildId] = data.autoresponses[guildId] || [];
-            // For text type, store customMessage ID; for emoji, store emoji directly
             data.autoresponses[guildId].push({ 
                 trigger, 
                 type, 
-                response: response,
-                customMessageId: type === 'text' ? response : null
+                response: finalResponse,
+                isFromBackup: isFromBackup
             });
             fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
 
-            const displayText = type === 'text' ? `Custom Message: ${response}` : `Emoji: ${response}`;
+            const displayText = type === 'text' 
+                ? (isFromBackup ? `Saved Message: ${finalResponse}` : `Custom Text: ${finalResponse.substring(0, 50)}${finalResponse.length > 50 ? '...' : ''}`)
+                : `Emoji: ${finalResponse}`;
             return interaction.reply({ embeds: [createModeratorEmbed('✅ Auto-Response Added', `**Trigger:** ${trigger}\n**Response:** ${displayText}`, 0x44FF44)], flags: MessageFlags.Ephemeral });
         }
 
@@ -1282,7 +1308,12 @@ client.on(Events.InteractionCreate, async interaction => {
 
             let list = '';
             data.autoresponses[guildId].forEach((ar, index) => {
-                const responseDisplay = ar.type === 'text' ? `Custom Message: ${ar.response}` : `Emoji: ${ar.response}`;
+                let responseDisplay = '';
+                if (ar.type === 'text') {
+                    responseDisplay = ar.isFromBackup ? `📦 Saved: ${ar.response}` : `✏️ Text: ${ar.response.substring(0, 40)}${ar.response.length > 40 ? '...' : ''}`;
+                } else {
+                    responseDisplay = `Emoji: ${ar.response}`;
+                }
                 list += `${index + 1}. **${ar.trigger}** (${ar.type})\n   → ${responseDisplay}\n`;
             });
 
@@ -1801,24 +1832,29 @@ client.on(Events.MessageCreate, async msg => {
         for (const ar of data.autoresponses[guildId]) {
             if (msg.content.includes(ar.trigger)) {
                 if (ar.type === 'text') {
-                    // For text type: ar.response contains the custom message name
-                    const customMsg = data.customMessages[guildId]?.find(m => m.title === ar.response);
-                    if (customMsg) {
-                        // Reconstruct Component V2 message from saved data
-                        const container = new ContainerBuilder();
-                        
-                        // Add title
-                        const titleDisplay = new TextDisplayBuilder().setContent(`### ${customMsg.title}`);
-                        container.addTextDisplayComponents(titleDisplay);
-                        
-                        // Add any stored content (basic format - extend if needed)
-                        if (customMsg.content) {
-                            const contentDisplay = new TextDisplayBuilder().setContent(customMsg.content);
-                            container.addTextDisplayComponents(contentDisplay);
+                    if (ar.isFromBackup) {
+                        // Text response from saved custom message
+                        const customMsg = data.customMessages[guildId]?.find(m => m.title === ar.response);
+                        if (customMsg) {
+                            // Reconstruct Component V2 message from saved data
+                            const container = new ContainerBuilder();
+                            
+                            // Add title
+                            const titleDisplay = new TextDisplayBuilder().setContent(`### ${customMsg.title}`);
+                            container.addTextDisplayComponents(titleDisplay);
+                            
+                            // Add any stored content
+                            if (customMsg.content) {
+                                const contentDisplay = new TextDisplayBuilder().setContent(customMsg.content);
+                                container.addTextDisplayComponents(contentDisplay);
+                            }
+                            
+                            msg.reply({ content: ' ', components: [container], flags: MessageFlags.IsComponentsV2 }).catch(() => {});
+                        } else {
+                            msg.reply(`⚠️ Saved message "${ar.response}" not found.`).catch(() => {});
                         }
-                        
-                        msg.reply({ content: ' ', components: [container], flags: MessageFlags.IsComponentsV2 }).catch(() => {});
                     } else {
+                        // Plain text response
                         msg.reply(ar.response).catch(() => {});
                     }
                 } else if (ar.type === 'react') {
