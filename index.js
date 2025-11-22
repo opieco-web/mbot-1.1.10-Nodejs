@@ -300,28 +300,45 @@ data.afk = data.afk || {}; // { userId: { reason: string, timestamp: number } }
 data.nicknameFilter = data.nicknameFilter || []; // [ word, word, ... ]
 
 // HELPER: Create Component V2 format for avatar display
-function createAvatarComponent(username, defaultAvatarUrl, serverAvatarUrl = null) {
+// mode: 'both' (default), 'server_only', 'default_only'
+function createAvatarComponent(username, defaultAvatarUrl, serverAvatarUrl = null, mode = 'both') {
     const items = [];
+    let subtitle = '';
     
-    // Add server avatar first if available
-    if (serverAvatarUrl) {
+    if (mode === 'server_only') {
+        // Show only server avatar
         items.push({
             media: {
                 url: serverAvatarUrl
             }
         });
-    }
-    
-    // Add default avatar
-    items.push({
-        media: {
-            url: defaultAvatarUrl
+        subtitle = `-# **Server Avatar**`;
+    } else if (mode === 'default_only') {
+        // Show only default avatar
+        items.push({
+            media: {
+                url: defaultAvatarUrl
+            }
+        });
+        subtitle = `-# **Discord Default Avatar**`;
+    } else {
+        // Show both (mode === 'both')
+        if (serverAvatarUrl) {
+            items.push({
+                media: {
+                    url: serverAvatarUrl
+                }
+            });
         }
-    });
-    
-    const subtitle = serverAvatarUrl 
-        ? `-# **Server Avatar** | **Default Avatar**`
-        : `-# **Default Discord Avatar**`;
+        items.push({
+            media: {
+                url: defaultAvatarUrl
+            }
+        });
+        subtitle = serverAvatarUrl 
+            ? `-# **Server Avatar** | **Default Avatar**`
+            : `-# **Discord Default Avatar**`;
+    }
     
     return {
         flags: 32768,
@@ -693,16 +710,16 @@ client.on(Events.InteractionCreate, async interaction => {
         if (showServerOnly === true) {
             // Show server avatar only
             if (guildAvatar) {
-                response = createAvatarComponent(displayName, defaultAvatar, guildAvatar);
+                response = createAvatarComponent(displayName, defaultAvatar, guildAvatar, 'server_only');
             } else {
                 response = { content: '<:2_no_wrong:1439893245130838047> This user has no server-specific avatar set.', flags: MessageFlags.Ephemeral };
             }
         } else if (showServerOnly === false) {
             // Show default avatar only
-            response = createAvatarComponent(displayName, defaultAvatar, null);
+            response = createAvatarComponent(displayName, defaultAvatar, null, 'default_only');
         } else {
             // Show both (server if available, default always)
-            response = createAvatarComponent(displayName, defaultAvatar, guildAvatar);
+            response = createAvatarComponent(displayName, defaultAvatar, guildAvatar, 'both');
         }
         
         return interaction.reply(response);
@@ -1031,7 +1048,12 @@ client.on(Events.MessageCreate, async msg => {
                 return msg.reply('<:2_no_wrong:1439893245130838047> This user has no server-specific avatar.');
             }
             
-            const response = createAvatarComponent(displayName, defaultAvatar, showServerOnly ? guildAvatar : null);
+            let mode = 'both';
+            if (showServerOnly) {
+                mode = 'server_only';
+            }
+            
+            const response = createAvatarComponent(displayName, defaultAvatar, guildAvatar, mode);
             return msg.reply(response);
         }
 
