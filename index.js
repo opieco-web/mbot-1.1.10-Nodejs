@@ -125,26 +125,20 @@ const commands = [
         .setDescription('Manage welcome messages (moderator only)')
         .addSubcommand(subcommand =>
             subcommand
-                .setName('setchannel')
-                .setDescription('Set the welcome message channel')
-                .addChannelOption(option =>
-                    option.setName('channel')
-                        .setDescription('Channel for welcome messages')
-                        .setRequired(true)))
-        .addSubcommand(subcommand =>
-            subcommand
-                .setName('delay')
-                .setDescription('Set welcome message delay')
-                .addIntegerOption(option =>
-                    option.setName('seconds')
-                        .setDescription('Delay in seconds (0-300)')
-                        .setRequired(true)
-                        .setMinValue(0)
-                        .setMaxValue(300)))
-        .addSubcommand(subcommand =>
-            subcommand
                 .setName('enable')
-                .setDescription('Enable welcome messages'))
+                .setDescription('Enable welcome messages')
+                .addChannelOption(option =>
+                    option.setName('setchannel')
+                        .setDescription('Channel for welcome messages')
+                        .setRequired(true))
+                .addStringOption(option =>
+                    option.setName('delaytime')
+                        .setDescription('Delay before sending (e.g., 5s, 10s, 1m, 1h) - default 120s')
+                        .setRequired(false))
+                .addBooleanOption(option =>
+                    option.setName('list')
+                        .setDescription('Show all welcome messages')
+                        .setRequired(false)))
         .addSubcommand(subcommand =>
             subcommand
                 .setName('disable')
@@ -337,6 +331,24 @@ function containsBannedWord(nickname) {
         }
     }
     return null;
+}
+
+// HELPER: Parse delay string format (e.g., 5s, 10s, 1m, 1h) to milliseconds
+function parseDelayString(delayStr) {
+    if (!delayStr) return 120000; // default 120 seconds
+    
+    const match = delayStr.match(/^(\d+)([smh])$/);
+    if (!match) return 120000;
+    
+    const value = parseInt(match[1]);
+    const unit = match[2];
+    
+    switch(unit) {
+        case 's': return value * 1000;
+        case 'm': return value * 60 * 1000;
+        case 'h': return value * 60 * 60 * 1000;
+        default: return 120000;
+    }
 }
 
 // ------------------------
@@ -822,41 +834,28 @@ client.on(Events.InteractionCreate, async interaction => {
     // WELCOME SYSTEM
     // ------------------------
     if (commandName === 'welcome') {
-        if (!member.permissions.has(PermissionsBitField.Flags.ManageGuild) && !member.permissions.has(PermissionsBitField.Flags.Administrator)) {
-            return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> You do not have permission to use this command.', flags: MessageFlags.Ephemeral });
-        }
-
         const subcommand = interaction.options.getSubcommand();
 
-        if (subcommand === 'setchannel') {
-            const channel = interaction.options.getChannel('channel');
-            
+        if (subcommand === 'enable') {
+            const channel = interaction.options.getChannel('setchannel');
+            const delayStr = interaction.options.getString('delaytime');
+            const showList = interaction.options.getBoolean('list');
+
             data.welcome[guildId] = data.welcome[guildId] || {};
             data.welcome[guildId].channelId = channel.id;
-            fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
-
-            return interaction.reply({ content: `<:1_yes_correct:1439893200981721140> Welcome channel set to ${channel}`, flags: MessageFlags.Ephemeral });
-        }
-
-        if (subcommand === 'delay') {
-            const seconds = interaction.options.getInteger('seconds');
-            
-            data.welcome[guildId] = data.welcome[guildId] || {};
-            data.welcome[guildId].delay = seconds;
-            fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
-
-            return interaction.reply({ content: `<:1_yes_correct:1439893200981721140> Welcome message delay set to **${seconds} seconds**`, flags: MessageFlags.Ephemeral });
-        }
-
-        if (subcommand === 'enable') {
-            if (!data.welcome[guildId] || !data.welcome[guildId].channelId) {
-                return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> Please set a welcome channel first using `/welcome setchannel`', flags: MessageFlags.Ephemeral });
-            }
-
+            data.welcome[guildId].delay = parseDelayString(delayStr);
             data.welcome[guildId].enabled = true;
             fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
 
-            return interaction.reply({ content: '<:1_yes_correct:1439893200981721140> Welcome messages **enabled**!', flags: MessageFlags.Ephemeral });
+            let reply = `<:1_yes_correct:1439893200981721140> Welcome messages **enabled**!\nChannel: ${channel}\nDelay: **${delayStr || '120s'}**`;
+
+            if (showList) {
+                reply += '\n\n**Welcome Message Samples:**\n';
+                reply += welcomeMessages.slice(0, 10).map((msg, i) => `${i + 1}. ${msg}`).join('\n');
+                reply += `\n...\n(${welcomeMessages.length} total messages available)`;
+            }
+
+            return interaction.reply({ content: reply, flags: MessageFlags.Ephemeral });
         }
 
         if (subcommand === 'disable') {
