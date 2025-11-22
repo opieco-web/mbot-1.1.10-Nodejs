@@ -83,6 +83,28 @@ Preferred communication style: Simple, everyday language.
 - **Persistence**: Status and presence settings are saved to data.json and restored on bot restart
 - **Permissions**: Status management requires Manage Server or Administrator permissions
 
+# Component V2 & Emoji System
+
+## Message Styling
+- **All responses use Component V2**: TextDisplay builders in Container components for consistent, beautiful formatting
+- **Custom Discord Emojis**:
+  - <:Correct:1440296238305116223> - Used for all success/approved messages
+  - <:Error:1440296241090265088> - Used for all error/rejected messages
+  - <:warning:1441531830607151195> - Used for failed operations
+  - <:wrong:1440296241090265088> - Used for validation failures
+  - <:1_yes_correct:1439893200981721140> - General success indicator
+  - <:2_no_wrong:1439893245130838047> - Permission denied
+  - <:mg_alert:1439893442065862698> - Alert notifications
+  - <:mg_question:1439893408041930894> - Info/help messages
+  - <:Tails:1441153955412312134> - Decorative element
+
+## Features with Component V2 Messages
+- **Nickname System**: Reset, Changed, Cannot Set, Failed, Approved, Rejected
+- **Auto-Response System**: Added, Removed, List all with organized display
+- **Word Filter**: Add, Remove, List banned words
+- **Status Management**: Set, View, Reset bot activity
+- **Welcome System**: Enable, Disable with sample messages
+
 # External Dependencies
 
 ## NPM Packages

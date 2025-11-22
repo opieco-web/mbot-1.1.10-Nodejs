@@ -701,27 +701,27 @@ client.on(Events.InteractionCreate, async interaction => {
 
         if (action === 'add') {
             if (!word)
-                return interaction.reply({ embeds: [createModeratorEmbed('❌ Error', 'Please provide a word to ban.', 0xFF4444)], flags: MessageFlags.Ephemeral });
+                return interaction.reply({ embeds: [createModeratorEmbed('<:Error:1440296241090265088> Error', 'Please provide a word to ban.', 0xFF4444)], flags: MessageFlags.Ephemeral });
 
             if (data.nickname.filter.includes(word))
-                return interaction.reply({ embeds: [createModeratorEmbed('❌ Error', `Word "${word}" is already banned.`, 0xFF4444)], flags: MessageFlags.Ephemeral });
+                return interaction.reply({ embeds: [createModeratorEmbed('<:Error:1440296241090265088> Error', `Word "${word}" is already banned.`, 0xFF4444)], flags: MessageFlags.Ephemeral });
 
             data.nickname.filter.push(word);
             fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
-            return interaction.reply({ embeds: [createModeratorEmbed('✅ Success', `Word "${word}" added to ban list.`, 0x44FF44)], flags: MessageFlags.Ephemeral });
+            return interaction.reply({ embeds: [createModeratorEmbed('<:Correct:1440296238305116223> Success', `Word "${word}" added to ban list.`, 0x44FF44)], flags: MessageFlags.Ephemeral });
         }
 
         if (action === 'remove') {
             if (!word)
-                return interaction.reply({ embeds: [createModeratorEmbed('❌ Error', 'Please provide a word to unban.', 0xFF4444)], flags: MessageFlags.Ephemeral });
+                return interaction.reply({ embeds: [createModeratorEmbed('<:Error:1440296241090265088> Error', 'Please provide a word to unban.', 0xFF4444)], flags: MessageFlags.Ephemeral });
 
             const index = data.nickname.filter.indexOf(word);
             if (index === -1)
-                return interaction.reply({ embeds: [createModeratorEmbed('❌ Error', `No ban found for "${word}".`, 0xFF4444)], flags: MessageFlags.Ephemeral });
+                return interaction.reply({ embeds: [createModeratorEmbed('<:Error:1440296241090265088> Error', `No ban found for "${word}".`, 0xFF4444)], flags: MessageFlags.Ephemeral });
 
             data.nickname.filter.splice(index, 1);
             fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
-            return interaction.reply({ embeds: [createModeratorEmbed('✅ Success', `Word "${word}" removed from ban list.`, 0x44FF44)], flags: MessageFlags.Ephemeral });
+            return interaction.reply({ embeds: [createModeratorEmbed('<:Correct:1440296238305116223> Success', `Word "${word}" removed from ban list.`, 0x44FF44)], flags: MessageFlags.Ephemeral });
         }
 
         if (action === 'list') {
@@ -1256,9 +1256,9 @@ client.on(Events.InteractionCreate, async interaction => {
 
         if (action === 'add') {
             if (!trigger)
-                return interaction.reply({ embeds: [createModeratorEmbed('❌ Error', 'Trigger is required.', 0xFF4444)], flags: MessageFlags.Ephemeral });
+                return interaction.reply({ embeds: [createModeratorEmbed('<:Error:1440296241090265088> Error', 'Trigger is required.', 0xFF4444)], flags: MessageFlags.Ephemeral });
             if (!type)
-                return interaction.reply({ embeds: [createModeratorEmbed('❌ Error', 'Response type is required.', 0xFF4444)], flags: MessageFlags.Ephemeral });
+                return interaction.reply({ embeds: [createModeratorEmbed('<:Error:1440296241090265088> Error', 'Response type is required.', 0xFF4444)], flags: MessageFlags.Ephemeral });
 
             let finalResponse = null;
             let isFromBackup = false;
@@ -1273,11 +1273,11 @@ client.on(Events.InteractionCreate, async interaction => {
                     finalResponse = response;
                     isFromBackup = false;
                 } else {
-                    return interaction.reply({ embeds: [createModeratorEmbed('❌ Error', 'Provide either custom text (response) or select a saved message (select_from_backup).', 0xFF4444)], flags: MessageFlags.Ephemeral });
+                    return interaction.reply({ embeds: [createModeratorEmbed('<:Error:1440296241090265088> Error', 'Provide either custom text (response) or select a saved message (select_from_backup).', 0xFF4444)], flags: MessageFlags.Ephemeral });
                 }
             } else if (type === 'emoji') {
                 if (!response)
-                    return interaction.reply({ embeds: [createModeratorEmbed('❌ Error', 'Emoji response is required.', 0xFF4444)], flags: MessageFlags.Ephemeral });
+                    return interaction.reply({ embeds: [createModeratorEmbed('<:Error:1440296241090265088> Error', 'Emoji response is required.', 0xFF4444)], flags: MessageFlags.Ephemeral });
                 finalResponse = response;
             }
 
@@ -1301,17 +1301,17 @@ client.on(Events.InteractionCreate, async interaction => {
 
         if (action === 'remove') {
             if (!trigger)
-                return interaction.reply({ embeds: [createModeratorEmbed('❌ Error', 'Trigger is required.', 0xFF4444)], flags: MessageFlags.Ephemeral });
+                return interaction.reply({ embeds: [createModeratorEmbed('<:Error:1440296241090265088> Error', 'Trigger is required.', 0xFF4444)], flags: MessageFlags.Ephemeral });
 
             if (!data.autoresponse[guildId] || data.autoresponse[guildId].length === 0) {
-                return interaction.reply({ embeds: [createModeratorEmbed('❌ Error', 'No auto-responses configured.', 0xFF4444)], flags: MessageFlags.Ephemeral });
+                return interaction.reply({ embeds: [createModeratorEmbed('<:Error:1440296241090265088> Error', 'No auto-responses configured.', 0xFF4444)], flags: MessageFlags.Ephemeral });
             }
 
             const initialLength = data.autoresponse[guildId].length;
             data.autoresponse[guildId] = data.autoresponse[guildId].filter(ar => ar.trigger !== trigger);
 
             if (data.autoresponse[guildId].length === initialLength) {
-                return interaction.reply({ embeds: [createModeratorEmbed('❌ Error', `No response found for "${trigger}".`, 0xFF4444)], flags: MessageFlags.Ephemeral });
+                return interaction.reply({ embeds: [createModeratorEmbed('<:Error:1440296241090265088> Error', `No response found for "${trigger}".`, 0xFF4444)], flags: MessageFlags.Ephemeral });
             }
 
             fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
@@ -1400,7 +1400,7 @@ client.on(Events.InteractionCreate, async interaction => {
             let statusText = '';
             
             if (!data.bot.status.text || !data.bot.status.type) {
-                statusText = '✅ Bot is online with no custom activity set.';
+                statusText = '<:Correct:1440296238305116223> Bot is online with no custom activity set.';
             } else {
                 const displayName = data.bot.status.emoji ? `${data.bot.status.emoji} ${data.bot.status.text}` : data.bot.status.text;
                 statusText += `**Activity:** ${data.bot.status.type} ${displayName}\n`;
