@@ -1804,25 +1804,42 @@ client.on(Events.MessageCreate, async msg => {
     const nickname = msg.content.trim();
     if (nickname.toLowerCase() === 'reset') {
         await msg.member.setNickname(null);
-        return msg.reply('<:1_yes_correct:1439893200981721140> Your nickname has been reset.');
+        const resetText = `## ✅ Nickname Reset\n\nYour nickname has been reset to default.`;
+        const textDisplay = new TextDisplayBuilder().setContent(resetText);
+        const container = new ContainerBuilder().addTextDisplayComponents(textDisplay);
+        return msg.reply({ content: ' ', components: [container], flags: MessageFlags.IsComponentsV2 });
     }
 
     if (data.nickname.mode === 'auto') {
         const bannedWord = containsBannedWord(nickname);
-        if (bannedWord)
-            return msg.reply(`<:wrong:1440296241090265088> Cannot use "${bannedWord}" in your nickname.`);
+        if (bannedWord) {
+            const bannedText = `## ⛔ Cannot Set Nickname\n\nThe word **"${bannedWord}"** is not allowed in nicknames.\n\nPlease choose a different nickname.`;
+            const textDisplay = new TextDisplayBuilder().setContent(bannedText);
+            const container = new ContainerBuilder().addTextDisplayComponents(textDisplay);
+            return msg.reply({ content: ' ', components: [container], flags: MessageFlags.IsComponentsV2 });
+        }
 
         try {
             const before = msg.member.nickname || msg.member.displayName;
             await msg.member.setNickname(nickname);
-            msg.reply(`<:1_yes_correct:1439893200981721140> Your nickname has been changed from **${before}** to **${nickname}**`);
+            const changedText = `## ✅ Nickname Changed\n\n**Before:** ${before}\n**After:** ${nickname}\n\nYour nickname has been successfully updated!`;
+            const textDisplay = new TextDisplayBuilder().setContent(changedText);
+            const container = new ContainerBuilder().addTextDisplayComponents(textDisplay);
+            msg.reply({ content: ' ', components: [container], flags: MessageFlags.IsComponentsV2 });
         } catch {
-            msg.reply('<:warning:1441531830607151195> Failed to change nickname.');
+            const failedText = `## ⚠️ Failed\n\nCouldn't change your nickname. Please try again or contact a moderator.`;
+            const textDisplay = new TextDisplayBuilder().setContent(failedText);
+            const container = new ContainerBuilder().addTextDisplayComponents(textDisplay);
+            msg.reply({ content: ' ', components: [container], flags: MessageFlags.IsComponentsV2 });
         }
     } else if (data.nickname.mode === 'approval') {
         const bannedWord = containsBannedWord(nickname);
-        if (bannedWord)
-            return msg.reply(`<:wrong:1440296241090265088> Cannot use "${bannedWord}" in your nickname.`);
+        if (bannedWord) {
+            const bannedText = `## ⛔ Cannot Set Nickname\n\nThe word **"${bannedWord}"** is not allowed in nicknames.\n\nPlease choose a different nickname.`;
+            const textDisplay = new TextDisplayBuilder().setContent(bannedText);
+            const container = new ContainerBuilder().addTextDisplayComponents(textDisplay);
+            return msg.reply({ content: ' ', components: [container], flags: MessageFlags.IsComponentsV2 });
+        }
 
         const approveBtn = new ButtonBuilder()
             .setCustomId(`approve_${msg.author.id}`)
@@ -1859,18 +1876,18 @@ client.on(Events.MessageCreate, async msg => {
             if (i.customId === `approve_${msg.author.id}`) {
                 try {
                     await msg.member.setNickname(nickname);
-                    const approvedText = `### Approved\n\n${msg.author} nickname set to **${nickname}**`;
+                    const approvedText = `## ✅ Approved\n\n${msg.author} nickname has been successfully set to **${nickname}**\n\nThe request has been approved by a moderator.`;
                     const textDisplay = new TextDisplayBuilder().setContent(approvedText);
                     const container = new ContainerBuilder().addTextDisplayComponents(textDisplay);
                     await i.update({ content: ' ', components: [container], flags: MessageFlags.IsComponentsV2 });
                 } catch {
-                    const failedText = `### Failed\n\nCouldn't change nickname.`;
+                    const failedText = `## ⚠️ Failed\n\nCouldn't change nickname for ${msg.author}.\n\nPlease try again or contact a moderator.`;
                     const textDisplay = new TextDisplayBuilder().setContent(failedText);
                     const container = new ContainerBuilder().addTextDisplayComponents(textDisplay);
                     await i.update({ content: ' ', components: [container], flags: MessageFlags.IsComponentsV2 });
                 }
             } else if (i.customId === `reject_${msg.author.id}`) {
-                const rejectedText = `### Rejected\n\n${msg.author} request denied.`;
+                const rejectedText = `## ❌ Rejected\n\n${msg.author} request has been rejected by a moderator.\n\nPlease submit a new request with a different nickname.`;
                 const textDisplay = new TextDisplayBuilder().setContent(rejectedText);
                 const container = new ContainerBuilder().addTextDisplayComponents(textDisplay);
                 await i.update({ content: ' ', components: [container], flags: MessageFlags.IsComponentsV2 });
