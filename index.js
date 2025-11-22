@@ -691,7 +691,7 @@ client.on(Events.InteractionCreate, async interaction => {
             data.nickname.mode = mode;
             fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
 
-            return interaction.reply({ content: `<:1_yes_correct:1439893200981721140> Nickname system setup complete! Channel: ${channel}, Mode: **${mode}**`, flags: MessageFlags.Ephemeral });
+            return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## ✅ Setup Complete' }, { type: 14, spacing: 1 }, { type: 10, content: `Channel: ${channel}\nMode: **${mode}**` }] }], flags: 32768 | MessageFlags.Ephemeral });
         }
 
         if (subcommand === 'reset') {
@@ -717,7 +717,7 @@ client.on(Events.InteractionCreate, async interaction => {
 
             data.nickname.filter.push(word);
             fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
-            return interaction.reply({ embeds: [createModeratorEmbed('<:Correct:1440296238305116223> Success', `Word "${word}" added to ban list.`, 0x44FF44)], flags: MessageFlags.Ephemeral });
+            return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:Bin:1441777857205637254> Word Added' }, { type: 14, spacing: 1 }, { type: 10, content: `"**${word}**" added to ban list.` }] }], flags: 32768 | MessageFlags.Ephemeral });
         }
 
         if (action === 'remove') {
@@ -730,15 +730,15 @@ client.on(Events.InteractionCreate, async interaction => {
 
             data.nickname.filter.splice(index, 1);
             fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
-            return interaction.reply({ embeds: [createModeratorEmbed('<:Correct:1440296238305116223> Success', `Word "${word}" removed from ban list.`, 0x44FF44)], flags: MessageFlags.Ephemeral });
+            return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:Correct:1440296238305116223> Word Removed' }, { type: 14, spacing: 1 }, { type: 10, content: `"**${word}**" removed from ban list.` }] }], flags: 32768 | MessageFlags.Ephemeral });
         }
 
         if (action === 'list') {
             if (data.nickname.filter.length === 0)
-                return interaction.reply({ embeds: [createModeratorEmbed('📋 Banned Words', 'No words configured yet.', 0x2F3136)], flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## 📋 Banned Words' }, { type: 14, spacing: 1 }, { type: 10, content: 'No words configured yet.' }] }], flags: 32768 | MessageFlags.Ephemeral });
 
             const list = data.nickname.filter.map((w, i) => `${i+1}. **${w}**`).join('\n');
-            return interaction.reply({ embeds: [createModeratorEmbed('🚫 Banned Words', list, 0x2F3136)], flags: MessageFlags.Ephemeral });
+            return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## 🚫 Banned Words' }, { type: 14, spacing: 1 }, { type: 10, content: list }] }], flags: 32768 | MessageFlags.Ephemeral });
         }
     }
 
