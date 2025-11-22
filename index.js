@@ -1737,12 +1737,12 @@ client.on(Events.MessageCreate, async msg => {
         }
 
         // Fun command: Choose
-        if (cmd === 'cos') {
-            const parts = msg.content.substring(5).trim();
+        if (cmd === 'cs') {
+            const parts = msg.content.substring(4).trim();
             const [optionA, optionB] = parts.split(',').map(p => p.trim());
             
             if (!optionA || !optionB) {
-                const warnMsg = await msg.reply({ content: '<:warning:1441531830607151195> Format: `!cos <option A> , <option B>`', flags: MessageFlags.Ephemeral });
+                const warnMsg = await msg.reply({ content: '<:warning:1441531830607151195> Format: `!cs <option A> , <option B>`', flags: MessageFlags.Ephemeral });
                 setTimeout(() => warnMsg.delete().catch(() => {}), 5000);
                 return;
             }
