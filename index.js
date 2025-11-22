@@ -299,41 +299,57 @@ data.welcome = data.welcome || {}; // { guildId: { channelId, delay, enabled } }
 data.afk = data.afk || {}; // { userId: { reason: string, timestamp: number } }
 data.nicknameFilter = data.nicknameFilter || []; // [ word, word, ... ]
 
-// HELPER: Create Component V2 format for avatar display
+// HELPER: Create Component V2 format for avatar display with container
 // mode: 'both' (default), 'server_only', 'default_only'
 function createAvatarComponent(username, defaultAvatarUrl, serverAvatarUrl = null, mode = 'both') {
     const items = [];
+    let title = '';
     
     if (mode === 'server_only') {
         items.push({
             media: { url: serverAvatarUrl },
-            description: `${username}'s Server Avatar`
+            description: `Server Avatar`
         });
+        title = `${username}'s Server Avatar`;
     } else if (mode === 'default_only') {
         items.push({
             media: { url: defaultAvatarUrl },
-            description: `${username}'s Discord Default Avatar`
+            description: `Discord Default Avatar`
         });
+        title = `${username}'s Discord Avatar`;
     } else {
         // Show both
         if (serverAvatarUrl) {
             items.push({
                 media: { url: serverAvatarUrl },
-                description: `${username}'s Server Avatar`
+                description: `Server Avatar`
             });
         }
         items.push({
             media: { url: defaultAvatarUrl },
-            description: `${username}'s Discord Default Avatar`
+            description: `Discord Default Avatar`
         });
+        title = `${username}'s Avatar${serverAvatarUrl ? 's' : ''}`;
     }
     
     return {
         flags: MessageFlags.IsComponentsV2,
         components: [
             {
-                type: 12,
-                items: items
+                type: 17,
+                components: [
+                    {
+                        type: 10,
+                        content: `## ${title}`
+                    },
+                    {
+                        type: 14
+                    },
+                    {
+                        type: 12,
+                        items: items
+                    }
+                ]
             }
         ]
     };
@@ -671,7 +687,7 @@ client.on(Events.InteractionCreate, async interaction => {
             const member = await interaction.guild.members.fetch(target.id);
             // Get server nickname if available, otherwise use display name
             displayName = member.nickname || member.displayName || target.displayName;
-            // Check for server-specific avatar
+            // Check for server-specific avatar - use member's avatar method
             if (member.avatar) {
                 guildAvatar = member.avatarURL({ dynamic: true, size: 1024 });
             }
@@ -680,6 +696,7 @@ client.on(Events.InteractionCreate, async interaction => {
             displayName = target.displayName;
         }
         
+        // Get default avatar from user object
         const defaultAvatar = target.displayAvatarURL({ dynamic: true, size: 1024 });
         
         let response;
@@ -990,17 +1007,16 @@ client.on(Events.MessageCreate, async msg => {
         if (cmd === 'av') {
             let targetUser = msg.author;
             let showDefaultOnly = false;
-            let hasMention = false;
             let displayName = msg.author.displayName;
             
             // Check if user mentioned
             if (msg.mentions.users.size > 0) {
                 targetUser = msg.mentions.users.first();
-                hasMention = true;
             }
             
             // Check for 'df' parameter to show default avatar only
-            const paramIndex = hasMention ? 1 : 0;
+            // If user mentioned, 'df' would be at index 1, otherwise at index 0
+            const paramIndex = msg.mentions.users.size > 0 ? 1 : 0;
             if (args.length > paramIndex && args[paramIndex].toLowerCase() === 'df') {
                 showDefaultOnly = true;
             }
@@ -1010,14 +1026,16 @@ client.on(Events.MessageCreate, async msg => {
                 const member = await msg.guild.members.fetch(targetUser.id);
                 // Get server nickname if available, otherwise use display name
                 displayName = member.nickname || member.displayName || targetUser.displayName;
+                // Get server-specific avatar if exists
                 if (member.avatar) {
                     guildAvatar = member.avatarURL({ dynamic: true, size: 1024 });
                 }
             } catch (e) {
-                // User not in guild, use default display name
+                // User not in guild or fetch failed
                 displayName = targetUser.displayName;
             }
             
+            // Get default avatar from user
             const defaultAvatar = targetUser.displayAvatarURL({ dynamic: true, size: 1024 });
             
             let mode = 'server_only';
