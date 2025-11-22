@@ -365,8 +365,17 @@ const commands = [
                 .setRequired(false))
         .addStringOption(option =>
             option
+                .setName('thumbnail_type')
+                .setDescription('Choose thumbnail source: media (file upload) or media_url (link)')
+                .setRequired(false)
+                .addChoices(
+                    { name: 'Media File', value: 'media' },
+                    { name: 'Media URL', value: 'media_url' }
+                ))
+        .addStringOption(option =>
+            option
                 .setName('thumbnail_url')
-                .setDescription('Image URL for thumbnail (required if thumbnail is true)')
+                .setDescription('Image URL for thumbnail (use when thumbnail_type is media_url)')
                 .setRequired(false))
         .addChannelOption(option =>
             option
@@ -1292,42 +1301,82 @@ client.on(Events.InteractionCreate, async interaction => {
         const title = interaction.options.getString('title');
         const content = interaction.options.getString('content');
         const hasThumbnail = interaction.options.getBoolean('thumbnail');
+        const thumbnailType = interaction.options.getString('thumbnail_type');
         const thumbnailUrl = interaction.options.getString('thumbnail_url');
         const targetChannel = interaction.options.getChannel('channel') || interaction.channel;
 
-        // Validate thumbnail option
-        if (hasThumbnail && !thumbnailUrl) {
+        // Validate thumbnail options
+        if (hasThumbnail && !thumbnailType) {
             return interaction.reply({
-                content: `❌ If thumbnail is true, you must provide a thumbnail_url`,
+                content: `❌ If thumbnail is true, you must select a thumbnail_type (media or media_url)`,
+                flags: MessageFlags.Ephemeral
+            });
+        }
+
+        if (hasThumbnail && thumbnailType === 'media_url' && !thumbnailUrl) {
+            return interaction.reply({
+                content: `❌ If thumbnail_type is media_url, you must provide a thumbnail_url`,
                 flags: MessageFlags.Ephemeral
             });
         }
 
         try {
-            // Build Component V2 structure with exact format
-            const components = [
-                {
+            let mediaUrl = null;
+
+            // Handle media file upload
+            if (hasThumbnail && thumbnailType === 'media') {
+                // For media file, we'd need to handle file attachments
+                // For now, show instruction
+                return interaction.reply({
+                    content: `❌ Media file upload from slash commands requires file attachment handling. Please use media_url option instead, or contact bot admin.`,
+                    flags: MessageFlags.Ephemeral
+                });
+            }
+
+            // Handle media URL
+            if (hasThumbnail && thumbnailType === 'media_url') {
+                mediaUrl = thumbnailUrl;
+            }
+
+            // Build Component V2 structure
+            const components = [];
+
+            if (hasThumbnail && mediaUrl) {
+                // Add title with thumbnail accessory
+                components.push({
+                    type: 9,
+                    components: [
+                        {
+                            type: 10,
+                            content: `## ${title}`
+                        }
+                    ],
+                    accessory: {
+                        type: 11,
+                        media: {
+                            url: mediaUrl
+                        }
+                    }
+                });
+            } else {
+                // Add title without accessory
+                components.push({
                     type: 10,
                     content: `## ${title}`
-                },
-                {
-                    type: 14
-                }
-            ];
+                });
+            }
 
+            // Add separator
+            components.push({
+                type: 14
+            });
+
+            // Add content if provided
             if (content) {
                 components.push({
                     type: 10,
                     content: content
                 });
-            }
-
-            // Add thumbnail if enabled
-            if (hasThumbnail && thumbnailUrl) {
-                const thumbnailItem = new MediaGalleryItemBuilder()
-                    .setURL(thumbnailUrl);
-                const gallery = new MediaGalleryBuilder().addItems(thumbnailItem);
-                components.push(gallery);
             }
 
             const payload = {
