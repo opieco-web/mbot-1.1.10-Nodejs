@@ -7,34 +7,55 @@
       "presence": "dnd"
     }
   },
-
   "nickname": {
     "channelId": "1305225655394242561",
     "mode": "auto",
-    "filter": ["gay", "hogalala"]
+    "filter": [
+      "gay",
+      "hogalala"
+    ]
   },
-
   "prefix": {
     "1440196646490214422": "."
   },
-
   "autoresponse": {
     "1296783492989980682": [
-      {"trigger": "<@1065350468928290828>", "type": "react", "response": "<a:mg_pixel_walking_fries:1439874950755258520>"},
-      {"trigger": "<@1108782022543032400>", "type": "react", "response": "<a:mg_heart_flowers:1318077522897928223>"},
-      {"trigger": "<@1272065508367138902>", "type": "react", "response": "<:mg_h_hug:1439960872473854065>"},
-      {"trigger": "Vanity", "type": "text", "response": "https://discord.gg/mining-bangladesh-1296783492989980682"},
-      {"trigger": "test", "type": "text", "response": "{\"flags\": 32768, \"components\": [{\"type\": 17, \"components\": [{\"type\": 10, \"content\": \"## Test 34\"}, {\"type\": 14}, {\"type\": 10, \"content\": \"!av to → see your avater set in mining server\\n!av df → see your avater set in default profile\"}]}]}"}
+      {
+        "trigger": "<@1065350468928290828>",
+        "type": "react",
+        "response": "<a:mg_pixel_walking_fries:1439874950755258520>"
+      },
+      {
+        "trigger": "<@1108782022543032400>",
+        "type": "react",
+        "response": "<a:mg_heart_flowers:1318077522897928223>"
+      },
+      {
+        "trigger": "<@1272065508367138902>",
+        "type": "react",
+        "response": "<:mg_h_hug:1439960872473854065>"
+      },
+      {
+        "trigger": "Vanity",
+        "type": "text",
+        "response": "https://discord.gg/mining-bangladesh-1296783492989980682"
+      },
+      {
+        "trigger": "test",
+        "type": "text",
+        "response": "{\"flags\": 32768, \"components\": [{\"type\": 17, \"components\": [{\"type\": 10, \"content\": \"## Test 34\"}, {\"type\": 14}, {\"type\": 10, \"content\": \"!av to → see your avater set in mining server\\n!av df → see your avater set in default profile\"}]}]}"
+      }
     ]
   },
-
   "afk": {},
-
   "welcome": {
     "1296783492989980682": {
       "channelId": "1296783493430513747",
       "delay": 120000,
       "enabled": true
     }
-  }
+  },
+  "prefixes": {},
+  "autoresponses": {},
+  "status": {}
 }

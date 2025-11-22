@@ -1293,7 +1293,10 @@ client.on(Events.InteractionCreate, async interaction => {
             const displayText = type === 'text' 
                 ? (isFromBackup ? `Saved Message: ${finalResponse}` : `Custom Text: ${finalResponse.substring(0, 50)}${finalResponse.length > 50 ? '...' : ''}`)
                 : `Emoji: ${finalResponse}`;
-            return interaction.reply({ embeds: [createModeratorEmbed('✅ Auto-Response Added', `**Trigger:** ${trigger}\n**Response:** ${displayText}`, 0x44FF44)], flags: MessageFlags.Ephemeral });
+            const addText = `## <:Correct:1440296238305116223> Auto-Response Added\n\n**Trigger:** ${trigger}\n**Response Type:** ${type.charAt(0).toUpperCase() + type.slice(1)}\n**Response:** ${displayText}`;
+            const textDisplay = new TextDisplayBuilder().setContent(addText);
+            const container = new ContainerBuilder().addTextDisplayComponents(textDisplay);
+            return interaction.reply({ content: ' ', components: [container], flags: MessageFlags.Ephemeral | MessageFlags.IsComponentsV2 });
         }
 
         if (action === 'remove') {
@@ -1312,7 +1315,10 @@ client.on(Events.InteractionCreate, async interaction => {
             }
 
             fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
-            return interaction.reply({ embeds: [createModeratorEmbed('✅ Auto-Response Removed', `**Trigger:** ${trigger}`, 0x44FF44)], flags: MessageFlags.Ephemeral });
+            const removeText = `## <:Correct:1440296238305116223> Auto-Response Removed\n\n**Trigger:** ${trigger}\n\nThis auto-response has been successfully removed from your server.`;
+            const textDisplay = new TextDisplayBuilder().setContent(removeText);
+            const container = new ContainerBuilder().addTextDisplayComponents(textDisplay);
+            return interaction.reply({ content: ' ', components: [container], flags: MessageFlags.Ephemeral | MessageFlags.IsComponentsV2 });
         }
 
         if (action === 'list') {
@@ -1331,7 +1337,10 @@ client.on(Events.InteractionCreate, async interaction => {
                 list += `${index + 1}. **${ar.trigger}** (${ar.type})\n   → ${responseDisplay}\n`;
             });
 
-            return interaction.reply({ embeds: [createModeratorEmbed('🔄 Auto-Responses', list, 0x2F3136)], flags: MessageFlags.Ephemeral });
+            const listText = `## 🔄 Auto-Responses Configured\n\n${list}\n**Total:** ${data.autoresponse[guildId].length} response(s) active`;
+            const textDisplay = new TextDisplayBuilder().setContent(listText);
+            const container = new ContainerBuilder().addTextDisplayComponents(textDisplay);
+            return interaction.reply({ content: ' ', components: [container], flags: MessageFlags.Ephemeral | MessageFlags.IsComponentsV2 });
         }
     }
 
