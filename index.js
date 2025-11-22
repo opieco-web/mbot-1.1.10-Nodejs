@@ -103,7 +103,7 @@ const commands = [
     // Moderation: Auto response
     new SlashCommandBuilder()
         .setName('autoresponse')
-        .setDescription('Auto-respond to triggers: add word triggers → text/emoji responses, remove triggers, or list all (mod only)')
+        .setDescription('Auto-respond to triggers: add/remove/list (mod only)')
         .addStringOption(option =>
             option
                 .setName('action')
