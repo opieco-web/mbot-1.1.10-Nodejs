@@ -299,60 +299,40 @@ data.welcome = data.welcome || {}; // { guildId: { channelId, delay, enabled } }
 data.afk = data.afk || {}; // { userId: { reason: string, timestamp: number } }
 data.nicknameFilter = data.nicknameFilter || []; // [ word, word, ... ]
 
-// HELPER: Create Component V2 format for avatar display
+// HELPER: Create avatar display using embeds
 // mode: 'both' (default), 'server_only', 'default_only'
 function createAvatarComponent(username, defaultAvatarUrl, serverAvatarUrl = null, mode = 'both') {
-    const galleryComponent = {
-        type: 12
-    };
-    let subtitle = '';
+    const embeds = [];
     
     if (mode === 'server_only') {
-        // Show only server avatar
-        galleryComponent.media = [{
-            url: serverAvatarUrl
-        }];
-        subtitle = `-# **Server Avatar**`;
+        embeds.push({
+            title: `${username}'s Server Avatar`,
+            image: { url: serverAvatarUrl },
+            color: 0x3498db
+        });
     } else if (mode === 'default_only') {
-        // Show only default avatar
-        galleryComponent.media = [{
-            url: defaultAvatarUrl
-        }];
-        subtitle = `-# **Discord Default Avatar**`;
+        embeds.push({
+            title: `${username}'s Discord Default Avatar`,
+            image: { url: defaultAvatarUrl },
+            color: 0x3498db
+        });
     } else {
-        // Show both (mode === 'both')
-        galleryComponent.media = [];
+        // Show both
         if (serverAvatarUrl) {
-            galleryComponent.media.push({
-                url: serverAvatarUrl
+            embeds.push({
+                title: `${username}'s Server Avatar`,
+                image: { url: serverAvatarUrl },
+                color: 0x3498db
             });
         }
-        galleryComponent.media.push({
-            url: defaultAvatarUrl
+        embeds.push({
+            title: `${username}'s Discord Default Avatar`,
+            image: { url: defaultAvatarUrl },
+            color: 0x3498db
         });
-        subtitle = serverAvatarUrl 
-            ? `-# **Server Avatar** | **Default Avatar**`
-            : `-# **Discord Default Avatar**`;
     }
     
-    return {
-        flags: 32768,
-        components: [
-            {
-                type: 17,
-                components: [
-                    {
-                        type: 10,
-                        content: `## ${username}'s Avatar\n${subtitle}`
-                    },
-                    {
-                        type: 14
-                    },
-                    galleryComponent
-                ]
-            }
-        ]
-    };
+    return { embeds, flags: MessageFlags.Ephemeral };
 }
 
 // HELPER: Calculate AFK duration with smart format (shows only relevant units)
