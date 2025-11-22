@@ -50,6 +50,15 @@ let data = JSON.parse(fs.readFileSync(dataFile, 'utf8'));
 function tryParseAndSendComponent(msg, responseText) {
     try {
         const jsonData = JSON.parse(responseText);
+        
+        // Check if it's a full Component V2 structure with components array
+        if (jsonData.components && Array.isArray(jsonData.components)) {
+            // Send the full Component V2 structure as-is
+            msg.reply({ content: ' ', components: jsonData.components, flags: MessageFlags.IsComponentsV2 }).catch(() => {});
+            return true;
+        }
+        
+        // Otherwise, build a simple component from the JSON
         const container = new ContainerBuilder();
         
         // If it has "text" field, add as TextDisplay
@@ -76,9 +85,13 @@ function tryParseAndSendComponent(msg, responseText) {
             }
         }
         
-        // Send as Component V2
-        msg.reply({ content: ' ', components: [container], flags: MessageFlags.IsComponentsV2 }).catch(() => {});
-        return true;
+        // Only send if we actually added something to the container
+        if (jsonData.text || jsonData.separator === true || jsonData.blocks) {
+            msg.reply({ content: ' ', components: [container], flags: MessageFlags.IsComponentsV2 }).catch(() => {});
+            return true;
+        }
+        
+        return false;
     } catch (e) {
         // Not valid JSON or parsing failed, return false to send as plain text
         return false;
