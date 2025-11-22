@@ -331,17 +331,17 @@ const commands = [
         .addStringOption(option =>
             option
                 .setName('subjecta')
-                .setDescription('First subject')
+                .setDescription('Subject A')
                 .setRequired(true))
         .addStringOption(option =>
             option
                 .setName('subjectb')
-                .setDescription('Second subject')
+                .setDescription('Subject B')
                 .setRequired(true))
         .addStringOption(option =>
             option
                 .setName('subjectc')
-                .setDescription('Third subject (optional)')
+                .setDescription('Subject C (optional)')
                 .setRequired(false))
 ].map(cmd => cmd.toJSON());
 
