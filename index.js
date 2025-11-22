@@ -342,6 +342,26 @@ const commands = [
             option
                 .setName('c')
                 .setDescription('Subject C (optional)')
+                .setRequired(false)),
+
+    // Send message command
+    new SlashCommandBuilder()
+        .setName('send')
+        .setDescription('Send a formatted message using Component V2 container')
+        .addStringOption(option =>
+            option
+                .setName('title')
+                .setDescription('Title for the message (shown as heading)')
+                .setRequired(true))
+        .addStringOption(option =>
+            option
+                .setName('content')
+                .setDescription('Message content (optional)')
+                .setRequired(false))
+        .addChannelOption(option =>
+            option
+                .setName('channel')
+                .setDescription('Target channel to send message to (optional, defaults to current channel)')
                 .setRequired(false))
 ].map(cmd => cmd.toJSON());
 
