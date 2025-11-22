@@ -1212,10 +1212,12 @@ client.on(Events.InteractionCreate, async interaction => {
             "Describe what you'd create if you could.",
             "Tell us about your creative inspirations."
         ];
+        const tdEmojis = ['<a:cherry:1441782972486516946>', '<a:croissant:1441783019139502112>', '<a:balloonpikachu:1441834282816377103>', '<a:mymelody:1441834292400623646>', '<a:orangeblossom:1441834288193605856>', '<a:snowmanhellokitty:1441834296804638800>'];
         const pick = Math.random() < 0.5 ? 'Truth' : 'Dare';
         const question = pick === 'Truth' ? truths[Math.floor(Math.random()*truths.length)] : dares[Math.floor(Math.random()*dares.length)];
+        const emoji = tdEmojis[Math.floor(Math.random() * tdEmojis.length)];
         
-        return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: `## ${pick}` }, { type: 14, spacing: 1 }, { type: 10, content: question }] }], flags: 32768 });
+        return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: `### ${emoji} ${pick}` }, { type: 14, spacing: 1 }, { type: 10, content: question }] }], flags: 32768 });
     }
 
     // ------------------------
@@ -1729,10 +1731,12 @@ client.on(Events.MessageCreate, async msg => {
                 "Explain what you think is underrated in your interests.",
                 "Tell us what you'd want to explore endlessly."
             ];
+            const tdEmojis = ['<a:cherry:1441782972486516946>', '<a:croissant:1441783019139502112>', '<a:balloonpikachu:1441834282816377103>', '<a:mymelody:1441834292400623646>', '<a:orangeblossom:1441834288193605856>', '<a:snowmanhellokitty:1441834296804638800>'];
             const pick = Math.random() < 0.5 ? 'Truth' : 'Dare';
             const question = pick === 'Truth' ? truths[Math.floor(Math.random()*truths.length)] : dares[Math.floor(Math.random()*dares.length)];
+            const emoji = tdEmojis[Math.floor(Math.random() * tdEmojis.length)];
             
-            return msg.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: `## ${pick}` }, { type: 14, spacing: 1 }, { type: 10, content: question }] }], flags: 32768 });
+            return msg.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: `### ${emoji} ${pick}` }, { type: 14, spacing: 1 }, { type: 10, content: question }] }], flags: 32768 });
         }
 
         // Fun command: Choose
