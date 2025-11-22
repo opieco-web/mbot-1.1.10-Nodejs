@@ -1293,10 +1293,21 @@ client.on(Events.InteractionCreate, async interaction => {
             // Build Component V2 structure - Common builder format
             const components = [];
 
-            // 1. Add title
+            // Ashtmi emojis for decoration
+            const ashtmiEmojis = [
+                '<a:cherry:1441782972486516946>',
+                '<a:croissant:1441783019139502112>',
+                '<a:balloonpikachu:1441834282816377103>',
+                '<a:mymelody:1441834292400623646>',
+                '<a:orangeblossom:1441834288193605856>',
+                '<a:snowmanhellokitty:1441834296804638800>'
+            ];
+            const emoji = ashtmiEmojis[Math.floor(Math.random() * ashtmiEmojis.length)];
+
+            // 1. Add title with emoji
             components.push({
                 type: 10,
-                content: title
+                content: `${emoji} ${title}`
             });
 
             // 2. Add separator
