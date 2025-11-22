@@ -762,11 +762,7 @@ client.on(Events.InteractionCreate, async interaction => {
         const responseTime = Date.now() - interaction.createdTimestamp;
         const uptime = formatUptime(startTime);
         
-        const embed = new EmbedBuilder()
-            .setDescription(`📡 Pong!\nWebSocket: ${wsLatency}ms\nHosting Delay: ${wsLatency}ms\nResponse: ${responseTime}ms\nUptime: ${uptime}`)
-            .setColor(0x37373D);
-        
-        return interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
+        return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## 📡 Pong' }, { type: 14, spacing: 1 }, { type: 10, content: `WebSocket: ${wsLatency}ms\nHosting Delay: ${wsLatency}ms\nResponse: ${responseTime}ms\nUptime: ${uptime}` }] }], flags: 32768 | MessageFlags.Ephemeral });
     }
 
     if (commandName === 'afk') {
@@ -782,20 +778,14 @@ client.on(Events.InteractionCreate, async interaction => {
 
     if (commandName === 'afklist') {
         if (!member.permissions.has(PermissionsBitField.Flags.ManageGuild) && !member.permissions.has(PermissionsBitField.Flags.Administrator)) {
-            const text = '### 🚫 Permission Denied\n\nYou need ManageGuild permission.';
-            const textDisplay = new TextDisplayBuilder().setContent(text);
-            const container = new ContainerBuilder().addTextDisplayComponents(textDisplay);
-            return interaction.reply({ content: ' ', components: [container], flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral });
+            return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## 🚫 Permission Denied' }, { type: 14, spacing: 1 }, { type: 10, content: 'You need ManageGuild permission.' }] }], flags: 32768 | MessageFlags.Ephemeral });
         }
 
         if (Object.keys(afkUsers).length === 0) {
-            const text = '### ⏱️ AFK Status\n\nNo users are currently AFK.';
-            const textDisplay = new TextDisplayBuilder().setContent(text);
-            const container = new ContainerBuilder().addTextDisplayComponents(textDisplay);
-            return interaction.reply({ content: ' ', components: [container], flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral });
+            return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## ⏱️ AFK Status' }, { type: 14, spacing: 1 }, { type: 10, content: 'No users are currently AFK.' }] }], flags: 32768 | MessageFlags.Ephemeral });
         }
 
-        let afkList = '### 🚫 Currently AFK\n\n';
+        let afkList = '';
         for (const userId in afkUsers) {
             const afkData = afkUsers[userId];
             const duration = calculateDuration(afkData.timestamp);
@@ -814,9 +804,7 @@ client.on(Events.InteractionCreate, async interaction => {
             }
         }
 
-        const textDisplay = new TextDisplayBuilder().setContent(afkList);
-        const container = new ContainerBuilder().addTextDisplayComponents(textDisplay);
-        return interaction.reply({ content: ' ', components: [container], flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral });
+        return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## 🚫 Currently AFK' }, { type: 14, spacing: 1 }, { type: 10, content: afkList }] }], flags: 32768 | MessageFlags.Ephemeral });
     }
 
     if (commandName === 'avatar') {
