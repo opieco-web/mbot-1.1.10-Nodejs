@@ -1908,7 +1908,7 @@ client.on(Events.GuildMemberAdd, async member => {
         return;
     }
 
-    const delay = (typeof welcomeConfig.delay === 'number') ? welcomeConfig.delay : 0;
+    const delay = (typeof welcomeConfig.delay === 'number') ? welcomeConfig.delay : 120000;
 
     setTimeout(async () => {
         try {
@@ -1922,7 +1922,7 @@ client.on(Events.GuildMemberAdd, async member => {
         } catch (error) {
             console.error('Welcome message error:', error);
         }
-    }, delay * 1000);
+    }, delay);
 });
 
 // ------------------------
