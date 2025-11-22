@@ -38,7 +38,6 @@
     "text": "মিনিং বাংলা│m•bot v4.2.6",
     "type": "Competing",
     "emoji": "🎀",
-    "streamUrl": null,
     "presence": "dnd",
     "lastUpdatedBy": "1065350468928290828",
     "lastUpdatedAt": "2025-11-22T08:01:40.982Z"
@@ -58,9 +57,8 @@
   "customMessages": {
     "1296783492989980682": [
       {
-        "id": "1441758789115314207",
         "title": "How To Avatar",
-        "channelId": "1296783493430513747",
+        "content": "",
         "created": "2025-11-22T11:54:42.135Z"
       }
     ]
