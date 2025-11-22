@@ -349,9 +349,15 @@ function createAvatarComponent(username, defaultAvatarUrl, serverAvatarUrl = nul
     };
 }
 
-// HELPER: Just return the normal reply format (keeps commands working)
+// HELPER: Create beautiful Component V2 response
 function createComponentV2(content) {
-    return { content };
+    const textDisplay = new TextDisplayBuilder().setContent(content);
+    const container = new ContainerBuilder().addTextDisplayComponents(textDisplay);
+    return {
+        content: ' ',
+        components: [container],
+        flags: MessageFlags.IsComponentsV2
+    };
 }
 
 // HELPER: Calculate AFK duration with smart format (shows only relevant units)
@@ -575,35 +581,35 @@ client.on(Events.InteractionCreate, async interaction => {
 
         if (action === 'add') {
             if (!word)
-                return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> Please provide a word to ban.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ ...createComponentV2('### <:2_no_wrong:1439893245130838047> Error\nPlease provide a word to ban.'), flags: MessageFlags.Ephemeral });
 
             if (data.nicknameFilter.includes(word))
-                return interaction.reply({ content: `<:2_no_wrong:1439893245130838047> Word "${word}" is already banned.`, flags: MessageFlags.Ephemeral });
+                return interaction.reply({ ...createComponentV2(`### <:2_no_wrong:1439893245130838047> Error\nWord "${word}" is already banned.`), flags: MessageFlags.Ephemeral });
 
             data.nicknameFilter.push(word);
             fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
-            return interaction.reply({ content: `<:1_yes_correct:1439893200981721140> Word "${word}" has been added to the ban list.`, flags: MessageFlags.Ephemeral });
+            return interaction.reply({ ...createComponentV2(`### <:1_yes_correct:1439893200981721140> Success\nWord "${word}" added to ban list.`), flags: MessageFlags.Ephemeral });
         }
 
         if (action === 'remove') {
             if (!word)
-                return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> Please provide a word to unban.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ ...createComponentV2('### <:2_no_wrong:1439893245130838047> Error\nPlease provide a word to unban.'), flags: MessageFlags.Ephemeral });
 
             const index = data.nicknameFilter.indexOf(word);
             if (index === -1)
-                return interaction.reply({ content: `<:2_no_wrong:1439893245130838047> Word "${word}" is not in the ban list.`, flags: MessageFlags.Ephemeral });
+                return interaction.reply({ ...createComponentV2(`### <:2_no_wrong:1439893245130838047> Error\nNo ban found for "${word}".`), flags: MessageFlags.Ephemeral });
 
             data.nicknameFilter.splice(index, 1);
             fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
-            return interaction.reply({ content: `<:1_yes_correct:1439893200981721140> Word "${word}" has been removed from the ban list.`, flags: MessageFlags.Ephemeral });
+            return interaction.reply({ ...createComponentV2(`### <:1_yes_correct:1439893200981721140> Success\nWord "${word}" removed from ban list.`), flags: MessageFlags.Ephemeral });
         }
 
         if (action === 'list') {
             if (data.nicknameFilter.length === 0)
-                return interaction.reply({ content: '<:mg_question:1439893408041930894> No banned words configured.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ ...createComponentV2('### <:mg_question:1439893408041930894> Banned Words\nNo words configured yet.'), flags: MessageFlags.Ephemeral });
 
-            const list = '**Banned Words:**\n' + data.nicknameFilter.map(w => '• ' + w).join('\n');
-            return interaction.reply({ content: list, flags: MessageFlags.Ephemeral });
+            const list = '### 🚫 Banned Words\n\n' + data.nicknameFilter.map((w, i) => `${i+1}. **${w}**`).join('\n');
+            return interaction.reply({ ...createComponentV2(list), flags: MessageFlags.Ephemeral });
         }
     }
 
@@ -647,14 +653,14 @@ client.on(Events.InteractionCreate, async interaction => {
 
     if (commandName === 'afklist') {
         if (!member.permissions.has(PermissionsBitField.Flags.ManageGuild) && !member.permissions.has(PermissionsBitField.Flags.Administrator)) {
-            return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> You do not have permission to use this command.', flags: MessageFlags.Ephemeral });
+            return interaction.reply({ ...createComponentV2('### <:2_no_wrong:1439893245130838047> Permission Denied\nYou need ManageGuild permission.'), flags: MessageFlags.Ephemeral });
         }
 
         if (Object.keys(afkUsers).length === 0) {
-            return interaction.reply({ content: '<:mg_question:1439893408041930894> No one is currently AFK.', flags: MessageFlags.Ephemeral });
+            return interaction.reply({ ...createComponentV2('### <:mg_question:1439893408041930894> AFK Status\nNo users are currently AFK.'), flags: MessageFlags.Ephemeral });
         }
 
-        let afkList = 'Currently AFK:\n\n';
+        let afkList = '### 🚫 Currently AFK\n\n';
         for (const userId in afkUsers) {
             const afkData = afkUsers[userId];
             const duration = calculateDuration(afkData.timestamp);
@@ -662,18 +668,18 @@ client.on(Events.InteractionCreate, async interaction => {
             try {
                 const member = await interaction.guild.members.fetch(userId);
                 const displayName = member.nickname || member.displayName;
-                afkList += '**' + displayName + '** — ' + afkData.reason + ' (' + duration + ')\n';
+                afkList += `**${displayName}** — ${afkData.reason} (${duration})\n`;
             } catch (e) {
                 try {
                     const user = await client.users.fetch(userId);
-                    afkList += '**' + user.displayName + '** — ' + afkData.reason + ' (' + duration + ')\n';
+                    afkList += `**${user.displayName}** — ${afkData.reason} (${duration})\n`;
                 } catch (e2) {
-                    afkList += '**Unknown User** — ' + afkData.reason + ' (' + duration + ')\n';
+                    afkList += `**Unknown User** — ${afkData.reason} (${duration})\n`;
                 }
             }
         }
 
-        return interaction.reply({ content: afkList, flags: MessageFlags.Ephemeral });
+        return interaction.reply({ ...createComponentV2(afkList), flags: MessageFlags.Ephemeral });
     }
 
     if (commandName === 'avatar') {
@@ -779,47 +785,47 @@ client.on(Events.InteractionCreate, async interaction => {
 
         if (action === 'add') {
             if (!trigger)
-                return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> Trigger is required for add action.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ ...createComponentV2('### <:2_no_wrong:1439893245130838047> Error\nTrigger is required.'), flags: MessageFlags.Ephemeral });
             if (!type)
-                return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> Type is required for add action.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ ...createComponentV2('### <:2_no_wrong:1439893245130838047> Error\nResponse type is required.'), flags: MessageFlags.Ephemeral });
 
             data.autoresponses[guildId] = data.autoresponses[guildId] || [];
             data.autoresponses[guildId].push({ trigger, type, response: response || '' });
             fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
 
-            return interaction.reply({ content: `<:1_yes_correct:1439893200981721140> Auto-response added for **"${trigger}"** (${type})`, flags: MessageFlags.Ephemeral });
+            return interaction.reply({ ...createComponentV2(`### <:1_yes_correct:1439893200981721140> Auto-Response Added\nTrigger: **${trigger}**\nType: **${type}**`), flags: MessageFlags.Ephemeral });
         }
 
         if (action === 'remove') {
             if (!trigger)
-                return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> Trigger is required for remove action.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ ...createComponentV2('### <:2_no_wrong:1439893245130838047> Error\nTrigger is required.'), flags: MessageFlags.Ephemeral });
 
             if (!data.autoresponses[guildId] || data.autoresponses[guildId].length === 0) {
-                return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> No auto-responses configured for this server.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ ...createComponentV2('### <:2_no_wrong:1439893245130838047> Error\nNo auto-responses configured.'), flags: MessageFlags.Ephemeral });
             }
 
             const initialLength = data.autoresponses[guildId].length;
             data.autoresponses[guildId] = data.autoresponses[guildId].filter(ar => ar.trigger !== trigger);
 
             if (data.autoresponses[guildId].length === initialLength) {
-                return interaction.reply({ content: `<:2_no_wrong:1439893245130838047> No auto-response found for trigger **"${trigger}"**`, flags: MessageFlags.Ephemeral });
+                return interaction.reply({ ...createComponentV2(`### <:2_no_wrong:1439893245130838047> Error\nNo response found for "${trigger}".`), flags: MessageFlags.Ephemeral });
             }
 
             fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
-            return interaction.reply({ content: `<:1_yes_correct:1439893200981721140> Auto-response removed for **"${trigger}"**`, flags: MessageFlags.Ephemeral });
+            return interaction.reply({ ...createComponentV2(`### <:1_yes_correct:1439893200981721140> Auto-Response Removed\nTrigger: **${trigger}**`), flags: MessageFlags.Ephemeral });
         }
 
         if (action === 'list') {
             if (!data.autoresponses[guildId] || data.autoresponses[guildId].length === 0) {
-                return interaction.reply({ content: '<:mg_question:1439893408041930894> No auto-responses configured for this server.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ ...createComponentV2('### <:mg_question:1439893408041930894> Auto-Responses\nNone configured yet.'), flags: MessageFlags.Ephemeral });
             }
 
-            let list = '**Auto-Responses for this server:**\n\n';
+            let list = '### 🔄 Auto-Responses\n\n';
             data.autoresponses[guildId].forEach((ar, index) => {
-                list += `${index + 1}. **${ar.trigger}** (${ar.type}) → ${ar.response || '(no response)'}\n`;
+                list += `${index + 1}. **${ar.trigger}** (${ar.type})\n`;
             });
 
-            return interaction.reply({ content: list, flags: MessageFlags.Ephemeral });
+            return interaction.reply({ ...createComponentV2(list), flags: MessageFlags.Ephemeral });
         }
     }
 
@@ -876,34 +882,31 @@ client.on(Events.InteractionCreate, async interaction => {
         }
 
         if (action === 'view') {
-            const statusEmbed = new EmbedBuilder()
-                .setTitle('🤖 Current Bot Status')
-                .setColor(0x37373D)
-                .setTimestamp();
-
+            let statusText = '### 🤖 Bot Status\n\n';
+            
             if (!data.status.text || !data.status.type) {
-                statusEmbed.setDescription('✅ Bot is online with no custom activity set.');
+                statusText += '✅ Bot is online with no custom activity set.';
             } else {
                 const displayName = data.status.emoji ? `${data.status.emoji} ${data.status.text}` : data.status.text;
-                statusEmbed.addFields({ name: 'Activity', value: `**${data.status.type}** ${displayName}`, inline: false });
+                statusText += `**Activity:** ${data.status.type} ${displayName}\n`;
                 
                 if (data.status.type === 'Streaming' && data.status.streamUrl) {
-                    statusEmbed.addFields({ name: 'Stream URL', value: data.status.streamUrl, inline: false });
+                    statusText += `**Stream:** ${data.status.streamUrl}\n`;
                 }
                 
-                statusEmbed.addFields({ name: 'Visibility', value: data.status.presence || 'online', inline: true });
+                statusText += `**Visibility:** ${data.status.presence || 'online'}\n`;
                 
                 if (data.status.lastUpdatedBy) {
-                    statusEmbed.addFields({ name: 'Updated By', value: `<@${data.status.lastUpdatedBy}>`, inline: true });
+                    statusText += `**Updated By:** <@${data.status.lastUpdatedBy}>\n`;
                 }
                 
                 if (data.status.lastUpdatedAt) {
                     const date = new Date(data.status.lastUpdatedAt);
-                    statusEmbed.addFields({ name: 'Updated', value: `<t:${Math.floor(date.getTime() / 1000)}:R>`, inline: true });
+                    statusText += `**Updated:** <t:${Math.floor(date.getTime() / 1000)}:R>`;
                 }
             }
 
-            return interaction.reply({ embeds: [statusEmbed], flags: MessageFlags.Ephemeral });
+            return interaction.reply({ ...createComponentV2(statusText), flags: MessageFlags.Ephemeral });
         }
     }
 
@@ -1164,9 +1167,14 @@ client.on(Events.MessageCreate, async msg => {
 
         const row = new ActionRowBuilder().addComponents(approveBtn, rejectBtn);
 
+        const requestText = `### 📝 Nickname Request\n\n**User:** ${msg.author}\n**Requested:** "${nickname}"`;
+        const textDisplay = new TextDisplayBuilder().setContent(requestText);
+        const container = new ContainerBuilder().addTextDisplayComponents(textDisplay);
+        
         const requestMsg = await msg.channel.send({
-            content: `**Nickname Request:**\nUser: ${msg.author}\nNickname: "${nickname}"`,
-            components: [row]
+            content: ' ',
+            components: [container, row],
+            flags: MessageFlags.IsComponentsV2
         });
 
         const filter = i => i.user.id !== msg.author.id;
