@@ -1822,7 +1822,7 @@ client.on(Events.MessageCreate, async msg => {
     if (data.nickname.mode === 'auto') {
         const bannedWord = containsBannedWord(nickname);
         if (bannedWord) {
-            const bannedText = `## <:wrong:1440296241090265088> Cannot Set Nickname\n\nThe word **"${bannedWord}"** is not allowed in nicknames.\n\nPlease choose a different nickname.`;
+            const bannedText = `## <:Bin:1441777857205637254> Cannot Set Nickname\n\nThe word **"${bannedWord}"** is not allowed in nicknames.\n\nPlease choose a different nickname.`;
             const textDisplay = new TextDisplayBuilder().setContent(bannedText);
             const container = new ContainerBuilder().addTextDisplayComponents(textDisplay);
             return msg.reply({ content: ' ', components: [container], flags: MessageFlags.IsComponentsV2 });
@@ -1844,7 +1844,7 @@ client.on(Events.MessageCreate, async msg => {
     } else if (data.nickname.mode === 'approval') {
         const bannedWord = containsBannedWord(nickname);
         if (bannedWord) {
-            const bannedText = `## <:wrong:1440296241090265088> Cannot Set Nickname\n\nThe word **"${bannedWord}"** is not allowed in nicknames.\n\nPlease choose a different nickname.`;
+            const bannedText = `## <:Bin:1441777857205637254> Cannot Set Nickname\n\nThe word **"${bannedWord}"** is not allowed in nicknames.\n\nPlease choose a different nickname.`;
             const textDisplay = new TextDisplayBuilder().setContent(bannedText);
             const container = new ContainerBuilder().addTextDisplayComponents(textDisplay);
             return msg.reply({ content: ' ', components: [container], flags: MessageFlags.IsComponentsV2 });
@@ -1896,7 +1896,7 @@ client.on(Events.MessageCreate, async msg => {
                     await i.update({ content: ' ', components: [container], flags: MessageFlags.IsComponentsV2 });
                 }
             } else if (i.customId === `reject_${msg.author.id}`) {
-                const rejectedText = `## <:wrong:1440296241090265088> Rejected\n\n${msg.author} request has been rejected by a moderator.\n\nPlease submit a new request with a different nickname.`;
+                const rejectedText = `## <:Error:1440296241090265088> Rejected\n\n${msg.author} request has been rejected by a moderator.\n\nPlease submit a new request with a different nickname.`;
                 const textDisplay = new TextDisplayBuilder().setContent(rejectedText);
                 const container = new ContainerBuilder().addTextDisplayComponents(textDisplay);
                 await i.update({ content: ' ', components: [container], flags: MessageFlags.IsComponentsV2 });
