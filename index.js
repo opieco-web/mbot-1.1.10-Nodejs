@@ -333,11 +333,11 @@ await rest.put(Routes.applicationCommands(CLIENT_ID), { body: commands });
 // ------------------------
 function applyBotStatus() {
     const presenceData = {
-        status: data.status.presence || 'online',
+        status: data.bot.status.presence || 'online',
         activities: []
     };
     
-    if (data.status.type && data.status.text) {
+    if (data.bot.status.type && data.bot.status.text) {
         const activityTypeMap = {
             'Playing': ActivityType.Playing,
             'Listening': ActivityType.Listening,
@@ -346,18 +346,18 @@ function applyBotStatus() {
             'Streaming': ActivityType.Streaming
         };
 
-        let name = data.status.text;
-        if (data.status.emoji) {
-            name = `${data.status.emoji} ${name}`;
+        let name = data.bot.status.text;
+        if (data.bot.status.emoji) {
+            name = `${data.bot.status.emoji} ${name}`;
         }
 
         const activity = {
             name: name,
-            type: activityTypeMap[data.status.type]
+            type: activityTypeMap[data.bot.status.type]
         };
 
-        if (data.status.type === 'Streaming' && data.status.streamUrl) {
-            activity.url = data.status.streamUrl;
+        if (data.bot.status.type === 'Streaming' && data.bot.status.streamUrl) {
+            activity.url = data.bot.status.streamUrl;
         }
 
         presenceData.activities = [activity];
@@ -390,8 +390,8 @@ data.autoresponses = data.autoresponses || {}; // { guildId: [{trigger, type, re
 data.status = data.status || {}; // { type, text, emoji, streamUrl, presence, lastUpdatedBy, lastUpdatedAt }
 data.welcome = data.welcome || {}; // { guildId: { channelId, delay, enabled } }
 data.afk = data.afk || {}; // { userId: { reason: string, timestamp: number } }
-data.nicknameFilter = data.nicknameFilter || []; // [ word, word, ... ]
-data.customMessages = data.customMessages || {}; // { guildId: [{ id, title, content, created }, ...] }
+data.nickname.filter = data.nickname.filter || []; // [ word, word, ... ]
+data.autoresponse = data.autoresponse || {}; // { guildId: [{ id, title, content, created }, ...] }
 
 // HELPER: Check cooldown and warn user
 function checkAndWarnCooldown(userId, commandName, cooldownMs = 5000) {
@@ -509,13 +509,13 @@ function formatUptime(time) {
 // HELPER: get prefix per guild
 // ------------------------
 function getPrefix(guildId) {
-    return data.prefixes[guildId] || defaultPrefix;
+    return data.prefix[guildId] || defaultPrefix;
 }
 
 // HELPER: Check if nickname contains banned words
 function containsBannedWord(nickname) {
     const lowerNickname = nickname.toLowerCase();
-    for (const word of data.nicknameFilter) {
+    for (const word of data.nickname.filter) {
         if (lowerNickname.includes(word.toLowerCase())) {
             return word;
         }
@@ -672,8 +672,8 @@ client.on(Events.InteractionCreate, async interaction => {
             if (!['auto', 'approval'].includes(mode))
                 return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> Mode must be auto or approval', flags: MessageFlags.Ephemeral });
 
-            data.channelId = channel.id;
-            data.mode = mode;
+            data.nickname.channelId = channel.id;
+            data.nickname.mode = mode;
             fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
 
             return interaction.reply({ content: `<:1_yes_correct:1439893200981721140> Nickname system setup complete! Channel: ${channel}, Mode: **${mode}**`, flags: MessageFlags.Ephemeral });
@@ -703,10 +703,10 @@ client.on(Events.InteractionCreate, async interaction => {
             if (!word)
                 return interaction.reply({ embeds: [createModeratorEmbed('❌ Error', 'Please provide a word to ban.', 0xFF4444)], flags: MessageFlags.Ephemeral });
 
-            if (data.nicknameFilter.includes(word))
+            if (data.nickname.filter.includes(word))
                 return interaction.reply({ embeds: [createModeratorEmbed('❌ Error', `Word "${word}" is already banned.`, 0xFF4444)], flags: MessageFlags.Ephemeral });
 
-            data.nicknameFilter.push(word);
+            data.nickname.filter.push(word);
             fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
             return interaction.reply({ embeds: [createModeratorEmbed('✅ Success', `Word "${word}" added to ban list.`, 0x44FF44)], flags: MessageFlags.Ephemeral });
         }
@@ -715,20 +715,20 @@ client.on(Events.InteractionCreate, async interaction => {
             if (!word)
                 return interaction.reply({ embeds: [createModeratorEmbed('❌ Error', 'Please provide a word to unban.', 0xFF4444)], flags: MessageFlags.Ephemeral });
 
-            const index = data.nicknameFilter.indexOf(word);
+            const index = data.nickname.filter.indexOf(word);
             if (index === -1)
                 return interaction.reply({ embeds: [createModeratorEmbed('❌ Error', `No ban found for "${word}".`, 0xFF4444)], flags: MessageFlags.Ephemeral });
 
-            data.nicknameFilter.splice(index, 1);
+            data.nickname.filter.splice(index, 1);
             fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
             return interaction.reply({ embeds: [createModeratorEmbed('✅ Success', `Word "${word}" removed from ban list.`, 0x44FF44)], flags: MessageFlags.Ephemeral });
         }
 
         if (action === 'list') {
-            if (data.nicknameFilter.length === 0)
+            if (data.nickname.filter.length === 0)
                 return interaction.reply({ embeds: [createModeratorEmbed('📋 Banned Words', 'No words configured yet.', 0x2F3136)], flags: MessageFlags.Ephemeral });
 
-            const list = data.nicknameFilter.map((w, i) => `${i+1}. **${w}**`).join('\n');
+            const list = data.nickname.filter.map((w, i) => `${i+1}. **${w}**`).join('\n');
             return interaction.reply({ embeds: [createModeratorEmbed('🚫 Banned Words', list, 0x2F3136)], flags: MessageFlags.Ephemeral });
         }
     }
@@ -738,7 +738,7 @@ client.on(Events.InteractionCreate, async interaction => {
     // ------------------------
     if (commandName === 'setprefix') {
         const newPrefix = interaction.options.getString('prefix');
-        data.prefixes[guildId] = newPrefix;
+        data.prefix[guildId] = newPrefix;
         fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
         return interaction.reply({ content: `<:1_yes_correct:1439893200981721140> Prefix updated to: ${newPrefix}`, flags: MessageFlags.Ephemeral });
     }
@@ -1281,8 +1281,8 @@ client.on(Events.InteractionCreate, async interaction => {
                 finalResponse = response;
             }
 
-            data.autoresponses[guildId] = data.autoresponses[guildId] || [];
-            data.autoresponses[guildId].push({ 
+            data.autoresponse[guildId] = data.autoresponse[guildId] || [];
+            data.autoresponse[guildId].push({ 
                 trigger, 
                 type, 
                 response: finalResponse,
@@ -1300,14 +1300,14 @@ client.on(Events.InteractionCreate, async interaction => {
             if (!trigger)
                 return interaction.reply({ embeds: [createModeratorEmbed('❌ Error', 'Trigger is required.', 0xFF4444)], flags: MessageFlags.Ephemeral });
 
-            if (!data.autoresponses[guildId] || data.autoresponses[guildId].length === 0) {
+            if (!data.autoresponse[guildId] || data.autoresponse[guildId].length === 0) {
                 return interaction.reply({ embeds: [createModeratorEmbed('❌ Error', 'No auto-responses configured.', 0xFF4444)], flags: MessageFlags.Ephemeral });
             }
 
-            const initialLength = data.autoresponses[guildId].length;
-            data.autoresponses[guildId] = data.autoresponses[guildId].filter(ar => ar.trigger !== trigger);
+            const initialLength = data.autoresponse[guildId].length;
+            data.autoresponse[guildId] = data.autoresponse[guildId].filter(ar => ar.trigger !== trigger);
 
-            if (data.autoresponses[guildId].length === initialLength) {
+            if (data.autoresponse[guildId].length === initialLength) {
                 return interaction.reply({ embeds: [createModeratorEmbed('❌ Error', `No response found for "${trigger}".`, 0xFF4444)], flags: MessageFlags.Ephemeral });
             }
 
@@ -1316,12 +1316,12 @@ client.on(Events.InteractionCreate, async interaction => {
         }
 
         if (action === 'list') {
-            if (!data.autoresponses[guildId] || data.autoresponses[guildId].length === 0) {
+            if (!data.autoresponse[guildId] || data.autoresponse[guildId].length === 0) {
                 return interaction.reply({ embeds: [createModeratorEmbed('🔄 Auto-Responses', 'None configured yet.', 0x2F3136)], flags: MessageFlags.Ephemeral });
             }
 
             let list = '';
-            data.autoresponses[guildId].forEach((ar, index) => {
+            data.autoresponse[guildId].forEach((ar, index) => {
                 let responseDisplay = '';
                 if (ar.type === 'text') {
                     responseDisplay = ar.isFromBackup ? `📦 Saved: ${ar.response}` : `✏️ Text: ${ar.response.substring(0, 40)}${ar.response.length > 40 ? '...' : ''}`;
@@ -1390,24 +1390,24 @@ client.on(Events.InteractionCreate, async interaction => {
         if (action === 'view') {
             let statusText = '';
             
-            if (!data.status.text || !data.status.type) {
+            if (!data.bot.status.text || !data.bot.status.type) {
                 statusText = '✅ Bot is online with no custom activity set.';
             } else {
-                const displayName = data.status.emoji ? `${data.status.emoji} ${data.status.text}` : data.status.text;
-                statusText += `**Activity:** ${data.status.type} ${displayName}\n`;
+                const displayName = data.bot.status.emoji ? `${data.bot.status.emoji} ${data.bot.status.text}` : data.bot.status.text;
+                statusText += `**Activity:** ${data.bot.status.type} ${displayName}\n`;
                 
-                if (data.status.type === 'Streaming' && data.status.streamUrl) {
-                    statusText += `**Stream:** ${data.status.streamUrl}\n`;
+                if (data.bot.status.type === 'Streaming' && data.bot.status.streamUrl) {
+                    statusText += `**Stream:** ${data.bot.status.streamUrl}\n`;
                 }
                 
-                statusText += `**Visibility:** ${data.status.presence || 'online'}\n`;
+                statusText += `**Visibility:** ${data.bot.status.presence || 'online'}\n`;
                 
-                if (data.status.lastUpdatedBy) {
-                    statusText += `**Updated By:** <@${data.status.lastUpdatedBy}>\n`;
+                if (data.bot.status.lastUpdatedBy) {
+                    statusText += `**Updated By:** <@${data.bot.status.lastUpdatedBy}>\n`;
                 }
                 
-                if (data.status.lastUpdatedAt) {
-                    const date = new Date(data.status.lastUpdatedAt);
+                if (data.bot.status.lastUpdatedAt) {
+                    const date = new Date(data.bot.status.lastUpdatedAt);
                     statusText += `**Updated:** <t:${Math.floor(date.getTime() / 1000)}:R>`;
                 }
             }
@@ -1753,13 +1753,13 @@ client.on(Events.MessageCreate, async msg => {
     }
 
     // ----- Auto-response triggers -----
-    if (data.autoresponses[guildId]) {
-        for (const ar of data.autoresponses[guildId]) {
+    if (data.autoresponse[guildId]) {
+        for (const ar of data.autoresponse[guildId]) {
             if (msg.content.includes(ar.trigger)) {
                 if (ar.type === 'text') {
                     if (ar.isFromBackup) {
                         // Text response from saved custom message
-                        const customMsg = data.customMessages[guildId]?.find(m => m.title === ar.response);
+                        const customMsg = data.autoresponse[guildId]?.find(m => m.title === ar.response);
                         if (customMsg) {
                             // Reconstruct Component V2 message from saved data
                             const container = new ContainerBuilder();
@@ -1799,7 +1799,7 @@ client.on(Events.MessageCreate, async msg => {
 // ------------------------
 client.on(Events.MessageCreate, async msg => {
     if (msg.author.bot) return;
-    if (!data.channelId || msg.channel.id !== data.channelId) return;
+    if (!data.nickname.channelId || msg.channel.id !== data.nickname.channelId) return;
 
     const nickname = msg.content.trim();
     if (nickname.toLowerCase() === 'reset') {
@@ -1807,7 +1807,7 @@ client.on(Events.MessageCreate, async msg => {
         return msg.reply('<:1_yes_correct:1439893200981721140> Your nickname has been reset.');
     }
 
-    if (data.mode === 'auto') {
+    if (data.nickname.mode === 'auto') {
         const bannedWord = containsBannedWord(nickname);
         if (bannedWord)
             return msg.reply(`<:wrong:1440296241090265088> Cannot use "${bannedWord}" in your nickname.`);
@@ -1819,7 +1819,7 @@ client.on(Events.MessageCreate, async msg => {
         } catch {
             msg.reply('<:warning:1441531830607151195> Failed to change nickname.');
         }
-    } else if (data.mode === 'approval') {
+    } else if (data.nickname.mode === 'approval') {
         const bannedWord = containsBannedWord(nickname);
         if (bannedWord)
             return msg.reply(`<:wrong:1440296241090265088> Cannot use "${bannedWord}" in your nickname.`);
