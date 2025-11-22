@@ -1861,7 +1861,7 @@ client.on(Events.MessageCreate, async msg => {
         try {
             const before = msg.member.nickname || msg.member.displayName;
             await msg.member.setNickname(nickname);
-            await msg.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '### <:Correct:1440296238305116223> Changed' }, { type: 14, spacing: 1 }, { type: 10, content: `Your nickname is now **${nickname}**!` }] }], flags: 32768 }).catch(() => {});
+            await msg.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: `### <:Correct:1440296238305116223> Changed To ${nickname}` }, { type: 14, spacing: 1 }, { type: 10, content: `Your previous nickname was **${before}**` }] }], flags: 32768 }).catch(() => {});
         } catch {
             await msg.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '### <:warning:1441531830607151195> Failed' }, { type: 14, spacing: 1 }, { type: 10, content: 'Couldn\'t change your nickname. Try again or contact a moderator.' }] }], flags: 32768 }).catch(() => {});
         }
