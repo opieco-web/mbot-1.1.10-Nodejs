@@ -330,17 +330,17 @@ const commands = [
         .setDescription('Let the bot randomly choose between options')
         .addStringOption(option =>
             option
-                .setName('subjecta')
+                .setName('Subject-A')
                 .setDescription('Subject A')
                 .setRequired(true))
         .addStringOption(option =>
             option
-                .setName('subjectb')
+                .setName('Subject-B')
                 .setDescription('Subject B')
                 .setRequired(true))
         .addStringOption(option =>
             option
-                .setName('subjectc')
+                .setName('Subject-C')
                 .setDescription('Subject C (optional)')
                 .setRequired(false))
 ].map(cmd => cmd.toJSON());
@@ -1229,9 +1229,9 @@ client.on(Events.InteractionCreate, async interaction => {
     // FUN COMMAND: Choose
     // ------------------------
     if (commandName === 'choose') {
-        const subjectA = interaction.options.getString('subjecta');
-        const subjectB = interaction.options.getString('subjectb');
-        const subjectC = interaction.options.getString('subjectc');
+        const subjectA = interaction.options.getString('Subject-A');
+        const subjectB = interaction.options.getString('Subject-B');
+        const subjectC = interaction.options.getString('Subject-C');
         
         const subjects = [subjectA, subjectB];
         if (subjectC) subjects.push(subjectC);
