@@ -44,12 +44,7 @@
       "enabled": true
     }
   },
-  "afk": {
-    "1108782022543032400": {
-      "reason": "People need you to fulfill their needs",
-      "timestamp": 1763796106446
-    }
-  },
+  "afk": {},
   "nicknameFilter": [
     "gay",
     "hogalala"

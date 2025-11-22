@@ -272,6 +272,91 @@ const commands = [
                 .setName('channel')
                 .setDescription('Channel to send message to')
                 .setRequired(false))
+        .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageGuild),
+
+    // Component V2 Builder Command
+    new SlashCommandBuilder()
+        .setName('buildcomponent')
+        .setDescription('Build custom Component V2 messages (mod only)')
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName('add')
+                .setDescription('Add a component: text, button, media, file, separator, row')
+                .addStringOption(option =>
+                    option
+                        .setName('type')
+                        .setDescription('Component type to add')
+                        .setRequired(true)
+                        .addChoices(
+                            { name: 'text', value: 'text' },
+                            { name: 'button', value: 'button' },
+                            { name: 'media', value: 'media' },
+                            { name: 'file', value: 'file' },
+                            { name: 'separator', value: 'separator' },
+                            { name: 'row', value: 'row' }
+                        ))
+                .addStringOption(option =>
+                    option
+                        .setName('content')
+                        .setDescription('Content for text/button (optional)')
+                        .setRequired(false))
+                .addStringOption(option =>
+                    option
+                        .setName('label')
+                        .setDescription('Button label (for button type)')
+                        .setRequired(false))
+                .addStringOption(option =>
+                    option
+                        .setName('url')
+                        .setDescription('Button/media/file URL (for button/media/file types)')
+                        .setRequired(false))
+                .addIntegerOption(option =>
+                    option
+                        .setName('style')
+                        .setDescription('Button style (1-5: Primary/Secondary/Success/Danger/Link)')
+                        .setRequired(false)
+                        .setMinValue(1)
+                        .setMaxValue(5)))
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName('remove')
+                .setDescription('Remove component by index')
+                .addIntegerOption(option =>
+                    option
+                        .setName('index')
+                        .setDescription('Component index to remove')
+                        .setRequired(true)))
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName('move')
+                .setDescription('Move component up or down')
+                .addIntegerOption(option =>
+                    option
+                        .setName('from')
+                        .setDescription('Component index to move')
+                        .setRequired(true))
+                .addIntegerOption(option =>
+                    option
+                        .setName('to')
+                        .setDescription('Destination index')
+                        .setRequired(true)))
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName('view')
+                .setDescription('View current component layout'))
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName('clear')
+                .setDescription('Clear all components'))
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName('send')
+                .setDescription('Send the component message')
+                .addChannelOption(option =>
+                    option
+                        .setName('channel')
+                        .setDescription('Channel to send to (optional)')
+                        .setRequired(false)))
         .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageGuild)
 ].map(cmd => cmd.toJSON());
 
@@ -341,6 +426,91 @@ data.status = data.status || {}; // { type, text, emoji, streamUrl, presence, la
 data.welcome = data.welcome || {}; // { guildId: { channelId, delay, enabled } }
 data.afk = data.afk || {}; // { userId: { reason: string, timestamp: number } }
 data.nicknameFilter = data.nicknameFilter || []; // [ word, word, ... ]
+
+// Component V2 Builder Sessions
+const builderSessions = new Map(); // { userId: { components: [], lastUpdated: timestamp } }
+
+// HELPER: Component V2 Builder
+function getBuilderSession(userId) {
+    if (!builderSessions.has(userId)) {
+        builderSessions.set(userId, { components: [], lastUpdated: Date.now() });
+    }
+    return builderSessions.get(userId);
+}
+
+function buildComponentJSON(components) {
+    return {
+        flags: MessageFlags.IsComponentsV2,
+        components: components
+    };
+}
+
+function createTextComponent(content) {
+    return {
+        type: 10,
+        content: content
+    };
+}
+
+function createButtonComponent(label, url = null, style = 1, customId = null) {
+    const button = {
+        type: 2,
+        label: label,
+        style: style || 1
+    };
+    if (url && (style === 5 || !customId)) {
+        button.url = url;
+    } else if (customId) {
+        button.custom_id = customId;
+    } else {
+        button.custom_id = `btn_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    }
+    return button;
+}
+
+function createMediaComponent(url) {
+    return {
+        type: 12,
+        items: [{ media: { url: url } }]
+    };
+}
+
+function createFileComponent(url) {
+    return {
+        type: 13,
+        file: { url: url }
+    };
+}
+
+function createSeparator() {
+    return { type: 14 };
+}
+
+function createRow(components = []) {
+    return {
+        type: 1,
+        components: components
+    };
+}
+
+function createContainer(components = []) {
+    return {
+        type: 17,
+        components: components
+    };
+}
+
+function formatComponentsList(components) {
+    return components.map((comp, idx) => {
+        const typeNames = { 1: 'Row', 2: 'Button', 10: 'Text', 12: 'Media', 13: 'File', 14: 'Separator', 17: 'Container' };
+        const typeName = typeNames[comp.type] || 'Unknown';
+        let detail = '';
+        if (comp.type === 10) detail = ` - "${comp.content.substring(0, 30)}..."`;
+        if (comp.type === 2) detail = ` - Label: "${comp.label}"`;
+        if (comp.type === 12 || comp.type === 13) detail = ` - ${comp.type === 12 ? 'Media' : 'File'} URL`;
+        return `**${idx}. ${typeName}**${detail}`;
+    }).join('\n') || 'No components yet';
+}
 
 // HELPER: Check cooldown and warn user
 function checkAndWarnCooldown(userId, commandName, cooldownMs = 5000) {
