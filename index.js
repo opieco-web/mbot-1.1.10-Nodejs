@@ -306,12 +306,15 @@ function createAvatarComponent(username, defaultAvatarUrl, serverAvatarUrl = nul
     let title = '';
     
     if (mode === 'server_only') {
+        // If no server avatar, fall back to default
+        const avatarUrl = serverAvatarUrl || defaultAvatarUrl;
+        const description = serverAvatarUrl ? `${username}'s Server Avatar` : `${username}'s Discord Avatar`;
         items.push(
             new MediaGalleryItemBuilder()
-                .setURL(serverAvatarUrl)
-                .setDescription(`${username}'s Server Avatar`)
+                .setURL(avatarUrl)
+                .setDescription(description)
         );
-        title = `${username}'s Server Avatar`;
+        title = serverAvatarUrl ? `${username}'s Server Avatar` : `${username}'s Discord Avatar`;
     } else if (mode === 'default_only') {
         items.push(
             new MediaGalleryItemBuilder()
@@ -320,7 +323,7 @@ function createAvatarComponent(username, defaultAvatarUrl, serverAvatarUrl = nul
         );
         title = `${username}'s Discord Avatar`;
     } else {
-        // Show both
+        // Show both (or just default if no server avatar)
         if (serverAvatarUrl) {
             items.push(
                 new MediaGalleryItemBuilder()
