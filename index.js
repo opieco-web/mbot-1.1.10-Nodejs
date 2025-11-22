@@ -4,6 +4,27 @@ import fs from 'fs';
 const TOKEN = process.env.DISCORD_BOT_TOKEN;
 const CLIENT_ID = process.env.DISCORD_CLIENT_ID;
 
+// ============================================
+// COMPONENT V2 PATTERN FOR EDITING MESSAGES
+// ============================================
+// When editing messages, always use Component V2 format to avoid "Invalid Form Body" errors:
+// 
+// PATTERN: interaction.update({ content: ' ', components: [container], flags: MessageFlags.IsComponentsV2 });
+// 
+// Example:
+// const text = `### Header\n\nYour message content here`;
+// const textDisplay = new TextDisplayBuilder().setContent(text);
+// const container = new ContainerBuilder().addTextDisplayComponents(textDisplay);
+// await i.update({ content: ' ', components: [container], flags: MessageFlags.IsComponentsV2 });
+//
+// KEY RULES:
+// 1. Always set content to a single space ' ' (not empty string)
+// 2. Use TextDisplayBuilder for text content
+// 3. Wrap with ContainerBuilder for Component V2
+// 4. Always include flags: MessageFlags.IsComponentsV2
+// 5. For ephemeral: Add | MessageFlags.Ephemeral to flags
+// ============================================
+
 // Get bot name and version from package.json
 const packageJson = JSON.parse(fs.readFileSync('./package.json', 'utf8'));
 const BOT_NAME = packageJson.name;
@@ -230,6 +251,27 @@ const commands = [
                     { name: 'Do Not Disturb', value: 'dnd' },
                     { name: 'Invisible', value: 'invisible' }
                 ))
+        .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageGuild),
+
+    // Custom Message Command - Create fully customizable component messages
+    new SlashCommandBuilder()
+        .setName('custommessage')
+        .setDescription('Create a customizable component message (mod only)')
+        .addStringOption(option =>
+            option
+                .setName('title')
+                .setDescription('Message title (appears as ### Title)')
+                .setRequired(true))
+        .addStringOption(option =>
+            option
+                .setName('content')
+                .setDescription('Message content/body')
+                .setRequired(true))
+        .addChannelOption(option =>
+            option
+                .setName('channel')
+                .setDescription('Channel to send message to')
+                .setRequired(false))
         .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageGuild)
 ].map(cmd => cmd.toJSON());
 
@@ -1291,6 +1333,30 @@ client.on(Events.InteractionCreate, async interaction => {
     // ------------------------
     // WELCOME SYSTEM
     // ------------------------
+    // Custom Message Command
+    if (commandName === 'custommessage') {
+        const title = interaction.options.getString('title');
+        const content = interaction.options.getString('content');
+        const targetChannel = interaction.options.getChannel('channel') || interaction.channel;
+
+        const text = `### ${title}\n\n${content}`;
+        const textDisplay = new TextDisplayBuilder().setContent(text);
+        const container = new ContainerBuilder().addTextDisplayComponents(textDisplay);
+
+        try {
+            await targetChannel.send({ content: ' ', components: [container], flags: MessageFlags.IsComponentsV2 });
+            const successText = `### Message Created\n\nMessage sent to ${targetChannel}`;
+            const successDisplay = new TextDisplayBuilder().setContent(successText);
+            const successContainer = new ContainerBuilder().addTextDisplayComponents(successDisplay);
+            return interaction.reply({ content: ' ', components: [successContainer], flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral });
+        } catch (error) {
+            const errorText = `### Failed\n\nCouldn't send message.`;
+            const errorDisplay = new TextDisplayBuilder().setContent(errorText);
+            const errorContainer = new ContainerBuilder().addTextDisplayComponents(errorDisplay);
+            return interaction.reply({ content: ' ', components: [errorContainer], flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral });
+        }
+    }
+
     if (commandName === 'welcome') {
         const subcommand = interaction.options.getSubcommand();
 
