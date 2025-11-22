@@ -1825,12 +1825,12 @@ client.on(Events.MessageCreate, async msg => {
             const changedText = `## <:Correct:1440296238305116223> Nickname Changed\n\n**Before:** ${before}\n**After:** ${nickname}\n\nYour nickname has been successfully updated!`;
             const textDisplay = new TextDisplayBuilder().setContent(changedText);
             const container = new ContainerBuilder().addTextDisplayComponents(textDisplay);
-            msg.reply({ content: ' ', components: [container], flags: MessageFlags.IsComponentsV2 });
+            await msg.reply({ content: ' ', components: [container], flags: MessageFlags.IsComponentsV2 }).catch(() => {});
         } catch {
             const failedText = `## <:warning:1441531830607151195> Failed\n\nCouldn't change your nickname. Please try again or contact a moderator.`;
             const textDisplay = new TextDisplayBuilder().setContent(failedText);
             const container = new ContainerBuilder().addTextDisplayComponents(textDisplay);
-            msg.reply({ content: ' ', components: [container], flags: MessageFlags.IsComponentsV2 });
+            await msg.reply({ content: ' ', components: [container], flags: MessageFlags.IsComponentsV2 }).catch(() => {});
         }
     } else if (data.nickname.mode === 'approval') {
         const bannedWord = containsBannedWord(nickname);
