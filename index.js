@@ -274,90 +274,15 @@ const commands = [
                 .setRequired(false))
         .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageGuild),
 
-    // Component V2 Builder Command
+    // Edit Command - Edit your own messages
     new SlashCommandBuilder()
-        .setName('buildcomponent')
-        .setDescription('Build custom Component V2 messages (mod only)')
-        .addSubcommand(subcommand =>
-            subcommand
-                .setName('add')
-                .setDescription('Add a component: text, button, media, file, separator, row')
-                .addStringOption(option =>
-                    option
-                        .setName('type')
-                        .setDescription('Component type to add')
-                        .setRequired(true)
-                        .addChoices(
-                            { name: 'text', value: 'text' },
-                            { name: 'button', value: 'button' },
-                            { name: 'media', value: 'media' },
-                            { name: 'file', value: 'file' },
-                            { name: 'separator', value: 'separator' },
-                            { name: 'row', value: 'row' }
-                        ))
-                .addStringOption(option =>
-                    option
-                        .setName('content')
-                        .setDescription('Content for text/button (optional)')
-                        .setRequired(false))
-                .addStringOption(option =>
-                    option
-                        .setName('label')
-                        .setDescription('Button label (for button type)')
-                        .setRequired(false))
-                .addStringOption(option =>
-                    option
-                        .setName('url')
-                        .setDescription('Button/media/file URL (for button/media/file types)')
-                        .setRequired(false))
-                .addIntegerOption(option =>
-                    option
-                        .setName('style')
-                        .setDescription('Button style (1-5: Primary/Secondary/Success/Danger/Link)')
-                        .setRequired(false)
-                        .setMinValue(1)
-                        .setMaxValue(5)))
-        .addSubcommand(subcommand =>
-            subcommand
-                .setName('remove')
-                .setDescription('Remove component by index')
-                .addIntegerOption(option =>
-                    option
-                        .setName('index')
-                        .setDescription('Component index to remove')
-                        .setRequired(true)))
-        .addSubcommand(subcommand =>
-            subcommand
-                .setName('move')
-                .setDescription('Move component up or down')
-                .addIntegerOption(option =>
-                    option
-                        .setName('from')
-                        .setDescription('Component index to move')
-                        .setRequired(true))
-                .addIntegerOption(option =>
-                    option
-                        .setName('to')
-                        .setDescription('Destination index')
-                        .setRequired(true)))
-        .addSubcommand(subcommand =>
-            subcommand
-                .setName('view')
-                .setDescription('View current component layout'))
-        .addSubcommand(subcommand =>
-            subcommand
-                .setName('clear')
-                .setDescription('Clear all components'))
-        .addSubcommand(subcommand =>
-            subcommand
-                .setName('send')
-                .setDescription('Send the component message')
-                .addChannelOption(option =>
-                    option
-                        .setName('channel')
-                        .setDescription('Channel to send to (optional)')
-                        .setRequired(false)))
-        .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageGuild)
+        .setName('edit')
+        .setDescription('Edit your last message')
+        .addStringOption(option =>
+            option
+                .setName('content')
+                .setDescription('New content for the message')
+                .setRequired(true))
 ].map(cmd => cmd.toJSON());
 
 const rest = new REST({ version: '10' }).setToken(TOKEN);
@@ -427,90 +352,8 @@ data.welcome = data.welcome || {}; // { guildId: { channelId, delay, enabled } }
 data.afk = data.afk || {}; // { userId: { reason: string, timestamp: number } }
 data.nicknameFilter = data.nicknameFilter || []; // [ word, word, ... ]
 
-// Component V2 Builder Sessions
-const builderSessions = new Map(); // { userId: { components: [], lastUpdated: timestamp } }
-
-// HELPER: Component V2 Builder
-function getBuilderSession(userId) {
-    if (!builderSessions.has(userId)) {
-        builderSessions.set(userId, { components: [], lastUpdated: Date.now() });
-    }
-    return builderSessions.get(userId);
-}
-
-function buildComponentJSON(components) {
-    return {
-        flags: MessageFlags.IsComponentsV2,
-        components: components
-    };
-}
-
-function createTextComponent(content) {
-    return {
-        type: 10,
-        content: content
-    };
-}
-
-function createButtonComponent(label, url = null, style = 1, customId = null) {
-    const button = {
-        type: 2,
-        label: label,
-        style: style || 1
-    };
-    if (url && (style === 5 || !customId)) {
-        button.url = url;
-    } else if (customId) {
-        button.custom_id = customId;
-    } else {
-        button.custom_id = `btn_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    }
-    return button;
-}
-
-function createMediaComponent(url) {
-    return {
-        type: 12,
-        items: [{ media: { url: url } }]
-    };
-}
-
-function createFileComponent(url) {
-    return {
-        type: 13,
-        file: { url: url }
-    };
-}
-
-function createSeparator() {
-    return { type: 14 };
-}
-
-function createRow(components = []) {
-    return {
-        type: 1,
-        components: components
-    };
-}
-
-function createContainer(components = []) {
-    return {
-        type: 17,
-        components: components
-    };
-}
-
-function formatComponentsList(components) {
-    return components.map((comp, idx) => {
-        const typeNames = { 1: 'Row', 2: 'Button', 10: 'Text', 12: 'Media', 13: 'File', 14: 'Separator', 17: 'Container' };
-        const typeName = typeNames[comp.type] || 'Unknown';
-        let detail = '';
-        if (comp.type === 10) detail = ` - "${comp.content.substring(0, 30)}..."`;
-        if (comp.type === 2) detail = ` - Label: "${comp.label}"`;
-        if (comp.type === 12 || comp.type === 13) detail = ` - ${comp.type === 12 ? 'Media' : 'File'} URL`;
-        return `**${idx}. ${typeName}**${detail}`;
-    }).join('\n') || 'No components yet';
-}
+// Last Message Cache - Track last message per user for /edit command
+const lastMessages = new Map(); // { userId: { messageId: string, channelId: string, timestamp: number } }
 
 // HELPER: Check cooldown and warn user
 function checkAndWarnCooldown(userId, commandName, cooldownMs = 5000) {
@@ -1527,110 +1370,35 @@ client.on(Events.InteractionCreate, async interaction => {
         }
     }
 
-    // Component V2 Builder Command
-    if (commandName === 'buildcomponent') {
-        const subcommand = interaction.options.getSubcommand();
-        const session = getBuilderSession(interaction.user.id);
+    // Edit Command - Edit last message sent
+    if (commandName === 'edit') {
+        const newContent = interaction.options.getString('content');
+        const userId = interaction.user.id;
 
-        if (subcommand === 'add') {
-            const type = interaction.options.getString('type');
-            const content = interaction.options.getString('content');
-            const label = interaction.options.getString('label');
-            const url = interaction.options.getString('url');
-            const style = interaction.options.getInteger('style');
-
-            let component = null;
-            if (type === 'text') {
-                if (!content) return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> Text content required for text component.', flags: MessageFlags.Ephemeral });
-                component = createTextComponent(content);
-            } else if (type === 'button') {
-                if (!label) return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> Label required for button component.', flags: MessageFlags.Ephemeral });
-                component = createButtonComponent(label, url, style);
-            } else if (type === 'media') {
-                if (!url) return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> URL required for media component.', flags: MessageFlags.Ephemeral });
-                component = createMediaComponent(url);
-            } else if (type === 'file') {
-                if (!url) return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> URL required for file component.', flags: MessageFlags.Ephemeral });
-                component = createFileComponent(url);
-            } else if (type === 'separator') {
-                component = createSeparator();
-            } else if (type === 'row') {
-                component = createRow();
-            }
-
-            if (component) {
-                session.components.push(component);
-                const list = formatComponentsList(session.components);
-                const text = `### Added ${type}\n\n${list}`;
-                const textDisplay = new TextDisplayBuilder().setContent(text);
-                const container = new ContainerBuilder().addTextDisplayComponents(textDisplay);
-                return interaction.reply({ content: ' ', components: [container], flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral });
-            }
+        if (!lastMessages.has(userId)) {
+            return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> No previous message to edit.', flags: MessageFlags.Ephemeral });
         }
 
-        if (subcommand === 'remove') {
-            const index = interaction.options.getInteger('index');
-            if (index < 0 || index >= session.components.length) {
-                return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> Invalid component index.', flags: MessageFlags.Ephemeral });
-            }
-            session.components.splice(index, 1);
-            const list = formatComponentsList(session.components);
-            const text = `### Removed\n\n${list}`;
-            const textDisplay = new TextDisplayBuilder().setContent(text);
-            const container = new ContainerBuilder().addTextDisplayComponents(textDisplay);
-            return interaction.reply({ content: ' ', components: [container], flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral });
+        const lastMsg = lastMessages.get(userId);
+        const now = Date.now();
+        
+        // Only allow editing within 15 minutes
+        if (now - lastMsg.timestamp > 900000) {
+            return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> Message is too old to edit (15 min limit).', flags: MessageFlags.Ephemeral });
         }
 
-        if (subcommand === 'move') {
-            const from = interaction.options.getInteger('from');
-            const to = interaction.options.getInteger('to');
-            if (from < 0 || from >= session.components.length || to < 0 || to >= session.components.length) {
-                return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> Invalid component indices.', flags: MessageFlags.Ephemeral });
+        try {
+            const channel = await client.channels.fetch(lastMsg.channelId);
+            const message = await channel.messages.fetch(lastMsg.messageId);
+            
+            if (message.author.id !== client.user.id) {
+                return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> Can only edit bot messages.', flags: MessageFlags.Ephemeral });
             }
-            const [moved] = session.components.splice(from, 1);
-            session.components.splice(to, 0, moved);
-            const list = formatComponentsList(session.components);
-            const text = `### Moved\n\n${list}`;
-            const textDisplay = new TextDisplayBuilder().setContent(text);
-            const container = new ContainerBuilder().addTextDisplayComponents(textDisplay);
-            return interaction.reply({ content: ' ', components: [container], flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral });
-        }
 
-        if (subcommand === 'view') {
-            const list = formatComponentsList(session.components);
-            const jsonPreview = JSON.stringify(buildComponentJSON(session.components), null, 2).substring(0, 1500);
-            const text = `### Current Layout\n\n${list}\n\n\`\`\`json\n${jsonPreview}\n\`\`\``;
-            const textDisplay = new TextDisplayBuilder().setContent(text);
-            const container = new ContainerBuilder().addTextDisplayComponents(textDisplay);
-            return interaction.reply({ content: ' ', components: [container], flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral });
-        }
-
-        if (subcommand === 'clear') {
-            session.components = [];
-            const text = `### Cleared\n\nAll components removed.`;
-            const textDisplay = new TextDisplayBuilder().setContent(text);
-            const container = new ContainerBuilder().addTextDisplayComponents(textDisplay);
-            return interaction.reply({ content: ' ', components: [container], flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral });
-        }
-
-        if (subcommand === 'send') {
-            if (session.components.length === 0) {
-                return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> No components to send. Use `/buildcomponent add` first.', flags: MessageFlags.Ephemeral });
-            }
-            const targetChannel = interaction.options.getChannel('channel') || interaction.channel;
-            try {
-                await targetChannel.send(buildComponentJSON(session.components));
-                session.components = [];
-                const text = `### Sent\n\nComponent message sent to ${targetChannel}`;
-                const textDisplay = new TextDisplayBuilder().setContent(text);
-                const container = new ContainerBuilder().addTextDisplayComponents(textDisplay);
-                return interaction.reply({ content: ' ', components: [container], flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral });
-            } catch (error) {
-                const text = `### Failed\n\nCouldn't send message.`;
-                const textDisplay = new TextDisplayBuilder().setContent(text);
-                const container = new ContainerBuilder().addTextDisplayComponents(textDisplay);
-                return interaction.reply({ content: ' ', components: [container], flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral });
-            }
+            await message.edit({ content: newContent, components: [] });
+            return interaction.reply({ content: '<:1_yes_correct:1439893200981721140> Message edited!', flags: MessageFlags.Ephemeral });
+        } catch (error) {
+            return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> Could not edit message.', flags: MessageFlags.Ephemeral });
         }
     }
 
