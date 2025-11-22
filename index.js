@@ -1758,7 +1758,7 @@ client.on(Events.MessageCreate, async msg => {
             const [optionA, optionB] = parts.split(',').map(p => p.trim());
             
             if (!optionA || !optionB) {
-                const warnMsg = await msg.reply({ content: '⚠️ Format: `!cos <option A> , <option B>`', flags: MessageFlags.Ephemeral });
+                const warnMsg = await msg.reply({ content: '<:warning:1441531830607151195> Format: `!cos <option A> , <option B>`', flags: MessageFlags.Ephemeral });
                 setTimeout(() => warnMsg.delete().catch(() => {}), 5000);
                 return;
             }
@@ -1839,7 +1839,7 @@ client.on(Events.MessageCreate, async msg => {
                             
                             msg.reply({ content: ' ', components: [container], flags: MessageFlags.IsComponentsV2 }).catch(() => {});
                         } else {
-                            msg.reply(`⚠️ Saved message "${ar.response}" not found.`).catch(() => {});
+                            msg.reply(`<:warning:1441531830607151195> Saved message "${ar.response}" not found.`).catch(() => {});
                         }
                     } else {
                         // Plain text or JSON response - try to parse as Component V2 first
