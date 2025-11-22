@@ -762,7 +762,7 @@ client.on(Events.InteractionCreate, async interaction => {
         const responseTime = Date.now() - interaction.createdTimestamp;
         const uptime = formatUptime(startTime);
         
-        return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## 📡 Pong' }, { type: 14, spacing: 1 }, { type: 10, content: `WebSocket: ${wsLatency}ms\nHosting Delay: ${wsLatency}ms\nResponse: ${responseTime}ms\nUptime: ${uptime}` }] }], flags: 32768 | MessageFlags.Ephemeral });
+        return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## 📡 Ping' }, { type: 14, spacing: 1 }, { type: 10, content: `WebSocket: ${wsLatency}ms\nHosting Delay: ${wsLatency}ms\nResponse: ${responseTime}ms\nUptime: ${uptime}` }] }], flags: 32768 | MessageFlags.Ephemeral });
     }
 
     if (commandName === 'afk') {
@@ -1789,7 +1789,7 @@ client.on(Events.MessageCreate, async msg => {
             const responseTime = Date.now() - msg.createdTimestamp;
             const uptime = formatUptime(startTime);
             
-            return msg.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## 📡 Pong' }, { type: 14, spacing: 1 }, { type: 10, content: `WebSocket: ${wsLatency}ms\nHosting Delay: ${wsLatency}ms\nResponse: ${responseTime}ms\nUptime: ${uptime}` }] }], flags: 32768 });
+            return msg.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## 📡 Ping' }, { type: 14, spacing: 1 }, { type: 10, content: `WebSocket: ${wsLatency}ms\nHosting Delay: ${wsLatency}ms\nResponse: ${responseTime}ms\nUptime: ${uptime}` }] }], flags: 32768 });
         }
     }
 
