@@ -299,60 +299,40 @@ data.welcome = data.welcome || {}; // { guildId: { channelId, delay, enabled } }
 data.afk = data.afk || {}; // { userId: { reason: string, timestamp: number } }
 data.nicknameFilter = data.nicknameFilter || []; // [ word, word, ... ]
 
-// HELPER: Create Component V2 format for avatar display with container
+// HELPER: Create avatar display with modern embeds
 // mode: 'both' (default), 'server_only', 'default_only'
 function createAvatarComponent(username, defaultAvatarUrl, serverAvatarUrl = null, mode = 'both') {
-    const items = [];
-    let title = '';
+    const embeds = [];
     
     if (mode === 'server_only') {
-        items.push({
-            media: { url: serverAvatarUrl },
-            description: `Server Avatar`
-        });
-        title = `${username}'s Server Avatar`;
+        embeds.push(new EmbedBuilder()
+            .setTitle(`${username}'s Server Avatar`)
+            .setImage(serverAvatarUrl)
+            .setColor(0x5865F2)
+        );
     } else if (mode === 'default_only') {
-        items.push({
-            media: { url: defaultAvatarUrl },
-            description: `Discord Default Avatar`
-        });
-        title = `${username}'s Discord Avatar`;
+        embeds.push(new EmbedBuilder()
+            .setTitle(`${username}'s Discord Avatar`)
+            .setImage(defaultAvatarUrl)
+            .setColor(0x5865F2)
+        );
     } else {
         // Show both
         if (serverAvatarUrl) {
-            items.push({
-                media: { url: serverAvatarUrl },
-                description: `Server Avatar`
-            });
+            embeds.push(new EmbedBuilder()
+                .setTitle(`${username}'s Server Avatar`)
+                .setImage(serverAvatarUrl)
+                .setColor(0x5865F2)
+            );
         }
-        items.push({
-            media: { url: defaultAvatarUrl },
-            description: `Discord Default Avatar`
-        });
-        title = `${username}'s Avatar${serverAvatarUrl ? 's' : ''}`;
+        embeds.push(new EmbedBuilder()
+            .setTitle(`${username}'s Discord Avatar`)
+            .setImage(defaultAvatarUrl)
+            .setColor(0x5865F2)
+        );
     }
     
-    return {
-        flags: MessageFlags.IsComponentsV2,
-        components: [
-            {
-                type: 17,
-                components: [
-                    {
-                        type: 10,
-                        content: `## ${title}`
-                    },
-                    {
-                        type: 14
-                    },
-                    {
-                        type: 12,
-                        items: items
-                    }
-                ]
-            }
-        ]
-    };
+    return { embeds };
 }
 
 // HELPER: Calculate AFK duration with smart format (shows only relevant units)
