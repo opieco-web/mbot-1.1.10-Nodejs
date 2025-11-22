@@ -352,8 +352,19 @@ data.welcome = data.welcome || {}; // { guildId: { channelId, delay, enabled } }
 data.afk = data.afk || {}; // { userId: { reason: string, timestamp: number } }
 data.nicknameFilter = data.nicknameFilter || []; // [ word, word, ... ]
 
-// Last Message Cache - Track last message per user for /edit command
-const lastMessages = new Map(); // { userId: { messageId: string, channelId: string, timestamp: number } }
+// Message Cache - Track all bot responses per user for /edit command
+const messageCache = new Map(); // { userId: [{ messageId, channelId, timestamp, preview }, ...] }
+const MAX_CACHED_MESSAGES = 10;
+
+// HELPER: Cache bot message for /edit command
+function cacheMessage(userId, messageId, channelId, content) {
+    if (!messageCache.has(userId)) {
+        messageCache.set(userId, []);
+    }
+    const cache = messageCache.get(userId);
+    cache.unshift({ messageId, channelId, timestamp: Date.now(), preview: content.substring(0, 50) });
+    if (cache.length > MAX_CACHED_MESSAGES) cache.pop();
+}
 
 // HELPER: Check cooldown and warn user
 function checkAndWarnCooldown(userId, commandName, cooldownMs = 5000) {
@@ -1370,26 +1381,28 @@ client.on(Events.InteractionCreate, async interaction => {
         }
     }
 
-    // Edit Command - Edit last message sent
+    // Edit Command - Edit any of your recent bot messages
     if (commandName === 'edit') {
         const newContent = interaction.options.getString('content');
         const userId = interaction.user.id;
 
-        if (!lastMessages.has(userId)) {
-            return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> No previous message to edit.', flags: MessageFlags.Ephemeral });
+        if (!messageCache.has(userId) || messageCache.get(userId).length === 0) {
+            return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> No previous messages to edit.', flags: MessageFlags.Ephemeral });
         }
 
-        const lastMsg = lastMessages.get(userId);
+        const cache = messageCache.get(userId);
         const now = Date.now();
-        
-        // Only allow editing within 15 minutes
-        if (now - lastMsg.timestamp > 900000) {
-            return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> Message is too old to edit (15 min limit).', flags: MessageFlags.Ephemeral });
+        const validMsgs = cache.filter(m => (now - m.timestamp) <= 900000);
+
+        if (validMsgs.length === 0) {
+            return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> All cached messages are too old (15 min limit).', flags: MessageFlags.Ephemeral });
         }
+
+        const targetMsg = validMsgs[0];
 
         try {
-            const channel = await client.channels.fetch(lastMsg.channelId);
-            const message = await channel.messages.fetch(lastMsg.messageId);
+            const channel = await client.channels.fetch(targetMsg.channelId);
+            const message = await channel.messages.fetch(targetMsg.messageId);
             
             if (message.author.id !== client.user.id) {
                 return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> Can only edit bot messages.', flags: MessageFlags.Ephemeral });
