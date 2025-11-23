@@ -789,15 +789,13 @@ client.on(Events.InteractionCreate, async interaction => {
 
     if (commandName === 'botinfo') {
         const botName = client.user.username;
-        const botVersion = '4.2.6';
-        const botDescription = 'Nickname bot with server-specific prefix, AFK system, avatar view, fun commands, and auto-response moderation features';
         const prefix = getPrefix(guildId);
         const wsLatency = client.ws.ping;
         const responseTime = Date.now() - interaction.createdTimestamp;
         const uptime = formatUptime(startTime);
         const botAvatar = client.user.displayAvatarURL({ dynamic: true, size: 1024 });
         
-        const infoText = `**${botDescription}**\n\n**Prefix:** \`${prefix}\`\n**Ping:** ${wsLatency}ms\n**Response Time:** ${responseTime}ms\n**Uptime:** ${uptime}\n**Total Commands:** 15+`;
+        const infoText = `**${packageJson.description}**\n\n**Prefix:** \`${prefix}\`\n**Ping:** ${wsLatency}ms\n**Response Time:** ${responseTime}ms\n**Uptime:** ${uptime}\n**Total Commands:** 15+`;
         
         const payload = {
             content: ' ',
@@ -807,7 +805,7 @@ client.on(Events.InteractionCreate, async interaction => {
                     components: [
                         {
                             type: 10,
-                            content: `## ${botName}│v${botVersion}`
+                            content: `## ${BOT_NAME}│v${BOT_VERSION}`
                         },
                         {
                             type: 14
@@ -1966,15 +1964,13 @@ client.on(Events.MessageCreate, async msg => {
         // Bot Info command
         if (cmd === 'bi') {
             const botName = client.user.username;
-            const botVersion = '4.2.6';
-            const botDescription = 'Nickname bot with server-specific prefix, AFK system, avatar view, fun commands, and auto-response moderation features';
             const prefix = getPrefix(guildId);
             const wsLatency = client.ws.ping;
             const responseTime = Date.now() - msg.createdTimestamp;
             const uptime = formatUptime(startTime);
             const botAvatar = client.user.displayAvatarURL({ dynamic: true, size: 1024 });
             
-            const infoText = `**${botDescription}**\n\n**Prefix:** \`${prefix}\`\n**Ping:** ${wsLatency}ms\n**Response Time:** ${responseTime}ms\n**Uptime:** ${uptime}\n**Total Commands:** 15+`;
+            const infoText = `**${packageJson.description}**\n\n**Prefix:** \`${prefix}\`\n**Ping:** ${wsLatency}ms\n**Response Time:** ${responseTime}ms\n**Uptime:** ${uptime}\n**Total Commands:** 15+`;
             
             const payload = {
                 content: ' ',
@@ -1984,7 +1980,7 @@ client.on(Events.MessageCreate, async msg => {
                         components: [
                             {
                                 type: 10,
-                                content: `## ${botName}│v${botVersion}`
+                                content: `## ${BOT_NAME}│v${BOT_VERSION}`
                             },
                             {
                                 type: 14

@@ -42,9 +42,10 @@
         "response": "https://discord.gg/mining-bangladesh-1296783492989980682"
       },
       {
-        "trigger": "test",
+        "trigger": "req",
         "type": "text",
-        "response": "{\"flags\": 32768, \"components\": [{\"type\": 17, \"components\": [{\"type\": 10, \"content\": \"## Test 34\"}, {\"type\": 14}, {\"type\": 10, \"content\": \"!av to → see your avater set in mining server\\n!av df → see your avater set in default profile\"}]}]}"
+        "response": "**BEFORE PROCEEDING,** kindly review our requirements.\n-# * You can find the details here https://discord.com/channels/1296783492989980682/1326457194144595970\n**ONCE YOU'RE FAMILIAR WITH THEM,**\n-# * submit your application through here <#1322327013490561126>.\n-# Please ensure you understand them fully before we move forward.",
+        "isFromBackup": false
       }
     ]
   },
