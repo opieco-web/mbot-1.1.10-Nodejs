@@ -808,6 +808,26 @@ client.on(Events.InteractionCreate, async interaction => {
             return interaction.showModal(modal);
         }
 
+        // Config: Page Navigation buttons
+        if (customId === 'config_prev' || customId === 'config_next') {
+            const currentPageMatch = interaction.message.content.match(/Page (\d+)\/3/);
+            const currentPage = currentPageMatch ? parseInt(currentPageMatch[1]) : 1;
+            let nextPage = currentPage;
+            
+            if (customId === 'config_next' && currentPage < 3) nextPage = currentPage + 1;
+            if (customId === 'config_prev' && currentPage > 1) nextPage = currentPage - 1;
+            
+            const pageComponents = buildConfigPage(nextPage, guildId);
+            
+            return interaction.update({
+                content: `Page ${nextPage}/3`,
+                components: [{
+                    type: 17,
+                    components: pageComponents
+                }]
+            });
+        }
+
         // Config: Header Attachment button
         if (customId === 'config_header_attach') {
             await interaction.reply({
@@ -1610,65 +1630,100 @@ client.on(Events.InteractionCreate, async interaction => {
         });
     }
 
-    // CONFIG COMMAND - Component V2 Configuration Panel
-    // type 17 = Container | type 10 = TextDisplay | type 14 = Separator | type 1 = Row | type 2 = Button | type 12 = MediaGallery
-    if (commandName === 'config') {
+    // Helper function to build config pages
+    function buildConfigPage(pageNum, guildId) {
         const prefix = getPrefix(guildId);
         const serverConfig = data.config?.[guildId] || {};
         const headerUrl = serverConfig.headerAttachment;
         const bgUrl = serverConfig.bgAttachment;
-
-        const configComponents = [
-            // Header
-            { type: 10, content: `## 🎛️ ${BOT_NAME} Configuration` },
-            { type: 14, spacing: 1 },
-
-            // Prefix Configuration Section
-            { type: 10, content: '### 📌 Prefix Settings' },
-            { type: 10, content: `**Current Prefix:** \`${prefix}\`` },
-            {
-                type: 1,
-                components: [
-                    { type: 2, style: 1, label: 'Set Prefix', custom_id: 'config_set_prefix' }
-                ]
-            },
-            { type: 14, spacing: 1 },
-
-            // Server Custom Profile Section
-            { type: 10, content: '### 👤 Server Custom Profile' },
-            { type: 10, content: 'Upload custom header and background for this server only' },
-            {
-                type: 1,
-                components: [
-                    { type: 2, style: 1, label: 'Bot Icon', custom_id: 'config_header_attach' },
-                    { type: 2, style: 1, label: 'Bot Banner', custom_id: 'config_banner_attach' }
-                ]
+        
+        let pageComponents = [];
+        
+        if (pageNum === 1) {
+            // Page 1: Prefix Settings
+            pageComponents = [
+                { type: 10, content: `## 🎛️ ${BOT_NAME} Configuration - Page 1/3` },
+                { type: 14, spacing: 1 },
+                { type: 10, content: '### 📌 Prefix Settings' },
+                { type: 10, content: `**Current Prefix:** \`${prefix}\`` },
+                {
+                    type: 1,
+                    components: [
+                        { type: 2, style: 1, label: 'Set Prefix', custom_id: 'config_set_prefix' }
+                    ]
+                }
+            ];
+        } else if (pageNum === 2) {
+            // Page 2: Bot Status
+            let statusText = '';
+            if (!data.status?.text || !data.status?.type) {
+                statusText = '🟢 Bot is online with no custom activity.';
+            } else {
+                const displayName = data.status.emoji ? `${data.status.emoji} ${data.status.text}` : data.status.text;
+                statusText = `**Activity:** ${data.status.type} ${displayName}\n`;
+                if (data.status.type === 'Streaming' && data.status.streamUrl) {
+                    statusText += `**Stream:** ${data.status.streamUrl}\n`;
+                }
+                statusText += `**Visibility:** ${data.status.presence || 'online'}`;
             }
-        ];
-
-        // Add media gallery if images exist
-        if (headerUrl || bgUrl) {
-            configComponents.push({ type: 14, spacing: 1 });
-            configComponents.push({ type: 10, content: '### 📸 Current Custom Profile Images' });
             
-            const mediaItems = [];
-            if (headerUrl) mediaItems.push({ type: 1, media: { url: headerUrl }, description: 'Header' });
-            if (bgUrl) mediaItems.push({ type: 1, media: { url: bgUrl }, description: 'Background' });
+            pageComponents = [
+                { type: 10, content: `## 🎛️ ${BOT_NAME} Configuration - Page 2/3` },
+                { type: 14, spacing: 1 },
+                { type: 10, content: '### 🤖 Bot Status' },
+                { type: 10, content: statusText },
+                { type: 14, spacing: 1 },
+                { type: 10, content: '💡 Use `/status set` to configure bot activity, or `/status reset` to clear.' }
+            ];
+        } else if (pageNum === 3) {
+            // Page 3: Server Custom Profile
+            pageComponents = [
+                { type: 10, content: `## 🎛️ ${BOT_NAME} Configuration - Page 3/3` },
+                { type: 14, spacing: 1 },
+                { type: 10, content: '### 👤 Server Custom Profile' },
+                { type: 10, content: 'Upload custom icon and banner for this server only' },
+                {
+                    type: 1,
+                    components: [
+                        { type: 2, style: 1, label: 'Bot Icon', custom_id: 'config_header_attach' },
+                        { type: 2, style: 1, label: 'Bot Banner', custom_id: 'config_banner_attach' }
+                    ]
+                }
+            ];
             
-            configComponents.push({
-                type: 12,
-                items: mediaItems
-            });
+            if (headerUrl || bgUrl) {
+                pageComponents.push({ type: 14, spacing: 1 });
+                pageComponents.push({ type: 10, content: '### 📸 Current Custom Profile' });
+                const mediaItems = [];
+                if (headerUrl) mediaItems.push({ type: 1, media: { url: headerUrl }, description: 'Bot Icon' });
+                if (bgUrl) mediaItems.push({ type: 1, media: { url: bgUrl }, description: 'Bot Banner' });
+                pageComponents.push({ type: 12, items: mediaItems });
+            }
         }
+        
+        // Add pagination buttons
+        pageComponents.push({ type: 14, spacing: 1 });
+        pageComponents.push({
+            type: 1,
+            components: [
+                { type: 2, style: 2, label: '◀ Previous', custom_id: 'config_prev', disabled: pageNum === 1 },
+                { type: 2, style: 2, label: 'Next ▶', custom_id: 'config_next', disabled: pageNum === 3 }
+            ]
+        });
+        
+        return pageComponents;
+    }
 
-        configComponents.push({ type: 14, spacing: 1 });
-        configComponents.push({ type: 10, content: '✨ More options coming soon...' });
-
+    // CONFIG COMMAND - Component V2 Configuration Panel with Pagination
+    // type 17 = Container | type 10 = TextDisplay | type 14 = Separator | type 1 = Row | type 2 = Button | type 12 = MediaGallery
+    if (commandName === 'config') {
+        const pageComponents = buildConfigPage(1, guildId);
+        
         const configPanel = {
-            content: ' ',
+            content: 'Page 1/3',
             components: [{
                 type: 17,
-                components: configComponents
+                components: pageComponents
             }],
             flags: 32768 | MessageFlags.Ephemeral
         };
