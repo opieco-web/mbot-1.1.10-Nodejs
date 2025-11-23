@@ -1345,6 +1345,7 @@ client.on(Events.InteractionCreate, async interaction => {
 
         try {
             let resultText = '';
+            let mediaUrl = null;
 
             if (searchLocal) {
                 // Local search - search bot's stored data
@@ -1375,38 +1376,38 @@ client.on(Events.InteractionCreate, async interaction => {
                 }
             } else {
                 // Wikipedia API search (free, popular, reliable)
-                const searchResponse = await fetch(`https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&format=json&origin=*`);
-                const searchData = await searchResponse.json();
-                
-                let results = [];
-                let mediaUrl = null;
-                let pageTitle = '';
-
-                // Get search results and fetch full page content
-                if (searchData.query && searchData.query.search && searchData.query.search.length > 0) {
-                    pageTitle = searchData.query.search[0].title;
-                    results.push(searchData.query.search[0].snippet.replace(/<[^>]*>/g, '').substring(0, 500));
-
-                    // Get full page info with image
-                    const pageResponse = await fetch(`https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(pageTitle)}&prop=extracts|pageimages&exintro&piprop=original&format=json&origin=*`);
-                    const pageData = await pageResponse.json();
-                    const pages = pageData.query.pages;
-                    const firstPage = pages[Object.keys(pages)[0]];
+                try {
+                    const searchResponse = await fetch(`https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&format=json&origin=*`);
+                    const searchData = await searchResponse.json();
                     
-                    if (firstPage.extract) {
-                        const cleanText = firstPage.extract.replace(/<[^>]*>/g, '').substring(0, 1000);
-                        if (cleanText) results.push(cleanText);
-                    }
-                    
-                    if (firstPage.original) {
-                        mediaUrl = firstPage.original.source;
-                    }
-                }
+                    let results = [];
 
-                if (results.length > 0) {
-                    resultText = results.join('\n\n');
-                } else {
-                    resultText = 'No detailed results found on Wikipedia. Try a different search query.';
+                    if (searchData.query && searchData.query.search && searchData.query.search.length > 0) {
+                        const pageTitle = searchData.query.search[0].title;
+                        results.push(searchData.query.search[0].snippet.replace(/<[^>]*>/g, '').substring(0, 500));
+
+                        const pageResponse = await fetch(`https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(pageTitle)}&prop=extracts|pageimages&exintro&piprop=original&format=json&origin=*`);
+                        const pageData = await pageResponse.json();
+                        const pages = pageData.query.pages;
+                        const firstPage = pages[Object.keys(pages)[0]];
+                        
+                        if (firstPage && firstPage.extract) {
+                            const cleanText = firstPage.extract.replace(/<[^>]*>/g, '').substring(0, 1000);
+                            if (cleanText) results.push(cleanText);
+                        }
+                        
+                        if (firstPage && firstPage.original && firstPage.original.source) {
+                            mediaUrl = firstPage.original.source;
+                        }
+                    }
+
+                    if (results.length > 0) {
+                        resultText = results.join('\n\n');
+                    } else {
+                        resultText = 'No detailed results found on Wikipedia. Try a different search query.';
+                    }
+                } catch (wikiError) {
+                    resultText = 'Wikipedia search unavailable. Try again later.';
                 }
             }
 
@@ -2174,6 +2175,7 @@ client.on(Events.MessageCreate, async msg => {
                 const waitMsg = await msg.reply('<:mg_alert:1439893442065862698> Searching...');
                 const botAvatar = client.user.displayAvatarURL({ dynamic: true, size: 1024 });
                 let resultText = '';
+                let mediaUrl = null;
 
                 if (searchLocal) {
                     // Local search
@@ -2202,38 +2204,38 @@ client.on(Events.MessageCreate, async msg => {
                     }
                 } else {
                     // Wikipedia API search (free, popular, reliable)
-                    const searchResponse = await fetch(`https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&format=json&origin=*`);
-                    const wikiSearch = await searchResponse.json();
-                    
-                    let results = [];
-                    let mediaUrl = null;
-                    let pageTitle = '';
-
-                    // Get search results and fetch full page content
-                    if (wikiSearch.query && wikiSearch.query.search && wikiSearch.query.search.length > 0) {
-                        pageTitle = wikiSearch.query.search[0].title;
-                        results.push(wikiSearch.query.search[0].snippet.replace(/<[^>]*>/g, '').substring(0, 500));
-
-                        // Get full page info with image
-                        const pageResponse = await fetch(`https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(pageTitle)}&prop=extracts|pageimages&exintro&piprop=original&format=json&origin=*`);
-                        const pageInfo = await pageResponse.json();
-                        const pages = pageInfo.query.pages;
-                        const firstPage = pages[Object.keys(pages)[0]];
+                    try {
+                        const searchResponse = await fetch(`https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&format=json&origin=*`);
+                        const wikiSearch = await searchResponse.json();
                         
-                        if (firstPage.extract) {
-                            const cleanText = firstPage.extract.replace(/<[^>]*>/g, '').substring(0, 1000);
-                            if (cleanText) results.push(cleanText);
-                        }
-                        
-                        if (firstPage.original) {
-                            mediaUrl = firstPage.original.source;
-                        }
-                    }
+                        let results = [];
 
-                    if (results.length > 0) {
-                        resultText = results.join('\n\n');
-                    } else {
-                        resultText = 'No detailed results found on Wikipedia. Try a different search query.';
+                        if (wikiSearch.query && wikiSearch.query.search && wikiSearch.query.search.length > 0) {
+                            const pageTitle = wikiSearch.query.search[0].title;
+                            results.push(wikiSearch.query.search[0].snippet.replace(/<[^>]*>/g, '').substring(0, 500));
+
+                            const pageResponse = await fetch(`https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(pageTitle)}&prop=extracts|pageimages&exintro&piprop=original&format=json&origin=*`);
+                            const pageInfo = await pageResponse.json();
+                            const pages = pageInfo.query.pages;
+                            const firstPage = pages[Object.keys(pages)[0]];
+                            
+                            if (firstPage && firstPage.extract) {
+                                const cleanText = firstPage.extract.replace(/<[^>]*>/g, '').substring(0, 1000);
+                                if (cleanText) results.push(cleanText);
+                            }
+                            
+                            if (firstPage && firstPage.original && firstPage.original.source) {
+                                mediaUrl = firstPage.original.source;
+                            }
+                        }
+
+                        if (results.length > 0) {
+                            resultText = results.join('\n\n');
+                        } else {
+                            resultText = 'No detailed results found on Wikipedia. Try a different search query.';
+                        }
+                    } catch (wikiError) {
+                        resultText = 'Wikipedia search unavailable. Try again later.';
                     }
                 }
 
