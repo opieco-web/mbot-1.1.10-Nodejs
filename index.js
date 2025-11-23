@@ -991,7 +991,7 @@ client.on(Events.InteractionCreate, async interaction => {
             if (guildAvatar) {
                 response = createAvatarComponent(displayName, defaultAvatar, guildAvatar, 'server_only');
             } else {
-                response = { content: '<:2_no_wrong:1439893245130838047> This user has no server-specific avatar set.', flags: MessageFlags.Ephemeral };
+                response = { content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:2_no_wrong:1439893245130838047> No Server Avatar' }, { type: 14 }, { type: 10, content: 'This user has no server-specific avatar set.' }] }], flags: 32768 | MessageFlags.Ephemeral };
             }
         } else if (showServerOnly === false) {
             // Show default avatar only
