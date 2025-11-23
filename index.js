@@ -122,6 +122,38 @@ async function initializeTopics() {
 client.once('clientReady', async () => {
     console.log(`${client.user.tag} is online!`);
     await initializeTopics();
+    
+    // Keep-alive mechanism: Update activity every 30 minutes to prevent idle timeout
+    setInterval(() => {
+        try {
+            const activities = [
+                { name: 'your commands', type: 'LISTENING' },
+                { name: 'Mining Bangladesh', type: 'WATCHING' },
+                { name: 'Discord', type: 'PLAYING' }
+            ];
+            const activity = activities[Math.floor(Math.random() * activities.length)];
+            client.user.setActivity(activity.name, { type: ActivityType[activity.type] }).catch(() => {});
+        } catch (err) {
+            console.error('Keep-alive activity update failed:', err.message);
+        }
+    }, 1800000); // 30 minutes
+    
+    console.log('✅ Keep-alive mechanism activated');
+});
+
+// Auto-reconnection on disconnect
+client.on('disconnect', () => {
+    console.log('⚠️ Bot disconnected, attempting to reconnect...');
+});
+
+// Handle connection errors
+client.on('error', (error) => {
+    console.error('❌ Discord client error:', error);
+});
+
+// Handle warnings
+client.on('warn', (info) => {
+    console.warn('⚠️ Discord warning:', info);
 });
 
 // ------------------------

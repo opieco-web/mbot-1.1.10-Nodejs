@@ -29,3 +29,7 @@ outputType = "console"
 [nix]
 channel = "stable-25_05"
 packages = ["libuuid", "pixman", "libpng", "cairo"]
+
+[deployment]
+deploymentTarget = "vm"
+run = ["node", "index.js"]
