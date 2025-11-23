@@ -1378,13 +1378,36 @@ client.on(Events.InteractionCreate, async interaction => {
                 const response = await fetch(`https://api.duckduckgo.com/?q=${encodeURIComponent(query)}&format=json`);
                 const data = await response.json();
 
+                let results = [];
+
+                // Get abstract (main summary)
                 if (data.AbstractText) {
-                    resultText = data.AbstractText;
-                } else if (data.RelatedTopics && data.RelatedTopics.length > 0) {
-                    const firstResult = data.RelatedTopics[0];
-                    resultText = firstResult.Text || firstResult.Result || 'No results found.';
+                    results.push(data.AbstractText);
+                }
+
+                // Get related topics for additional context
+                if (data.RelatedTopics && data.RelatedTopics.length > 0) {
+                    for (let i = 0; i < Math.min(3, data.RelatedTopics.length); i++) {
+                        const topic = data.RelatedTopics[i];
+                        if (topic.Text) {
+                            results.push(topic.Text);
+                        } else if (topic.Result) {
+                            // Parse HTML if needed
+                            const cleanResult = topic.Result
+                                .replace(/<[^>]*>/g, '')
+                                .replace(/&nbsp;/g, ' ')
+                                .replace(/&amp;/g, '&')
+                                .trim();
+                            if (cleanResult) results.push(cleanResult);
+                        }
+                    }
+                }
+
+                // Combine all results
+                if (results.length > 0) {
+                    resultText = results.join('\n\n');
                 } else {
-                    resultText = 'No results found on DuckDuckGo.';
+                    resultText = 'No detailed results found. Try a different search query.';
                 }
             }
 
@@ -2167,13 +2190,36 @@ client.on(Events.MessageCreate, async msg => {
                     const response = await fetch(`https://api.duckduckgo.com/?q=${encodeURIComponent(query)}&format=json`);
                     const searchData = await response.json();
 
+                    let results = [];
+
+                    // Get abstract (main summary)
                     if (searchData.AbstractText) {
-                        resultText = searchData.AbstractText;
-                    } else if (searchData.RelatedTopics && searchData.RelatedTopics.length > 0) {
-                        const firstResult = searchData.RelatedTopics[0];
-                        resultText = firstResult.Text || firstResult.Result || 'No results found.';
+                        results.push(searchData.AbstractText);
+                    }
+
+                    // Get related topics for additional context
+                    if (searchData.RelatedTopics && searchData.RelatedTopics.length > 0) {
+                        for (let i = 0; i < Math.min(3, searchData.RelatedTopics.length); i++) {
+                            const topic = searchData.RelatedTopics[i];
+                            if (topic.Text) {
+                                results.push(topic.Text);
+                            } else if (topic.Result) {
+                                // Parse HTML if needed
+                                const cleanResult = topic.Result
+                                    .replace(/<[^>]*>/g, '')
+                                    .replace(/&nbsp;/g, ' ')
+                                    .replace(/&amp;/g, '&')
+                                    .trim();
+                                if (cleanResult) results.push(cleanResult);
+                            }
+                        }
+                    }
+
+                    // Combine all results
+                    if (results.length > 0) {
+                        resultText = results.join('\n\n');
                     } else {
-                        resultText = 'No results found on DuckDuckGo.';
+                        resultText = 'No detailed results found. Try a different search query.';
                     }
                 }
 
