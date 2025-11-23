@@ -1460,7 +1460,7 @@ client.on(Events.InteractionCreate, async interaction => {
                     components: [
                         {
                             type: 10,
-                            content: `**@${interaction.user.username}** searched`
+                            content: `**@${interaction.user.username}** searched ## 🔍 ${query}`
                         }
                     ],
                     accessory: {
@@ -1469,10 +1469,6 @@ client.on(Events.InteractionCreate, async interaction => {
                             url: botAvatar
                         }
                     }
-                },
-                {
-                    type: 10,
-                    content: `## 🔍 ${query}`
                 },
                 {
                     type: 14
@@ -2323,7 +2319,7 @@ client.on(Events.MessageCreate, async msg => {
                         components: [
                             {
                                 type: 10,
-                                content: `**@${msg.author.username}** searched`
+                                content: `**@${msg.author.username}** searched ## 🔍 ${query}`
                             }
                         ],
                         accessory: {
@@ -2332,10 +2328,6 @@ client.on(Events.MessageCreate, async msg => {
                                 url: botAvatar
                             }
                         }
-                    },
-                    {
-                        type: 10,
-                        content: `## 🔍 ${query}`
                     },
                     {
                         type: 14
