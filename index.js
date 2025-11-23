@@ -113,6 +113,39 @@ const client = new Client({
 client.commands = new Collection();
 const startTime = Date.now();
 
+// Function to initialize topic messages on bot startup
+async function initializeTopics() {
+    for (const [topicName, topicData] of Object.entries(data.topics || {})) {
+        if (topicData && topicData.channelId && topicData.messageId && !topicData.content) {
+            try {
+                let channel = await client.channels.fetch(topicData.channelId);
+                
+                // If it's a thread, fetch the thread
+                if (topicData.threadId && channel.threads) {
+                    channel = await channel.threads.fetch(topicData.threadId);
+                }
+                
+                if (channel && channel.isTextBased()) {
+                    const message = await channel.messages.fetch(topicData.messageId);
+                    // Store the actual message content
+                    data.topics[topicName].content = message.content;
+                    data.topics[topicName].link = `https://discord.com/channels/${message.guildId}/${topicData.channelId}/${topicData.messageId}`;
+                }
+            } catch (err) {
+                console.error(`Failed to fetch topic "${topicName}":`, err.message);
+            }
+        }
+    }
+    // Save updated data with cached content
+    fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
+}
+
+// Initialize topics when bot is ready
+client.once('ready', async () => {
+    console.log(`${client.user.tag} is online!`);
+    await initializeTopics();
+});
+
 // ------------------------
 // COMMAND REGISTRATION
 // ------------------------
@@ -1349,39 +1382,31 @@ client.on(Events.InteractionCreate, async interaction => {
             let pageTitle = null;
 
             if (searchLocal) {
-                // Local search - lookup stored topics
+                // Local search - lookup stored topics with cached content
                 const searchResults = [];
                 const queryLower = query.toLowerCase();
                 
                 // Check if query matches a topic
                 let foundTopic = null;
+                let matchedTopicName = '';
                 if (data.topics) {
                     for (const [topicName, topicData] of Object.entries(data.topics)) {
                         if (topicName.toLowerCase().includes(queryLower) || queryLower.includes(topicName.toLowerCase())) {
                             foundTopic = topicData;
+                            matchedTopicName = topicName;
                             break;
                         }
                     }
                 }
                 
                 if (foundTopic && typeof foundTopic === 'object') {
-                    const { channelId, messageId, threadId } = foundTopic;
-                    try {
-                        let channel = await client.channels.fetch(channelId);
-                        
-                        // If it's a thread, fetch the thread channel
-                        if (threadId && channel.threads) {
-                            channel = await channel.threads.fetch(threadId);
-                        }
-                        
-                        if (channel && channel.isTextBased()) {
-                            const message = await channel.messages.fetch(messageId);
-                            const messageLink = `https://discord.com/channels/${guildId}/${channelId}/${messageId}`;
-                            const summary = message.content.substring(0, 800);
-                            resultText = `**${query}**\n\n${summary}\n\n<:question:1441531934332424314> [**View Full Message**](${messageLink})`;
-                        }
-                    } catch (err) {
-                        resultText = `Topic "${query}" not found or message not accessible.`;
+                    if (foundTopic.content) {
+                        // Use cached content
+                        const summary = foundTopic.content.substring(0, 800);
+                        const link = foundTopic.link || `https://discord.com/channels/${guildId}/${foundTopic.channelId}/${foundTopic.messageId}`;
+                        resultText = `**${matchedTopicName}**\n\n${summary}\n\n<:question:1441531934332424314> [**View Full Message**](${link})`;
+                    } else {
+                        resultText = `Topic "${query}" is loading. Please try again in a moment.`;
                     }
                 } else {
                     // Search in autoresponses
