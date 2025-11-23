@@ -1514,6 +1514,11 @@ client.on(Events.InteractionCreate, async interaction => {
         }
     }
 
+    // MEME GENERATOR - Component V2 Container
+    // type 17 = Container (main wrapper for Component V2)
+    // type 10 = TextDisplay (for title/text)
+    // type 12 = MediaGallery (for image display)
+    // type 14 = Separator (visual line)
     if (commandName === 'meme') {
         await interaction.deferReply();
         const topText = interaction.options.getString('top_text') || '';
@@ -1551,11 +1556,27 @@ client.on(Events.InteractionCreate, async interaction => {
             if (topText) drawText(topText, true);
             if (bottomText) drawText(bottomText, false);
             
+            const memeBuffer = cv.toBuffer('image/png');
             const responses = ['🎉 Your meme is ready!', '😂 LOL!', 'Nice meme!', '🔥 Fire!', 'Hilarious!'];
-            return interaction.editReply({
-                content: responses[Math.floor(Math.random() * responses.length)],
-                files: [{ attachment: cv.toBuffer('image/png'), name: 'meme.png' }]
-            });
+            const msg = responses[Math.floor(Math.random() * responses.length)];
+            
+            const payload = {
+                content: ' ',
+                components: [
+                    {
+                        type: 17,
+                        components: [
+                            { type: 10, content: `### ${msg}` },
+                            { type: 14 },
+                            { type: 12, items: [{ type: 1, media: { url: `attachment://meme.png` } }] }
+                        ]
+                    }
+                ],
+                files: [{ attachment: memeBuffer, name: 'meme.png' }],
+                flags: 32768
+            };
+            
+            return interaction.editReply(payload);
         } catch (error) {
             return interaction.editReply(`❌ Failed: ${error.message}`);
         }
@@ -1996,6 +2017,7 @@ client.on(Events.MessageCreate, async msg => {
             return msg.reply(response);
         }
 
+        // Prefix Meme - Component V2 Container
         if (cmd === 'meme') {
             const [topText, bottomText] = args.join(' ').split(',').map(p => p.trim());
             if (!topText) return msg.reply('❌ Usage: `!meme <top text>, <bottom text>`');
@@ -2032,12 +2054,27 @@ client.on(Events.MessageCreate, async msg => {
                 if (topText) drawText(topText, true);
                 if (bottomText) drawText(bottomText, false);
                 
+                const memeBuffer = cv.toBuffer('image/png');
                 const responses = ['🎉 Your meme is ready!', '😂 LOL!', 'Nice meme!', '🔥 Fire!', 'Hilarious!'];
+                const msgText = responses[Math.floor(Math.random() * responses.length)];
+                
+                const payload = {
+                    content: ' ',
+                    components: [
+                        {
+                            type: 17,
+                            components: [
+                                { type: 10, content: `### ${msgText}` },
+                                { type: 14 },
+                                { type: 12, items: [{ type: 1, media: { url: `attachment://meme.png` } }] }
+                            ]
+                        }
+                    ],
+                    files: [{ attachment: memeBuffer, name: 'meme.png' }]
+                };
+                
                 await wait.delete();
-                return msg.reply({
-                    content: responses[Math.floor(Math.random() * responses.length)],
-                    files: [{ attachment: cv.toBuffer('image/png'), name: 'meme.png' }]
-                });
+                return msg.reply(payload);
             } catch (error) {
                 return wait.edit(`❌ Failed: ${error.message}`);
             }
