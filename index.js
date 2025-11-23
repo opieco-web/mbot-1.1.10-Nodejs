@@ -1346,6 +1346,7 @@ client.on(Events.InteractionCreate, async interaction => {
         try {
             let resultText = '';
             let mediaUrl = null;
+            let pageTitle = null;
 
             if (searchLocal) {
                 // Local search - search bot's stored data
@@ -1383,7 +1384,7 @@ client.on(Events.InteractionCreate, async interaction => {
                     let results = [];
 
                     if (searchData.query && searchData.query.search && searchData.query.search.length > 0) {
-                        const pageTitle = searchData.query.search[0].title;
+                        pageTitle = searchData.query.search[0].title;
                         results.push(searchData.query.search[0].snippet.replace(/<[^>]*>/g, '').substring(0, 500));
 
                         const pageResponse = await fetch(`https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(pageTitle)}&prop=extracts|pageimages&exintro&piprop=original&format=json&origin=*`);
@@ -1413,6 +1414,13 @@ client.on(Events.InteractionCreate, async interaction => {
 
             // Limit line breaks to max 3 for compact display
             const limitedText = resultText.replace(/\n{4,}/g, '\n\n\n').substring(0, 2000);
+            
+            // Add clickable Wikipedia link if we have a page title
+            let displayText = limitedText;
+            if (pageTitle && !searchLocal) {
+                const wikiUrl = `https://en.wikipedia.org/wiki/${encodeURIComponent(pageTitle.replace(/ /g, '_'))}`;
+                displayText = `${limitedText}\n\n### [📖 Read Full Article on Wikipedia](${wikiUrl})`;
+            }
 
             const containerComponents = [
                 {
@@ -1432,7 +1440,7 @@ client.on(Events.InteractionCreate, async interaction => {
                 },
                 {
                     type: 10,
-                    content: limitedText
+                    content: displayText
                 }
             ];
 
@@ -2185,6 +2193,7 @@ client.on(Events.MessageCreate, async msg => {
                 const botAvatar = client.user.displayAvatarURL({ dynamic: true, size: 1024 });
                 let resultText = '';
                 let mediaUrl = null;
+                let pageTitle = null;
 
                 if (searchLocal) {
                     // Local search
@@ -2220,7 +2229,7 @@ client.on(Events.MessageCreate, async msg => {
                         let results = [];
 
                         if (wikiSearch.query && wikiSearch.query.search && wikiSearch.query.search.length > 0) {
-                            const pageTitle = wikiSearch.query.search[0].title;
+                            pageTitle = wikiSearch.query.search[0].title;
                             results.push(wikiSearch.query.search[0].snippet.replace(/<[^>]*>/g, '').substring(0, 500));
 
                             const pageResponse = await fetch(`https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(pageTitle)}&prop=extracts|pageimages&exintro&piprop=original&format=json&origin=*`);
@@ -2250,6 +2259,13 @@ client.on(Events.MessageCreate, async msg => {
 
                 // Limit line breaks to max 3 for compact display
                 const limitedText = resultText.replace(/\n{4,}/g, '\n\n\n').substring(0, 2000);
+                
+                // Add clickable Wikipedia link if we have a page title
+                let displayText = limitedText;
+                if (pageTitle && !searchLocal) {
+                    const wikiUrl = `https://en.wikipedia.org/wiki/${encodeURIComponent(pageTitle.replace(/ /g, '_'))}`;
+                    displayText = `${limitedText}\n\n### [📖 Read Full Article on Wikipedia](${wikiUrl})`;
+                }
 
                 const containerComponents = [
                     {
@@ -2269,7 +2285,7 @@ client.on(Events.MessageCreate, async msg => {
                     },
                     {
                         type: 10,
-                        content: limitedText
+                        content: displayText
                     }
                 ];
 
