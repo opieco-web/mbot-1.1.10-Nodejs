@@ -1414,12 +1414,11 @@ client.on(Events.InteractionCreate, async interaction => {
                 
                 if (foundTopic && typeof foundTopic === 'object') {
                     if (foundTopic.content) {
-                        // Use cached content
-                        const summary = foundTopic.content.substring(0, 800);
+                        // Display summary with link to full message
                         const link = foundTopic.link || `https://discord.com/channels/${guildId}/${foundTopic.channelId}/${foundTopic.messageId}`;
-                        resultText = `**${matchedTopicName}**\n\n${summary}\n\n<:question:1441531934332424314> [**View Full Message**](${link})`;
+                        resultText = `**${matchedTopicName}**\n\n${foundTopic.content}\n\n<:question:1441531934332424314> [**Read Full Message**](${link})`;
                     } else {
-                        resultText = `Topic "${query}" is loading. Please try again in a moment.`;
+                        resultText = `Topic "${query}" not found.`;
                     }
                 } else {
                     // Search in autoresponses
