@@ -1446,13 +1446,6 @@ client.on(Events.InteractionCreate, async interaction => {
 
             // Limit line breaks to max 3 for compact display
             const limitedText = resultText.replace(/\n{4,}/g, '\n\n\n').substring(0, 2000);
-            
-            // Add clickable Wikipedia link if we have a page title
-            let displayText = limitedText;
-            if (pageTitle && !searchLocal) {
-                const wikiUrl = `https://en.wikipedia.org/wiki/${encodeURIComponent(pageTitle.replace(/ /g, '_'))}`;
-                displayText = `${limitedText}\n\n<:question:1441531934332424314> **Read Full Article:**\n${wikiUrl}`;
-            }
 
             const containerComponents = [
                 {
@@ -1475,31 +1468,9 @@ client.on(Events.InteractionCreate, async interaction => {
                 },
                 {
                     type: 10,
-                    content: `## 🔍 ${query}\n\n${displayText}`
+                    content: `## 🔍 ${query}\n\n${limitedText}`
                 }
             ];
-
-            // Add media thumbnail if available (Wikipedia only)
-            if (!searchLocal && mediaUrl && mediaUrl.trim()) {
-                let imageUrl = mediaUrl;
-                if (!imageUrl.startsWith('http')) {
-                    imageUrl = 'https:' + imageUrl;
-                }
-                
-                if (imageUrl.includes('commons.wikimedia.org') || imageUrl.includes('upload.wikimedia.org')) {
-                    containerComponents.push({
-                        type: 12,
-                        items: [
-                            {
-                                media: {
-                                    url: imageUrl
-                                }
-                            }
-                        ]
-                    });
-                }
-            }
-
 
             const payload = {
                 content: ' ',
@@ -1512,7 +1483,16 @@ client.on(Events.InteractionCreate, async interaction => {
                 flags: 32768
             };
 
-            return interaction.editReply(payload);
+            await interaction.editReply(payload);
+
+            // Send Wikipedia link as a separate message outside the container
+            if (pageTitle && !searchLocal) {
+                const wikiUrl = `https://en.wikipedia.org/wiki/${encodeURIComponent(pageTitle.replace(/ /g, '_'))}`;
+                return interaction.followUp({
+                    content: `<:question:1441531934332424314> [**Read Full Article:**](${wikiUrl})`,
+                    flags: MessageFlags.Ephemeral
+                });
+            }
         } catch (error) {
             return interaction.editReply({
                 content: `<:Error:1440296241090265088> Search failed: ${error.message}`,
@@ -2327,13 +2307,6 @@ client.on(Events.MessageCreate, async msg => {
 
                 // Limit line breaks to max 3 for compact display
                 const limitedText = resultText.replace(/\n{4,}/g, '\n\n\n').substring(0, 2000);
-                
-                // Add clickable Wikipedia link if we have a page title
-                let displayText = limitedText;
-                if (pageTitle && !searchLocal) {
-                    const wikiUrl = `https://en.wikipedia.org/wiki/${encodeURIComponent(pageTitle.replace(/ /g, '_'))}`;
-                    displayText = `${limitedText}\n\n<:question:1441531934332424314> **Read Full Article:**\n${wikiUrl}`;
-                }
 
                 const containerComponents = [
                     {
@@ -2356,31 +2329,9 @@ client.on(Events.MessageCreate, async msg => {
                     },
                     {
                         type: 10,
-                        content: `## 🔍 ${query}\n\n${displayText}`
+                        content: `## 🔍 ${query}\n\n${limitedText}`
                     }
                 ];
-
-                // Add media thumbnail if available (Wikipedia only)
-                if (!searchLocal && mediaUrl && mediaUrl.trim()) {
-                    let imageUrl = mediaUrl;
-                    if (!imageUrl.startsWith('http')) {
-                        imageUrl = 'https:' + imageUrl;
-                    }
-                    
-                    if (imageUrl.includes('commons.wikimedia.org') || imageUrl.includes('upload.wikimedia.org')) {
-                        containerComponents.push({
-                            type: 12,
-                            items: [
-                                {
-                                    media: {
-                                        url: imageUrl
-                                    }
-                                }
-                            ]
-                        });
-                    }
-                }
-
 
                 const payload = {
                     content: ' ',
@@ -2394,6 +2345,14 @@ client.on(Events.MessageCreate, async msg => {
                 };
 
                 await waitMsg.edit(payload);
+
+                // Send Wikipedia link as a separate message outside the container
+                if (pageTitle && !searchLocal) {
+                    const wikiUrl = `https://en.wikipedia.org/wiki/${encodeURIComponent(pageTitle.replace(/ /g, '_'))}`;
+                    await msg.reply({
+                        content: `<:question:1441531934332424314> [**Read Full Article:**](${wikiUrl})`
+                    }).catch(() => {});
+                }
             } catch (error) {
                 return msg.reply({
                     content: `<:Error:1440296241090265088> Search failed: ${error.message}`,
