@@ -912,12 +912,12 @@ client.on(Events.InteractionCreate, async interaction => {
                             components: [{
                                 type: 17,
                                 components: [
-                                    { type: 10, content: '## <:Correct:1440296238305116223> Bot Avatar Updated (This Server)' },
+                                    { type: 10, content: '## <:Correct:1440296238305116223> Bot Icon Saved' },
                                     { type: 14, spacing: 1 },
-                                    { type: 10, content: `✅ Bot avatar changed for this server!\n\n[View Image](${attachment.url})` }
+                                    { type: 10, content: `✅ Custom bot icon applied to **${interaction.guild.name}**\n\nThis server will see this unique icon. Other servers see the bot's default avatar.\n\n[View Image](${attachment.url})` }
                                 ]
                             }],
-                            flags: 32768
+                            flags: 32768 | MessageFlags.Ephemeral
                         });
                         await msg.delete().catch(() => {});
                     } catch (error) {
@@ -981,12 +981,12 @@ client.on(Events.InteractionCreate, async interaction => {
                             components: [{
                                 type: 17,
                                 components: [
-                                    { type: 10, content: '## <:Correct:1440296238305116223> Bot Banner Updated' },
+                                    { type: 10, content: '## <:Correct:1440296238305116223> Bot Banner Saved' },
                                     { type: 14, spacing: 1 },
-                                    { type: 10, content: `✅ Bot banner saved for this server!\n\n[View Image](${attachment.url})` }
+                                    { type: 10, content: `✅ Custom bot banner applied to **${interaction.guild.name}**\n\nThis server will see this unique banner. Other servers see the bot's default banner.\n\n[View Image](${attachment.url})` }
                                 ]
                             }],
-                            flags: 32768
+                            flags: 32768 | MessageFlags.Ephemeral
                         });
                         await msg.delete().catch(() => {});
                     } catch (error) {
