@@ -1715,9 +1715,9 @@ client.on(Events.InteractionCreate, async interaction => {
 
         if (action === 'add') {
             if (!trigger)
-                return interaction.reply({ embeds: [createModeratorEmbed('<:Error:1440296241090265088> Error', 'Trigger is required.', 0xFF4444)], flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:Error:1440296241090265088> Error' }, { type: 14 }, { type: 10, content: 'Trigger is required.' }] }], flags: 32768 | MessageFlags.Ephemeral });
             if (!type)
-                return interaction.reply({ embeds: [createModeratorEmbed('<:Error:1440296241090265088> Error', 'Response type is required.', 0xFF4444)], flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:Error:1440296241090265088> Error' }, { type: 14 }, { type: 10, content: 'Response type is required.' }] }], flags: 32768 | MessageFlags.Ephemeral });
 
             let finalResponse = null;
             let isFromBackup = false;
@@ -1732,11 +1732,11 @@ client.on(Events.InteractionCreate, async interaction => {
                     finalResponse = response;
                     isFromBackup = false;
                 } else {
-                    return interaction.reply({ embeds: [createModeratorEmbed('<:Error:1440296241090265088> Error', 'Provide either custom text (response) or select a saved message (select_from_backup).', 0xFF4444)], flags: MessageFlags.Ephemeral });
+                    return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:Error:1440296241090265088> Error' }, { type: 14 }, { type: 10, content: 'Provide either custom text (response) or select a saved message (select_from_backup).' }] }], flags: 32768 | MessageFlags.Ephemeral });
                 }
             } else if (type === 'emoji') {
                 if (!response)
-                    return interaction.reply({ embeds: [createModeratorEmbed('<:Error:1440296241090265088> Error', 'Emoji response is required.', 0xFF4444)], flags: MessageFlags.Ephemeral });
+                    return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:Error:1440296241090265088> Error' }, { type: 14 }, { type: 10, content: 'Emoji response is required.' }] }], flags: 32768 | MessageFlags.Ephemeral });
                 finalResponse = response;
             }
 
@@ -1759,17 +1759,17 @@ client.on(Events.InteractionCreate, async interaction => {
 
         if (action === 'remove') {
             if (!trigger)
-                return interaction.reply({ embeds: [createModeratorEmbed('<:Error:1440296241090265088> Error', 'Trigger is required.', 0xFF4444)], flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:Error:1440296241090265088> Error' }, { type: 14 }, { type: 10, content: 'Trigger is required.' }] }], flags: 32768 | MessageFlags.Ephemeral });
 
             if (!data.autoresponse[guildId] || data.autoresponse[guildId].length === 0) {
-                return interaction.reply({ embeds: [createModeratorEmbed('<:Error:1440296241090265088> Error', 'No auto-responses configured.', 0xFF4444)], flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:Error:1440296241090265088> Error' }, { type: 14 }, { type: 10, content: 'No auto-responses configured.' }] }], flags: 32768 | MessageFlags.Ephemeral });
             }
 
             const initialLength = data.autoresponse[guildId].length;
             data.autoresponse[guildId] = data.autoresponse[guildId].filter(ar => ar.trigger !== trigger);
 
             if (data.autoresponse[guildId].length === initialLength) {
-                return interaction.reply({ embeds: [createModeratorEmbed('<:Error:1440296241090265088> Error', `No response found for "${trigger}".`, 0xFF4444)], flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:Error:1440296241090265088> Error' }, { type: 14 }, { type: 10, content: `No response found for "${trigger}".` }] }], flags: 32768 | MessageFlags.Ephemeral });
             }
 
             fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
@@ -1780,7 +1780,7 @@ client.on(Events.InteractionCreate, async interaction => {
 
         if (action === 'list') {
             if (!data.autoresponse[guildId] || data.autoresponse[guildId].length === 0) {
-                return interaction.reply({ embeds: [createModeratorEmbed('🔄 Auto-Responses', 'None configured yet.', 0x2F3136)], flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## 🔄 Auto-Responses' }, { type: 14 }, { type: 10, content: 'None configured yet.' }] }], flags: 32768 | MessageFlags.Ephemeral });
             }
 
             let list = '';
