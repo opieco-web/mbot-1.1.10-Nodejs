@@ -1437,13 +1437,13 @@ client.on(Events.InteractionCreate, async interaction => {
                     { type: 14, spacing: 1 },
 
                     // Bot Profile Section
-                    { type: 10, content: '### 👤 Bot Profile' },
-                    { type: 10, content: 'Customize your bot profile for this server' },
+                    { type: 10, content: '### 👤 Server Customer' },
+                    { type: 10, content: 'Customize your server customer profile' },
                     {
                         type: 1,
                         components: [
                             { type: 2, style: 1, label: 'Header Attachment', custom_id: 'config_header_attach' },
-                            { type: 2, style: 1, label: 'Banner Attachment', custom_id: 'config_banner_attach' }
+                            { type: 2, style: 1, label: 'Server Banner', custom_id: 'config_banner_attach' }
                         ]
                     },
                     { type: 14, spacing: 1 },
@@ -2717,6 +2717,88 @@ client.on(Events.MessageCreate, async msg => {
             }
             collector.stop();
         });
+    }
+
+    // ===== BUTTON INTERACTIONS =====
+    if (interaction.isButton()) {
+        const customId = interaction.customId;
+        const guildId = interaction.guildId;
+
+        // Config: Set Prefix button
+        if (customId === 'config_set_prefix') {
+            const modal = {
+                custom_id: 'modal_set_prefix',
+                title: 'Set Server Prefix',
+                components: [{
+                    type: 1,
+                    components: [{
+                        type: 4,
+                        custom_id: 'prefix_input',
+                        label: 'Enter new prefix (1-3 characters)',
+                        style: 1,
+                        placeholder: '!',
+                        max_length: 3,
+                        min_length: 1,
+                        required: true
+                    }]
+                }]
+            };
+            return interaction.showModal(modal);
+        }
+
+        // Config: Header Attachment button
+        if (customId === 'config_header_attach') {
+            return interaction.reply({
+                content: ' ',
+                components: [{
+                    type: 17,
+                    components: [
+                        { type: 10, content: '### 📎 Header Attachment' },
+                        { type: 14, spacing: 1 },
+                        { type: 10, content: 'Upload a header image for your server profile. Recommended size: 1920x480px' }
+                    ]
+                }],
+                flags: 32768 | MessageFlags.Ephemeral
+            });
+        }
+
+        // Config: Server Banner button
+        if (customId === 'config_banner_attach') {
+            return interaction.reply({
+                content: ' ',
+                components: [{
+                    type: 17,
+                    components: [
+                        { type: 10, content: '### 🎨 Server Banner' },
+                        { type: 14, spacing: 1 },
+                        { type: 10, content: 'Upload a banner image for your server. Recommended size: 1200x300px' }
+                    ]
+                }],
+                flags: 32768 | MessageFlags.Ephemeral
+            });
+        }
+    }
+
+    // ===== MODAL SUBMISSIONS =====
+    if (interaction.isModalSubmit()) {
+        if (interaction.customId === 'modal_set_prefix') {
+            const newPrefix = interaction.fields.getTextInputValue('prefix_input');
+            data.prefix[guildId] = newPrefix;
+            fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
+
+            return interaction.reply({
+                content: ' ',
+                components: [{
+                    type: 17,
+                    components: [
+                        { type: 10, content: '## <:Correct:1440296238305116223> Prefix Updated' },
+                        { type: 14, spacing: 1 },
+                        { type: 10, content: `New prefix: \`${newPrefix}\`` }
+                    ]
+                }],
+                flags: 32768 | MessageFlags.Ephemeral
+            });
+        }
     }
 });
 
