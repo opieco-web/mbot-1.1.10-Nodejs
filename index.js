@@ -1442,16 +1442,14 @@ client.on(Events.InteractionCreate, async interaction => {
                 }
             ];
 
-            // Add media gallery if image is available
-            if (searchLocal === false && resultText !== '' && resultText !== 'No results found on DuckDuckGo.') {
-                // Try to get image from related topics if no abstract image
+            // Add media gallery if image is available and not local search
+            if (searchLocal === false) {
                 let mediaUrl = null;
-                if (searchLocal === false) {
-                    const response = await fetch(`https://api.duckduckgo.com/?q=${encodeURIComponent(query)}&format=json`);
-                    const data = await response.json();
+                const response = await fetch(`https://api.duckduckgo.com/?q=${encodeURIComponent(query)}&format=json`);
+                const data = await response.json();
+                if (data.Image) {
                     mediaUrl = data.Image;
-                    
-                    if (mediaUrl && !mediaUrl.startsWith('http')) {
+                    if (!mediaUrl.startsWith('http')) {
                         mediaUrl = 'https:' + mediaUrl;
                     }
                 }
