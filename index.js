@@ -777,12 +777,96 @@ const welcomeMessages = [
 ];
 
 // ------------------------
-// HANDLE SLASH COMMANDS
+// HANDLE SLASH COMMANDS & BUTTONS
 // ------------------------
 client.on(Events.InteractionCreate, async interaction => {
+    const { guildId } = interaction;
+
+    // ===== HANDLE BUTTONS FIRST =====
+    if (interaction.isButton()) {
+        const customId = interaction.customId;
+
+        // Config: Set Prefix button
+        if (customId === 'config_set_prefix') {
+            const modal = {
+                custom_id: 'modal_set_prefix',
+                title: 'Set Server Prefix',
+                components: [{
+                    type: 1,
+                    components: [{
+                        type: 4,
+                        custom_id: 'prefix_input',
+                        label: 'Enter new prefix (1-3 characters)',
+                        style: 1,
+                        placeholder: '!',
+                        max_length: 3,
+                        min_length: 1,
+                        required: true
+                    }]
+                }]
+            };
+            return interaction.showModal(modal);
+        }
+
+        // Config: Header Attachment button
+        if (customId === 'config_header_attach') {
+            return interaction.reply({
+                content: ' ',
+                components: [{
+                    type: 17,
+                    components: [
+                        { type: 10, content: '### 📎 Header Attachment' },
+                        { type: 14, spacing: 1 },
+                        { type: 10, content: 'Upload a header image for your server profile. Recommended size: 1920x480px' }
+                    ]
+                }],
+                flags: 32768 | MessageFlags.Ephemeral
+            });
+        }
+
+        // Config: Server Banner button
+        if (customId === 'config_banner_attach') {
+            return interaction.reply({
+                content: ' ',
+                components: [{
+                    type: 17,
+                    components: [
+                        { type: 10, content: '### 🎨 Server Banner' },
+                        { type: 14, spacing: 1 },
+                        { type: 10, content: 'Upload a banner image for your server. Recommended size: 1200x300px' }
+                    ]
+                }],
+                flags: 32768 | MessageFlags.Ephemeral
+            });
+        }
+    }
+
+    // ===== HANDLE MODAL SUBMISSIONS =====
+    if (interaction.isModalSubmit()) {
+        if (interaction.customId === 'modal_set_prefix') {
+            const newPrefix = interaction.fields.getTextInputValue('prefix_input');
+            data.prefix[guildId] = newPrefix;
+            fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
+
+            return interaction.reply({
+                content: ' ',
+                components: [{
+                    type: 17,
+                    components: [
+                        { type: 10, content: '## <:Correct:1440296238305116223> Prefix Updated' },
+                        { type: 14, spacing: 1 },
+                        { type: 10, content: `New prefix: \`${newPrefix}\`` }
+                    ]
+                }],
+                flags: 32768 | MessageFlags.Ephemeral
+            });
+        }
+    }
+
+    // ===== HANDLE SLASH COMMANDS =====
     if (!interaction.isChatInputCommand()) return;
 
-    const { commandName, guildId, member, user } = interaction;
+    const { commandName, member, user } = interaction;
 
     // NICKNAME SYSTEM - Component V2 Container
     // type 17 = Container | type 10 = TextDisplay | type 14 = Separator
@@ -2717,88 +2801,6 @@ client.on(Events.MessageCreate, async msg => {
             }
             collector.stop();
         });
-    }
-
-    // ===== BUTTON INTERACTIONS =====
-    if (interaction.isButton()) {
-        const customId = interaction.customId;
-        const guildId = interaction.guildId;
-
-        // Config: Set Prefix button
-        if (customId === 'config_set_prefix') {
-            const modal = {
-                custom_id: 'modal_set_prefix',
-                title: 'Set Server Prefix',
-                components: [{
-                    type: 1,
-                    components: [{
-                        type: 4,
-                        custom_id: 'prefix_input',
-                        label: 'Enter new prefix (1-3 characters)',
-                        style: 1,
-                        placeholder: '!',
-                        max_length: 3,
-                        min_length: 1,
-                        required: true
-                    }]
-                }]
-            };
-            return interaction.showModal(modal);
-        }
-
-        // Config: Header Attachment button
-        if (customId === 'config_header_attach') {
-            return interaction.reply({
-                content: ' ',
-                components: [{
-                    type: 17,
-                    components: [
-                        { type: 10, content: '### 📎 Header Attachment' },
-                        { type: 14, spacing: 1 },
-                        { type: 10, content: 'Upload a header image for your server profile. Recommended size: 1920x480px' }
-                    ]
-                }],
-                flags: 32768 | MessageFlags.Ephemeral
-            });
-        }
-
-        // Config: Server Banner button
-        if (customId === 'config_banner_attach') {
-            return interaction.reply({
-                content: ' ',
-                components: [{
-                    type: 17,
-                    components: [
-                        { type: 10, content: '### 🎨 Server Banner' },
-                        { type: 14, spacing: 1 },
-                        { type: 10, content: 'Upload a banner image for your server. Recommended size: 1200x300px' }
-                    ]
-                }],
-                flags: 32768 | MessageFlags.Ephemeral
-            });
-        }
-    }
-
-    // ===== MODAL SUBMISSIONS =====
-    if (interaction.isModalSubmit()) {
-        if (interaction.customId === 'modal_set_prefix') {
-            const newPrefix = interaction.fields.getTextInputValue('prefix_input');
-            data.prefix[guildId] = newPrefix;
-            fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
-
-            return interaction.reply({
-                content: ' ',
-                components: [{
-                    type: 17,
-                    components: [
-                        { type: 10, content: '## <:Correct:1440296238305116223> Prefix Updated' },
-                        { type: 14, spacing: 1 },
-                        { type: 10, content: `New prefix: \`${newPrefix}\`` }
-                    ]
-                }],
-                flags: 32768 | MessageFlags.Ephemeral
-            });
-        }
     }
 });
 
