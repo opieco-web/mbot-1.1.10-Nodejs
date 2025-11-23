@@ -765,23 +765,23 @@ client.on(Events.InteractionCreate, async interaction => {
                         components: [{
                             type: 4,
                             custom_id: 'status_activity_text',
-                            label: 'Activity Text',
+                            label: 'Activity Text (optional)',
                             style: 1,
                             placeholder: 'e.g., Minecraft, Netflix',
                             max_length: 128,
-                            required: true
+                            required: false
                         }]
                     },
                     {
                         type: 1,
                         components: [{
                             type: 4,
-                            custom_id: 'status_activity_type',
-                            label: 'Activity Type',
+                            custom_id: 'status_stream_url',
+                            label: 'Stream URL (optional)',
                             style: 1,
-                            placeholder: 'Playing/Watching/Listening/Competing/Streaming',
-                            max_length: 20,
-                            required: true
+                            placeholder: 'https://twitch.tv/... or https://youtube.com/...',
+                            max_length: 255,
+                            required: false
                         }]
                     },
                     {
@@ -799,6 +799,28 @@ client.on(Events.InteractionCreate, async interaction => {
                 ]
             };
             return interaction.showModal(modal);
+        }
+
+        // Config: Online Status dropdown
+        if (customId === 'config_online_status') {
+            const newStatus = interaction.values[0];
+            data.status = data.status || {};
+            data.status.presence = newStatus;
+            fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
+            applyBotStatus();
+
+            return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:1_yes_correct:1439893200981721140> Online Status Updated' }, { type: 14 }, { type: 10, content: `Bot visibility set to: **${newStatus === 'dnd' ? 'Do Not Disturb' : newStatus.charAt(0).toUpperCase() + newStatus.slice(1)}**` }] }], flags: 32768 | MessageFlags.Ephemeral });
+        }
+
+        // Config: Activity Type dropdown
+        if (customId === 'config_activity_type') {
+            const newType = interaction.values[0];
+            data.status = data.status || {};
+            data.status.type = newType;
+            fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
+            applyBotStatus();
+
+            return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:1_yes_correct:1439893200981721140> Activity Type Updated' }, { type: 14 }, { type: 10, content: `Activity type set to: **${newType}**` }] }], flags: 32768 | MessageFlags.Ephemeral });
         }
 
         // Config: Status Reset button
@@ -1018,27 +1040,23 @@ client.on(Events.InteractionCreate, async interaction => {
 
         if (interaction.customId === 'modal_status_set') {
             const activityText = interaction.fields.getTextInputValue('status_activity_text');
-            const activityType = interaction.fields.getTextInputValue('status_activity_type');
+            const streamUrl = interaction.fields.getTextInputValue('status_stream_url');
             const emoji = interaction.fields.getTextInputValue('status_emoji') || null;
 
-            if (!activityType || !activityText) {
-                return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:Error:1440296241090265088> Error' }, { type: 14 }, { type: 10, content: 'Provide both activity type and text.' }] }], flags: 32768 | MessageFlags.Ephemeral });
-            }
-
-            data.status = {
-                text: activityText,
-                type: activityType,
-                emoji: emoji,
-                streamUrl: null,
-                presence: 'online',
-                lastUpdatedBy: user.id,
-                lastUpdatedAt: new Date().toISOString()
-            };
+            data.status = data.status || {};
+            if (activityText) data.status.text = activityText;
+            if (streamUrl) data.status.streamUrl = streamUrl;
+            if (emoji) data.status.emoji = emoji;
+            data.status.lastUpdatedBy = user.id;
+            data.status.lastUpdatedAt = new Date().toISOString();
             fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
             applyBotStatus();
 
-            const displayText = emoji ? `${emoji} ${activityText}` : activityText;
-            return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:1_yes_correct:1439893200981721140> Status Updated' }, { type: 14 }, { type: 10, content: `**${activityType}** ${displayText}` }] }], flags: 32768 | MessageFlags.Ephemeral });
+            let msg = 'Status info updated: ';
+            if (activityText) msg += `Activity: ${activityText} `;
+            if (emoji) msg += `Emoji: ${emoji} `;
+            if (streamUrl) msg += `Stream: ${streamUrl}`;
+            return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:1_yes_correct:1439893200981721140> Status Updated' }, { type: 14 }, { type: 10, content: msg || 'No changes made.' }] }], flags: 32768 | MessageFlags.Ephemeral });
         }
     }
 
@@ -1721,11 +1739,51 @@ client.on(Events.InteractionCreate, async interaction => {
                 { type: 10, content: '### 🤖 Bot Status' },
                 { type: 10, content: statusText },
                 { type: 14, spacing: 1 },
-                { type: 10, content: '**Configure Bot Activity:**' },
+                { type: 10, content: '**📝 Set Status Section**' },
                 {
                     type: 1,
                     components: [
-                        { type: 2, style: 1, label: 'Set Status', custom_id: 'config_status_set' },
+                        { type: 2, style: 1, label: 'Add Status Info', custom_id: 'config_status_set' }
+                    ]
+                },
+                {
+                    type: 1,
+                    components: [
+                        {
+                            type: 3,
+                            custom_id: 'config_online_status',
+                            placeholder: 'Select Online Status',
+                            options: [
+                                { label: 'Online', value: 'online', default: (data.status?.presence || 'online') === 'online' },
+                                { label: 'Idle', value: 'idle', default: data.status?.presence === 'idle' },
+                                { label: 'Do Not Disturb', value: 'dnd', default: data.status?.presence === 'dnd' },
+                                { label: 'Invisible', value: 'invisible', default: data.status?.presence === 'invisible' }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    type: 1,
+                    components: [
+                        {
+                            type: 3,
+                            custom_id: 'config_activity_type',
+                            placeholder: 'Select Activity Type',
+                            options: [
+                                { label: 'Playing', value: 'Playing', default: data.status?.type === 'Playing' },
+                                { label: 'Watching', value: 'Watching', default: data.status?.type === 'Watching' },
+                                { label: 'Listening', value: 'Listening', default: data.status?.type === 'Listening' },
+                                { label: 'Competing', value: 'Competing', default: data.status?.type === 'Competing' },
+                                { label: 'Streaming', value: 'Streaming', default: data.status?.type === 'Streaming' }
+                            ]
+                        }
+                    ]
+                },
+                { type: 14, spacing: 1 },
+                { type: 10, content: '**🔄 Reset Status Section**' },
+                {
+                    type: 1,
+                    components: [
                         { type: 2, style: 4, label: 'Reset Status', custom_id: 'config_status_reset' }
                     ]
                 }
