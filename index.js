@@ -1475,7 +1475,14 @@ client.on(Events.InteractionCreate, async interaction => {
                 },
                 {
                     type: 10,
-                    content: `## 🔍 ${query}\n\n${displayText}`
+                    content: `## 🔍 ${query}`
+                },
+                {
+                    type: 14
+                },
+                {
+                    type: 10,
+                    content: displayText
                 }
             ];
 
@@ -2334,7 +2341,14 @@ client.on(Events.MessageCreate, async msg => {
                     },
                     {
                         type: 10,
-                        content: `## 🔍 ${query}\n\n${displayText}`
+                        content: `## 🔍 ${query}`
+                    },
+                    {
+                        type: 14
+                    },
+                    {
+                        type: 10,
+                        content: displayText
                     }
                 ];
 
