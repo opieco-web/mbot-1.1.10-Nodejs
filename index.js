@@ -1444,16 +1444,19 @@ client.on(Events.InteractionCreate, async interaction => {
                     imageUrl = 'https:' + imageUrl;
                 }
                 
-                containerComponents.push({
-                    type: 12,
-                    items: [
-                        {
-                            media: {
-                                url: imageUrl
+                // Only add image if it's a valid Wikipedia/Commons URL
+                if (imageUrl.includes('commons.wikimedia.org') || imageUrl.includes('upload.wikimedia.org')) {
+                    containerComponents.push({
+                        type: 12,
+                        items: [
+                            {
+                                media: {
+                                    url: imageUrl
+                                }
                             }
-                        }
-                    ]
-                });
+                        ]
+                    });
+                }
             }
 
             const payload = {
@@ -2178,7 +2181,7 @@ client.on(Events.MessageCreate, async msg => {
             const searchLocal = parts.length > 1;
 
             try {
-                const waitMsg = await msg.reply('<:mg_alert:1439893442065862698> Searching...');
+                const waitMsg = await msg.reply('<:question:1441531934332424314> Searching...');
                 const botAvatar = client.user.displayAvatarURL({ dynamic: true, size: 1024 });
                 let resultText = '';
                 let mediaUrl = null;
@@ -2278,16 +2281,19 @@ client.on(Events.MessageCreate, async msg => {
                         imageUrl = 'https:' + imageUrl;
                     }
                     
-                    containerComponents.push({
-                        type: 12,
-                        items: [
-                            {
-                                media: {
-                                    url: imageUrl
+                    // Only add image if it's a valid Wikipedia/Commons URL
+                    if (imageUrl.includes('commons.wikimedia.org') || imageUrl.includes('upload.wikimedia.org')) {
+                        containerComponents.push({
+                            type: 12,
+                            items: [
+                                {
+                                    media: {
+                                        url: imageUrl
+                                    }
                                 }
-                            }
-                        ]
-                    });
+                            ]
+                        });
+                    }
                 }
 
                 const payload = {
