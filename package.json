@@ -1,7 +1,7 @@
 {
   "name": "m•bot",
-  "version": "4.2.6",
-  "description": "Nickname bot with server-specific prefix, AFK system, avatar view, fun commands, and auto-response moderation features",
+  "version": "1.0.63",
+  "description": "A personal Discord bot for Mining Bangladesh with AFK, Welcome, Auto-Response, Nickname, Status, Moderation, and Fun commands (Choose, Coinflip, Truth or Dare).",
   "main": "index.js",
   "type": "module",
   "scripts": {

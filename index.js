@@ -841,7 +841,7 @@ client.on(Events.InteractionCreate, async interaction => {
         afkUsers[user.id] = { reason, timestamp: Date.now() };
         data.afk[user.id] = afkUsers[user.id];
         fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
-        const replyMsg = await interaction.reply({ content: `<:mg_alert:1439893442065862698> AFK set: ${reason}`, fetchReply: true, flags: MessageFlags.Ephemeral });
+        const { resource: replyMsg } = await interaction.reply({ content: `<:mg_alert:1439893442065862698> AFK set: ${reason}`, withResponse: true, flags: MessageFlags.Ephemeral });
 
         // Delete bot reply after 30s
         setTimeout(() => replyMsg.delete().catch(() => {}), 30000);
