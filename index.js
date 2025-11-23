@@ -406,12 +406,13 @@ await rest.put(Routes.applicationCommands(CLIENT_ID), { body: commands });
 // HELPER: Apply saved status
 // ------------------------
 function applyBotStatus() {
+    const statusData = data.status || {};
     const presenceData = {
-        status: data.bot.status.presence || 'online',
+        status: statusData.presence || 'online',
         activities: []
     };
     
-    if (data.bot.status.type && data.bot.status.text) {
+    if (statusData.type && statusData.text) {
         const activityTypeMap = {
             'Playing': ActivityType.Playing,
             'Listening': ActivityType.Listening,
@@ -420,18 +421,18 @@ function applyBotStatus() {
             'Streaming': ActivityType.Streaming
         };
 
-        let name = data.bot.status.text;
-        if (data.bot.status.emoji) {
-            name = `${data.bot.status.emoji} ${name}`;
+        let name = statusData.text;
+        if (statusData.emoji) {
+            name = `${statusData.emoji} ${name}`;
         }
 
         const activity = {
             name: name,
-            type: activityTypeMap[data.bot.status.type]
+            type: activityTypeMap[statusData.type]
         };
 
-        if (data.bot.status.type === 'Streaming' && data.bot.status.streamUrl) {
-            activity.url = data.bot.status.streamUrl;
+        if (statusData.type === 'Streaming' && statusData.streamUrl) {
+            activity.url = statusData.streamUrl;
         }
 
         presenceData.activities = [activity];
@@ -825,7 +826,7 @@ client.on(Events.InteractionCreate, async interaction => {
 
         // Config: Status Reset button
         if (customId === 'config_status_reset') {
-            data.status = {};
+            data.status = { presence: 'online' };
             fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
             applyBotStatus();
 
@@ -1047,7 +1048,7 @@ client.on(Events.InteractionCreate, async interaction => {
             if (activityText) data.status.text = activityText;
             if (streamUrl) data.status.streamUrl = streamUrl;
             if (emoji) data.status.emoji = emoji;
-            data.status.lastUpdatedBy = user.id;
+            data.status.lastUpdatedBy = interaction.user.id;
             data.status.lastUpdatedAt = new Date().toISOString();
             fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
             applyBotStatus();
