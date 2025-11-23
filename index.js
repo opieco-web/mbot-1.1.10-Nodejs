@@ -928,7 +928,7 @@ client.on(Events.InteractionCreate, async interaction => {
                                     { type: 10, content: `✅ Custom bot icon applied to **${interaction.guild.name}**\n\nThis server will see this unique icon. Other servers see the bot's default avatar.\n\n[View Image](${attachment.url})` }
                                 ]
                             }],
-                            flags: 32768 | MessageFlags.Ephemeral
+                            flags: MessageFlags.Ephemeral
                         });
                         await msg.delete().catch(() => {});
                     } catch (error) {
@@ -987,6 +987,8 @@ client.on(Events.InteractionCreate, async interaction => {
                         data.config[guildId].bgAttachment = attachment.url;
                         fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
 
+                        console.log(`📌 Banner saved for ${guildId}:`, attachment.url);
+                        
                         await msg.reply({
                             content: ' ',
                             components: [{
@@ -997,7 +999,7 @@ client.on(Events.InteractionCreate, async interaction => {
                                     { type: 10, content: `✅ Custom bot banner applied to **${interaction.guild.name}**\n\nThis server will see this unique banner. Other servers see the bot's default banner.\n\n[View Image](${attachment.url})` }
                                 ]
                             }],
-                            flags: 32768 | MessageFlags.Ephemeral
+                            flags: MessageFlags.Ephemeral
                         });
                         await msg.delete().catch(() => {});
                     } catch (error) {
