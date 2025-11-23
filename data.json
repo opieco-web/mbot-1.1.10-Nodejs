@@ -98,12 +98,12 @@
   "prefixes": {},
   "autoresponses": {},
   "status": {
-    "text": "Morning",
+    "text": "m•bot│v1.0.95",
     "lastUpdatedBy": "1065350468928290828",
-    "lastUpdatedAt": "2025-11-23T20:43:47.455Z",
-    "emoji": "🎀",
-    "presence": "dnd",
-    "type": "Watching"
+    "lastUpdatedAt": "2025-11-23T20:49:47.132Z",
+    "emoji": "🛟",
+    "presence": "idle",
+    "type": "Competing"
   },
   "meme": {
     "templates": [

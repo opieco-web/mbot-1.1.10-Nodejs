@@ -842,21 +842,17 @@ client.on(Events.InteractionCreate, async interaction => {
 
         // Config: Page Navigation buttons
         if (customId === 'config_prev' || customId === 'config_next') {
-            // Extract current page from the components
+            // Extract current page from the page indicator component
             const messageComponents = interaction.message.components[0].components;
             let currentPage = 1;
             
-            // Look for page indicator in text components
+            // Look for page indicator (type 10 with Page text)
             for (const comp of messageComponents) {
-                if (comp.type === 17) {
-                    for (const inner of comp.components) {
-                        if (inner.content && inner.content.includes('Page')) {
-                            const match = inner.content.match(/Page (\d+)\/3/);
-                            if (match) {
-                                currentPage = parseInt(match[1]);
-                                break;
-                            }
-                        }
+                if (comp.type === 10 && comp.content && comp.content.includes('Page')) {
+                    const match = comp.content.match(/Page (\d+)\/3/);
+                    if (match) {
+                        currentPage = parseInt(match[1]);
+                        break;
                     }
                 }
             }
