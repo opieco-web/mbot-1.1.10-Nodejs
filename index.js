@@ -1445,7 +1445,7 @@ client.on(Events.InteractionCreate, async interaction => {
             }
 
             // Limit line breaks to max 3 for compact display
-            const limitedText = resultText.replace(/\n{4,}/g, '\n\n\n').substring(0, 1500);
+            const limitedText = resultText.replace(/\n{4,}/g, '\n\n\n').substring(0, 2000);
             
             // Add clickable Wikipedia link if we have a page title
             let displayText = limitedText;
@@ -1469,6 +1469,9 @@ client.on(Events.InteractionCreate, async interaction => {
                             url: botAvatar
                         }
                     }
+                },
+                {
+                    type: 14
                 },
                 {
                     type: 10,
@@ -2302,7 +2305,7 @@ client.on(Events.MessageCreate, async msg => {
                 }
 
                 // Limit line breaks to max 3 for compact display
-                const limitedText = resultText.replace(/\n{4,}/g, '\n\n\n').substring(0, 1500);
+                const limitedText = resultText.replace(/\n{4,}/g, '\n\n\n').substring(0, 2000);
                 
                 // Add clickable Wikipedia link if we have a page title
                 let displayText = limitedText;
@@ -2326,6 +2329,9 @@ client.on(Events.MessageCreate, async msg => {
                                 url: botAvatar
                             }
                         }
+                    },
+                    {
+                        type: 14
                     },
                     {
                         type: 10,
