@@ -42,7 +42,7 @@
         "response": "https://discord.gg/mining-bangladesh-1296783492989980682"
       },
       {
-        "trigger": "req",
+        "trigger": "!cr",
         "type": "text",
         "response": "**BEFORE PROCEEDING,** kindly review our requirements.\n-# * You can find the details here https://discord.com/channels/1296783492989980682/1326457194144595970\n**ONCE YOU'RE FAMILIAR WITH THEM,**\n-# * submit your application through here <#1322327013490561126>.\n-# Please ensure you understand them fully before we move forward.",
         "isFromBackup": false
@@ -50,10 +50,6 @@
     ]
   },
   "afk": {
-    "1108782022543032400": {
-      "reason": "<@1065350468928290828> ar kotha bolbana amar shate",
-      "timestamp": 1763834948084
-    },
     "1294699516955725890": {
       "reason": "I am currently AFK.",
       "timestamp": 1763852794533
