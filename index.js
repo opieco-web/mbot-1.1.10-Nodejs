@@ -123,6 +123,17 @@ client.once('clientReady', async () => {
     console.log(`${client.user.tag} is online!`);
     await initializeTopics();
     
+    // Set default avatar on startup
+    try {
+        if (fs.existsSync('./default-avatar.png')) {
+            const avatarBuffer = fs.readFileSync('./default-avatar.png');
+            await client.user.setAvatar(avatarBuffer);
+            console.log('✅ Default bot avatar set');
+        }
+    } catch (err) {
+        console.error('Failed to set default avatar:', err.message);
+    }
+    
     // Keep-alive mechanism: Update activity every 30 minutes to prevent idle timeout
     setInterval(() => {
         try {
@@ -1018,13 +1029,23 @@ client.on(Events.InteractionCreate, async interaction => {
 
         // Config: Profile Reset button
         if (customId === 'config_profile_reset') {
-            data.config = data.config || {};
-            data.config[guildId] = data.config[guildId] || {};
-            delete data.config[guildId].headerAttachment;
-            delete data.config[guildId].bgAttachment;
-            fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
+            try {
+                data.config = data.config || {};
+                data.config[guildId] = data.config[guildId] || {};
+                delete data.config[guildId].headerAttachment;
+                delete data.config[guildId].bgAttachment;
+                fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
 
-            return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:1_yes_correct:1439893200981721140> Profile Reset' }, { type: 14 }, { type: 10, content: 'Bot Icon and Banner reset to default.' }] }], flags: 32768 | MessageFlags.Ephemeral });
+                // Apply default avatar
+                if (fs.existsSync('./default-avatar.png')) {
+                    const avatarBuffer = fs.readFileSync('./default-avatar.png');
+                    await client.user.setAvatar(avatarBuffer);
+                }
+
+                return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:1_yes_correct:1439893200981721140> Profile Reset' }, { type: 14 }, { type: 10, content: `✅ Mining Bangladesh official bot icon applied\n\nAll custom profiles reset to default across this server.` }] }], flags: 32768 | MessageFlags.Ephemeral });
+            } catch (error) {
+                return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:Error:1440296241090265088> Reset Failed' }, { type: 14 }, { type: 10, content: `❌ Error: ${error.message}` }] }], flags: 32768 | MessageFlags.Ephemeral });
+            }
         }
         }
     } catch (error) {
