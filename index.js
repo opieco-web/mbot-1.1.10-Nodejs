@@ -47,6 +47,9 @@ const BOT_VERSION = packageJson.version;
 const dataFile = './data.json';
 let data = JSON.parse(fs.readFileSync(dataFile, 'utf8'));
 
+// Initialize OpenAI client - the newest OpenAI model is "gpt-5" which was released August 7, 2025
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
 // Helper: Try to parse response as JSON and send as Component V2
 function tryParseAndSendComponent(msg, responseText) {
     try {
@@ -368,6 +371,21 @@ const commands = [
             option
                 .setName('channel')
                 .setDescription('Target channel to send message to (optional, defaults to current channel)')
+                .setRequired(false)),
+
+    // Search command
+    new SlashCommandBuilder()
+        .setName('search')
+        .setDescription('Search for information and get an AI-powered summary')
+        .addStringOption(option =>
+            option
+                .setName('query')
+                .setDescription('What do you want to search for?')
+                .setRequired(true))
+        .addBooleanOption(option =>
+            option
+                .setName('full_details')
+                .setDescription('Get detailed information? (default: false for short summary)')
                 .setRequired(false))
 ].map(cmd => cmd.toJSON());
 
@@ -1321,6 +1339,76 @@ client.on(Events.InteractionCreate, async interaction => {
     }
 
     // ------------------------
+    // SEARCH COMMAND
+    // ------------------------
+    if (commandName === 'search') {
+        await interaction.deferReply();
+        const query = interaction.options.getString('query');
+        const fullDetails = interaction.options.getBoolean('full_details') || false;
+
+        try {
+            // Generate search summary using OpenAI
+            const prompt = fullDetails
+                ? `Provide a comprehensive and detailed summary about: "${query}"\n\nInclude:\n- Overview and key concepts\n- Main points and important details\n- Current status/recent developments\n- Related information`
+                : `Provide a concise summary (2-3 sentences) about: "${query}"`;
+
+            const response = await openai.chat.completions.create({
+                model: "gpt-5",
+                messages: [
+                    {
+                        role: "user",
+                        content: prompt
+                    }
+                ],
+                max_completion_tokens: fullDetails ? 8192 : 500
+            });
+
+            const summary = response.choices[0].message.content;
+            const botAvatar = client.user.displayAvatarURL({ dynamic: true, size: 1024 });
+
+            const payload = {
+                content: ' ',
+                components: [
+                    {
+                        type: 17,
+                        components: [
+                            {
+                                type: 9,
+                                components: [
+                                    {
+                                        type: 10,
+                                        content: `**@${interaction.user.username}** searched\n## 🔍 ${query}`
+                                    }
+                                ],
+                                accessory: {
+                                    type: 11,
+                                    media: {
+                                        url: botAvatar
+                                    }
+                                }
+                            },
+                            {
+                                type: 14
+                            },
+                            {
+                                type: 10,
+                                content: summary
+                            }
+                        ]
+                    }
+                ],
+                flags: 32768
+            };
+
+            return interaction.editReply(payload);
+        } catch (error) {
+            return interaction.editReply({
+                content: `<:Error:1440296241090265088> Search failed: ${error.message}`,
+                flags: MessageFlags.Ephemeral
+            });
+        }
+    }
+
     // SEND MESSAGE COMMAND
     // ------------------------
     if (commandName === 'send') {
@@ -2008,6 +2096,83 @@ client.on(Events.MessageCreate, async msg => {
             };
             
             return msg.reply(payload);
+        }
+
+        // Search command
+        if (cmd === 'sh') {
+            const fullQuery = args.join(' ');
+            if (!fullQuery) {
+                return msg.reply({ content: '<:Error:1440296241090265088> Please provide a search query. Usage: `!sh <query> , <optional full details>`', flags: MessageFlags.Ephemeral });
+            }
+
+            // Check for comma to determine if full details requested
+            const parts = fullQuery.split(',');
+            const query = parts[0].trim();
+            const fullDetails = parts.length > 1;
+
+            try {
+                const waitMsg = await msg.reply('<:mg_alert:1439893442065862698> Searching...');
+
+                // Generate search summary using OpenAI
+                const prompt = fullDetails
+                    ? `Provide a comprehensive and detailed summary about: "${query}"\n\nInclude:\n- Overview and key concepts\n- Main points and important details\n- Current status/recent developments\n- Related information`
+                    : `Provide a concise summary (2-3 sentences) about: "${query}"`;
+
+                const response = await openai.chat.completions.create({
+                    model: "gpt-5",
+                    messages: [
+                        {
+                            role: "user",
+                            content: prompt
+                        }
+                    ],
+                    max_completion_tokens: fullDetails ? 8192 : 500
+                });
+
+                const summary = response.choices[0].message.content;
+                const botAvatar = client.user.displayAvatarURL({ dynamic: true, size: 1024 });
+
+                const payload = {
+                    content: ' ',
+                    components: [
+                        {
+                            type: 17,
+                            components: [
+                                {
+                                    type: 9,
+                                    components: [
+                                        {
+                                            type: 10,
+                                            content: `**@${msg.author.username}** searched\n## 🔍 ${query}`
+                                        }
+                                    ],
+                                    accessory: {
+                                        type: 11,
+                                        media: {
+                                            url: botAvatar
+                                        }
+                                    }
+                                },
+                                {
+                                    type: 14
+                                },
+                                {
+                                    type: 10,
+                                    content: summary
+                                }
+                            ]
+                        }
+                    ],
+                    flags: 32768
+                };
+
+                await waitMsg.edit(payload);
+            } catch (error) {
+                return msg.reply({
+                    content: `<:Error:1440296241090265088> Search failed: ${error.message}`,
+                    flags: MessageFlags.Ephemeral
+                }).catch(() => {});
+            }
         }
     }
 
