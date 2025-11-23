@@ -1410,6 +1410,54 @@ client.on(Events.InteractionCreate, async interaction => {
         });
     }
 
+    // CONFIG COMMAND - Component V2 Configuration Panel
+    // type 17 = Container | type 10 = TextDisplay | type 14 = Separator | type 1 = Row | type 2 = Button
+    if (commandName === 'config') {
+        const prefix = getPrefix(guildId);
+        const botAvatar = client.user.displayAvatarURL({ dynamic: true, size: 1024 });
+
+        const configPanel = {
+            content: ' ',
+            components: [{
+                type: 17,
+                components: [
+                    // Header
+                    { type: 10, content: `## 🎛️ ${BOT_NAME} Configuration` },
+                    { type: 14, spacing: 1 },
+
+                    // Prefix Configuration Section
+                    { type: 10, content: '### 📌 Prefix Settings' },
+                    { type: 10, content: `**Current Prefix:** \`${prefix}\`` },
+                    {
+                        type: 1,
+                        components: [
+                            { type: 2, style: 1, label: 'Set Prefix', custom_id: 'config_set_prefix' }
+                        ]
+                    },
+                    { type: 14, spacing: 1 },
+
+                    // Bot Profile Section
+                    { type: 10, content: '### 👤 Bot Profile' },
+                    { type: 10, content: 'Customize your bot profile for this server' },
+                    {
+                        type: 1,
+                        components: [
+                            { type: 2, style: 1, label: 'Header Attachment', custom_id: 'config_header_attach' },
+                            { type: 2, style: 1, label: 'Banner Attachment', custom_id: 'config_banner_attach' }
+                        ]
+                    },
+                    { type: 14, spacing: 1 },
+
+                    // Future Expansion Placeholder
+                    { type: 10, content: '✨ More options coming soon...' }
+                ]
+            }],
+            flags: 32768 | MessageFlags.Ephemeral
+        };
+
+        return interaction.reply(configPanel);
+    }
+
     // SEARCH - Component V2 Container
     // type 17 = Container | type 10 = TextDisplay | type 14 = Separator | type 9 = Content Accessory
     if (commandName === 'search') {
