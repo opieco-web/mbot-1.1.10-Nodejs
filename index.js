@@ -1349,47 +1349,47 @@ client.on(Events.InteractionCreate, async interaction => {
             let pageTitle = null;
 
             if (searchLocal) {
-                // Local search - search all server channels
+                // Local search - lookup stored topics
                 const searchResults = [];
+                const queryLower = query.toLowerCase();
                 
-                try {
-                    const guild = await client.guilds.fetch(guildId);
-                    const channels = await guild.channels.fetch();
+                // Check if query matches a topic
+                if (data.topics && data.topics[queryLower]) {
+                    const topicData = data.topics[queryLower];
                     
-                    // Search all text channels
-                    for (const [channelId, channel] of channels) {
-                        if (channel.isTextBased() && !channel.isDMBased()) {
-                            try {
-                                const messages = await channel.messages.fetch({ limit: 50 });
-                                messages.forEach(msg => {
-                                    if (msg.content.toLowerCase().includes(query.toLowerCase())) {
-                                        const messageLink = `https://discord.com/channels/${guildId}/${channel.id}/${msg.id}`;
-                                        const preview = msg.content.substring(0, 80).replace(/\n/g, ' ');
-                                        searchResults.push(`**<#${channel.id}>** ${msg.author.username}: ${preview}\n${messageLink}`);
-                                    }
-                                });
-                            } catch (err) {
-                                // Channel not accessible, skip
+                    // If topicData is a message ID (string of digits), fetch the message
+                    if (topicData && /^\d+_\d+_\d+$/.test(topicData)) {
+                        const [channelId, messageId] = topicData.split('_');
+                        try {
+                            const channel = await client.channels.fetch(channelId);
+                            if (channel && channel.isTextBased()) {
+                                const message = await channel.messages.fetch(messageId);
+                                const messageLink = `https://discord.com/channels/${guildId}/${channelId}/${messageId}`;
+                                const summary = message.content.substring(0, 800);
+                                resultText = `**${query}**\n\n${summary}\n\n<:question:1441531934332424314> [**View Full Message**](${messageLink})`;
                             }
+                        } catch (err) {
+                            resultText = `Topic "${query}" not found or message not accessible.`;
                         }
+                    } else if (typeof topicData === 'string') {
+                        // Direct content stored
+                        resultText = `**${query}**\n\n${topicData}`;
                     }
-                } catch (err) {
-                    // Guild fetch failed
-                }
-                
-                // Also search in autoresponses
-                if (data.autoresponse[guildId]) {
-                    data.autoresponse[guildId].forEach(ar => {
-                        if (ar.trigger.toLowerCase().includes(query.toLowerCase()) || ar.response.toLowerCase().includes(query.toLowerCase())) {
-                            searchResults.push(`**Auto-Response:** ${ar.trigger} → ${ar.response}`);
-                        }
-                    });
-                }
-
-                if (searchResults.length > 0) {
-                    resultText = searchResults.slice(0, 10).join('\n');
                 } else {
-                    resultText = 'No matches found across your server channels.';
+                    // Search in autoresponses
+                    if (data.autoresponse[guildId]) {
+                        data.autoresponse[guildId].forEach(ar => {
+                            if (ar.trigger.toLowerCase().includes(queryLower) || ar.response.toLowerCase().includes(queryLower)) {
+                                searchResults.push(`**${ar.trigger}** → ${ar.response}`);
+                            }
+                        });
+                    }
+                    
+                    if (searchResults.length > 0) {
+                        resultText = searchResults.slice(0, 5).join('\n');
+                    } else {
+                        resultText = `No topic or auto-response found for "${query}". Available topics: ${Object.keys(data.topics || {}).join(', ')}`;
+                    }
                 }
             } else {
                 // Wikipedia API search (free, popular, reliable)

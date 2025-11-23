@@ -74,8 +74,10 @@
       "enabled": true
     }
   },
-  "channels": {
-    "faq": 1296794666611511308
+  "topics": {
+    "rules": null,
+    "roles": null,
+    "pvc": null
   },
   "prefixes": {},
   "autoresponses": {},
