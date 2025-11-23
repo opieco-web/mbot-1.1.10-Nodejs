@@ -1460,7 +1460,7 @@ client.on(Events.InteractionCreate, async interaction => {
                     components: [
                         {
                             type: 10,
-                            content: `**@${interaction.user.username}** searched ## 🔍 ${query}`
+                            content: `**@${interaction.user.username}** searched\n## 🔍 ${query}`
                         }
                     ],
                     accessory: {
@@ -2319,7 +2319,7 @@ client.on(Events.MessageCreate, async msg => {
                         components: [
                             {
                                 type: 10,
-                                content: `**@${msg.author.username}** searched ## 🔍 ${query}`
+                                content: `**@${msg.author.username}** searched\n## 🔍 ${query}`
                             }
                         ],
                         accessory: {
