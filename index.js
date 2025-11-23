@@ -1349,81 +1349,47 @@ client.on(Events.InteractionCreate, async interaction => {
             let pageTitle = null;
 
             if (searchLocal) {
-                // Local search - search all server data + APK channel messages
+                // Local search - search all server channels
                 const searchResults = [];
                 
-                // Search in FAQ channel if configured
-                if (data.channels?.faq) {
-                    try {
-                        const faqChannel = await client.channels.fetch(data.channels.faq);
-                        if (faqChannel && faqChannel.isTextBased()) {
-                            const messages = await faqChannel.messages.fetch({ limit: 100 });
-                            messages.forEach(msg => {
-                                if (msg.content.toLowerCase().includes(query.toLowerCase())) {
-                                    const messageLink = `https://discord.com/channels/${guildId}/${faqChannel.id}/${msg.id}`;
-                                    searchResults.push(`**[FAQ]** ${msg.author.username}: ${msg.content.substring(0, 60)}\n${messageLink}`);
-                                }
-                            });
+                try {
+                    const guild = await client.guilds.fetch(guildId);
+                    const channels = await guild.channels.fetch();
+                    
+                    // Search all text channels
+                    for (const [channelId, channel] of channels) {
+                        if (channel.isTextBased() && !channel.isDMBased()) {
+                            try {
+                                const messages = await channel.messages.fetch({ limit: 50 });
+                                messages.forEach(msg => {
+                                    if (msg.content.toLowerCase().includes(query.toLowerCase())) {
+                                        const messageLink = `https://discord.com/channels/${guildId}/${channel.id}/${msg.id}`;
+                                        const preview = msg.content.substring(0, 80).replace(/\n/g, ' ');
+                                        searchResults.push(`**<#${channel.id}>** ${msg.author.username}: ${preview}\n${messageLink}`);
+                                    }
+                                });
+                            } catch (err) {
+                                // Channel not accessible, skip
+                            }
                         }
-                    } catch (err) {
-                        // Channel not accessible, skip
                     }
+                } catch (err) {
+                    // Guild fetch failed
                 }
                 
-                // Search in autoresponses
+                // Also search in autoresponses
                 if (data.autoresponse[guildId]) {
                     data.autoresponse[guildId].forEach(ar => {
                         if (ar.trigger.toLowerCase().includes(query.toLowerCase()) || ar.response.toLowerCase().includes(query.toLowerCase())) {
-                            searchResults.push(`**AR:** ${ar.trigger} → ${ar.response}`);
+                            searchResults.push(`**Auto-Response:** ${ar.trigger} → ${ar.response}`);
                         }
                     });
-                }
-
-                // Search in banned words
-                if (data.nickname.filter && data.nickname.filter.length > 0) {
-                    data.nickname.filter.forEach(word => {
-                        if (word.toLowerCase().includes(query.toLowerCase())) {
-                            searchResults.push(`**Filter:** ${word}`);
-                        }
-                    });
-                }
-
-                // Search in AFK data
-                for (const [userId, afkData] of Object.entries(data.afk || {})) {
-                    if (afkData.reason.toLowerCase().includes(query.toLowerCase())) {
-                        searchResults.push(`**AFK:** <@${userId}> - ${afkData.reason.substring(0, 40)}...`);
-                    }
-                }
-
-                // Search in welcome data
-                for (const [guildIdKey, welcomeData] of Object.entries(data.welcome || {})) {
-                    if (guildIdKey === guildId) {
-                        if (query.toLowerCase().includes('welcome') || query.toLowerCase().includes('join')) {
-                            searchResults.push(`**Welcome:** <#${welcomeData.channelId}> (${welcomeData.enabled ? 'Enabled' : 'Disabled'})`);
-                        }
-                    }
-                }
-
-                // Search in prefix data
-                if (data.prefix[guildId]) {
-                    const prefixChar = data.prefix[guildId];
-                    if (query.toLowerCase().includes('prefix')) {
-                        searchResults.push(`**Prefix:** \`${prefixChar}\``);
-                    }
-                }
-
-                // Search in bot status
-                if (data.bot?.status) {
-                    const status = data.bot.status;
-                    if (status.text.toLowerCase().includes(query.toLowerCase()) || status.emoji.toLowerCase().includes(query.toLowerCase())) {
-                        searchResults.push(`**Status:** ${status.text} ${status.emoji}`);
-                    }
                 }
 
                 if (searchResults.length > 0) {
-                    resultText = searchResults.slice(0, 15).join('\n');
+                    resultText = searchResults.slice(0, 10).join('\n');
                 } else {
-                    resultText = 'No local data found matching your search.';
+                    resultText = 'No matches found across your server channels.';
                 }
             } else {
                 // Wikipedia API search (free, popular, reliable)
