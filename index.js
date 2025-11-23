@@ -2274,7 +2274,8 @@ client.on(Events.MessageCreate, async msg => {
             const subjects = parts.split(',').map(p => p.trim());
             
             if (subjects.length < 2) {
-                const warnMsg = await msg.reply({ content: '<:warning:1441531830607151195> Format: `!cs <Subject A> , <Subject B>` or `!cs <Subject A> , <Subject B> , <Subject C>`', flags: MessageFlags.Ephemeral });
+                const usageText = `**Choose between 2-3 options:**\n\n\`!cs <Subject A> , <Subject B>\`\n\n**or**\n\n\`!cs <Subject A> , <Subject B> , <Subject C>\``;
+                const warnMsg = await msg.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:warning:1441531830607151195> Usage Format' }, { type: 14 }, { type: 10, content: usageText }] }], flags: 32768 | MessageFlags.Ephemeral });
                 setTimeout(() => warnMsg.delete().catch(() => {}), 5000);
                 return;
             }
