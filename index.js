@@ -919,6 +919,7 @@ client.on(Events.InteractionCreate, async interaction => {
                             }],
                             flags: 32768
                         });
+                        await msg.delete().catch(() => {});
                     } catch (error) {
                         await msg.reply({
                             content: ' ',
@@ -987,6 +988,7 @@ client.on(Events.InteractionCreate, async interaction => {
                             }],
                             flags: 32768
                         });
+                        await msg.delete().catch(() => {});
                     } catch (error) {
                         await msg.reply({
                             content: ' ',
