@@ -1460,7 +1460,7 @@ client.on(Events.InteractionCreate, async interaction => {
                     components: [
                         {
                             type: 10,
-                            content: `**@${interaction.user.username}** searched • <:question:1441531934332424314> **${query}**`
+                            content: `**@${interaction.user.username}** searched`
                         }
                     ],
                     accessory: {
@@ -1475,7 +1475,7 @@ client.on(Events.InteractionCreate, async interaction => {
                 },
                 {
                     type: 10,
-                    content: displayText
+                    content: `## 🔍 ${query}\n\n${displayText}`
                 }
             ];
 
@@ -2320,7 +2320,7 @@ client.on(Events.MessageCreate, async msg => {
                         components: [
                             {
                                 type: 10,
-                                content: `**@${msg.author.username}** searched • <:question:1441531934332424314> **${query}**`
+                                content: `**@${msg.author.username}** searched`
                             }
                         ],
                         accessory: {
@@ -2335,7 +2335,7 @@ client.on(Events.MessageCreate, async msg => {
                     },
                     {
                         type: 10,
-                        content: displayText
+                        content: `## 🔍 ${query}\n\n${displayText}`
                     }
                 ];
 
