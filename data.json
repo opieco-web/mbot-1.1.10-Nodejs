@@ -74,6 +74,9 @@
       "enabled": true
     }
   },
+  "channels": {
+    "apk": null
+  },
   "prefixes": {},
   "autoresponses": {},
   "status": {}

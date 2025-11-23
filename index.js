@@ -1349,8 +1349,26 @@ client.on(Events.InteractionCreate, async interaction => {
             let pageTitle = null;
 
             if (searchLocal) {
-                // Local search - search all server data
+                // Local search - search all server data + APK channel messages
                 const searchResults = [];
+                
+                // Search in APK channel if configured
+                if (data.channels?.apk) {
+                    try {
+                        const apkChannel = await client.channels.fetch(data.channels.apk);
+                        if (apkChannel && apkChannel.isTextBased()) {
+                            const messages = await apkChannel.messages.fetch({ limit: 100 });
+                            messages.forEach(msg => {
+                                if (msg.content.toLowerCase().includes(query.toLowerCase())) {
+                                    const messageLink = `https://discord.com/channels/${guildId}/${apkChannel.id}/${msg.id}`;
+                                    searchResults.push(`**[APK]** ${msg.author.username}: ${msg.content.substring(0, 60)}\n${messageLink}`);
+                                }
+                            });
+                        }
+                    } catch (err) {
+                        // Channel not accessible, skip
+                    }
+                }
                 
                 // Search in autoresponses
                 if (data.autoresponse[guildId]) {
