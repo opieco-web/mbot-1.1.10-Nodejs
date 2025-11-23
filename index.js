@@ -367,6 +367,21 @@ const commands = [
             option
                 .setName('channel')
                 .setDescription('Target channel to send message to (optional, defaults to current channel)')
+                .setRequired(false)),
+
+    // Search command
+    new SlashCommandBuilder()
+        .setName('search')
+        .setDescription('Search the web with DuckDuckGo or search local bot data')
+        .addStringOption(option =>
+            option
+                .setName('query')
+                .setDescription('What do you want to search for?')
+                .setRequired(true))
+        .addBooleanOption(option =>
+            option
+                .setName('local')
+                .setDescription('Search local bot data instead of DuckDuckGo? (default: false)')
                 .setRequired(false))
 ].map(cmd => cmd.toJSON());
 
@@ -1320,6 +1335,102 @@ client.on(Events.InteractionCreate, async interaction => {
     }
 
     // ------------------------
+    // SEARCH COMMAND
+    // ------------------------
+    if (commandName === 'search') {
+        await interaction.deferReply();
+        const query = interaction.options.getString('query');
+        const searchLocal = interaction.options.getBoolean('local') || false;
+        const botAvatar = client.user.displayAvatarURL({ dynamic: true, size: 1024 });
+
+        try {
+            let resultText = '';
+
+            if (searchLocal) {
+                // Local search - search bot's stored data
+                const searchResults = [];
+                
+                // Search in autoresponses
+                if (data.autoresponse[guildId]) {
+                    data.autoresponse[guildId].forEach(ar => {
+                        if (ar.trigger.toLowerCase().includes(query.toLowerCase()) || ar.response.toLowerCase().includes(query.toLowerCase())) {
+                            searchResults.push(`**Auto-response:** ${ar.trigger} → ${ar.response.substring(0, 50)}...`);
+                        }
+                    });
+                }
+
+                // Search in banned words
+                if (data.nickname.filter && data.nickname.filter.length > 0) {
+                    data.nickname.filter.forEach(word => {
+                        if (word.toLowerCase().includes(query.toLowerCase())) {
+                            searchResults.push(`**Banned Word:** ${word}`);
+                        }
+                    });
+                }
+
+                if (searchResults.length > 0) {
+                    resultText = searchResults.slice(0, 10).join('\n');
+                } else {
+                    resultText = 'No local data found matching your search.';
+                }
+            } else {
+                // DuckDuckGo search
+                const response = await fetch(`https://api.duckduckgo.com/?q=${encodeURIComponent(query)}&format=json`);
+                const data = await response.json();
+
+                if (data.AbstractText) {
+                    resultText = data.AbstractText;
+                } else if (data.RelatedTopics && data.RelatedTopics.length > 0) {
+                    const firstResult = data.RelatedTopics[0];
+                    resultText = firstResult.Text || firstResult.Result || 'No results found.';
+                } else {
+                    resultText = 'No results found on DuckDuckGo.';
+                }
+            }
+
+            const payload = {
+                content: ' ',
+                components: [
+                    {
+                        type: 17,
+                        components: [
+                            {
+                                type: 9,
+                                components: [
+                                    {
+                                        type: 10,
+                                        content: `**@${interaction.user.username}** searched\n## 🔍 ${query}`
+                                    }
+                                ],
+                                accessory: {
+                                    type: 11,
+                                    media: {
+                                        url: botAvatar
+                                    }
+                                }
+                            },
+                            {
+                                type: 14
+                            },
+                            {
+                                type: 10,
+                                content: resultText.substring(0, 2000)
+                            }
+                        ]
+                    }
+                ],
+                flags: 32768
+            };
+
+            return interaction.editReply(payload);
+        } catch (error) {
+            return interaction.editReply({
+                content: `<:Error:1440296241090265088> Search failed: ${error.message}`,
+                flags: MessageFlags.Ephemeral
+            });
+        }
+    }
+
     // SEND MESSAGE COMMAND
     // ------------------------
     if (commandName === 'send') {
@@ -2007,6 +2118,106 @@ client.on(Events.MessageCreate, async msg => {
             };
             
             return msg.reply(payload);
+        }
+
+        // Search command
+        if (cmd === 'sh') {
+            const fullQuery = args.join(' ');
+            if (!fullQuery) {
+                return msg.reply({ content: '<:Error:1440296241090265088> Usage: `!sh <query>` or `!sh <query> , local` to search local data', flags: MessageFlags.Ephemeral });
+            }
+
+            // Check for comma to determine if local search
+            const parts = fullQuery.split(',');
+            const query = parts[0].trim();
+            const searchLocal = parts.length > 1;
+
+            try {
+                const waitMsg = await msg.reply('<:mg_alert:1439893442065862698> Searching...');
+                const botAvatar = client.user.displayAvatarURL({ dynamic: true, size: 1024 });
+                let resultText = '';
+
+                if (searchLocal) {
+                    // Local search
+                    const searchResults = [];
+                    
+                    if (data.autoresponse[guildId]) {
+                        data.autoresponse[guildId].forEach(ar => {
+                            if (ar.trigger.toLowerCase().includes(query.toLowerCase()) || ar.response.toLowerCase().includes(query.toLowerCase())) {
+                                searchResults.push(`**Auto-response:** ${ar.trigger} → ${ar.response.substring(0, 50)}...`);
+                            }
+                        });
+                    }
+
+                    if (data.nickname.filter && data.nickname.filter.length > 0) {
+                        data.nickname.filter.forEach(word => {
+                            if (word.toLowerCase().includes(query.toLowerCase())) {
+                                searchResults.push(`**Banned Word:** ${word}`);
+                            }
+                        });
+                    }
+
+                    if (searchResults.length > 0) {
+                        resultText = searchResults.slice(0, 10).join('\n');
+                    } else {
+                        resultText = 'No local data found matching your search.';
+                    }
+                } else {
+                    // DuckDuckGo search
+                    const response = await fetch(`https://api.duckduckgo.com/?q=${encodeURIComponent(query)}&format=json`);
+                    const searchData = await response.json();
+
+                    if (searchData.AbstractText) {
+                        resultText = searchData.AbstractText;
+                    } else if (searchData.RelatedTopics && searchData.RelatedTopics.length > 0) {
+                        const firstResult = searchData.RelatedTopics[0];
+                        resultText = firstResult.Text || firstResult.Result || 'No results found.';
+                    } else {
+                        resultText = 'No results found on DuckDuckGo.';
+                    }
+                }
+
+                const payload = {
+                    content: ' ',
+                    components: [
+                        {
+                            type: 17,
+                            components: [
+                                {
+                                    type: 9,
+                                    components: [
+                                        {
+                                            type: 10,
+                                            content: `**@${msg.author.username}** searched\n## 🔍 ${query}`
+                                        }
+                                    ],
+                                    accessory: {
+                                        type: 11,
+                                        media: {
+                                            url: botAvatar
+                                        }
+                                    }
+                                },
+                                {
+                                    type: 14
+                                },
+                                {
+                                    type: 10,
+                                    content: resultText.substring(0, 2000)
+                                }
+                            ]
+                        }
+                    ],
+                    flags: 32768
+                };
+
+                await waitMsg.edit(payload);
+            } catch (error) {
+                return msg.reply({
+                    content: `<:Error:1440296241090265088> Search failed: ${error.message}`,
+                    flags: MessageFlags.Ephemeral
+                }).catch(() => {});
+            }
         }
 
     }
