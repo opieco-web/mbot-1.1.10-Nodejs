@@ -1379,10 +1379,16 @@ client.on(Events.InteractionCreate, async interaction => {
                 const data = await response.json();
 
                 let results = [];
+                let imageUrl = null;
 
                 // Get abstract (main summary)
                 if (data.AbstractText) {
                     results.push(data.AbstractText);
+                }
+
+                // Get image if available
+                if (data.Image) {
+                    imageUrl = data.Image;
                 }
 
                 // Get related topics for additional context
@@ -1411,35 +1417,65 @@ client.on(Events.InteractionCreate, async interaction => {
                 }
             }
 
+            const containerComponents = [
+                {
+                    type: 9,
+                    components: [
+                        {
+                            type: 10,
+                            content: `**@${interaction.user.username}** searched\n## 🔍 ${query}`
+                        }
+                    ],
+                    accessory: {
+                        type: 11,
+                        media: {
+                            url: botAvatar
+                        }
+                    }
+                },
+                {
+                    type: 14
+                },
+                {
+                    type: 10,
+                    content: resultText.substring(0, 2000)
+                }
+            ];
+
+            // Add media gallery if image is available
+            if (searchLocal === false && resultText !== '' && resultText !== 'No results found on DuckDuckGo.') {
+                // Try to get image from related topics if no abstract image
+                let mediaUrl = null;
+                if (searchLocal === false) {
+                    const response = await fetch(`https://api.duckduckgo.com/?q=${encodeURIComponent(query)}&format=json`);
+                    const data = await response.json();
+                    mediaUrl = data.Image;
+                    
+                    if (mediaUrl && !mediaUrl.startsWith('http')) {
+                        mediaUrl = 'https:' + mediaUrl;
+                    }
+                }
+
+                if (mediaUrl) {
+                    containerComponents.push({
+                        type: 12,
+                        items: [
+                            {
+                                media: {
+                                    url: mediaUrl
+                                }
+                            }
+                        ]
+                    });
+                }
+            }
+
             const payload = {
                 content: ' ',
                 components: [
                     {
                         type: 17,
-                        components: [
-                            {
-                                type: 9,
-                                components: [
-                                    {
-                                        type: 10,
-                                        content: `**@${interaction.user.username}** searched\n## 🔍 ${query}`
-                                    }
-                                ],
-                                accessory: {
-                                    type: 11,
-                                    media: {
-                                        url: botAvatar
-                                    }
-                                }
-                            },
-                            {
-                                type: 14
-                            },
-                            {
-                                type: 10,
-                                content: resultText.substring(0, 2000)
-                            }
-                        ]
+                        components: containerComponents
                     }
                 ],
                 flags: 32768
@@ -2191,10 +2227,19 @@ client.on(Events.MessageCreate, async msg => {
                     const searchData = await response.json();
 
                     let results = [];
+                    let imageUrl = null;
 
                     // Get abstract (main summary)
                     if (searchData.AbstractText) {
                         results.push(searchData.AbstractText);
+                    }
+
+                    // Get image if available
+                    if (searchData.Image) {
+                        imageUrl = searchData.Image;
+                        if (!imageUrl.startsWith('http')) {
+                            imageUrl = 'https:' + imageUrl;
+                        }
                     }
 
                     // Get related topics for additional context
@@ -2223,35 +2268,51 @@ client.on(Events.MessageCreate, async msg => {
                     }
                 }
 
+                const containerComponents = [
+                    {
+                        type: 9,
+                        components: [
+                            {
+                                type: 10,
+                                content: `**@${msg.author.username}** searched\n## 🔍 ${query}`
+                            }
+                        ],
+                        accessory: {
+                            type: 11,
+                            media: {
+                                url: botAvatar
+                            }
+                        }
+                    },
+                    {
+                        type: 14
+                    },
+                    {
+                        type: 10,
+                        content: resultText.substring(0, 2000)
+                    }
+                ];
+
+                // Add media gallery if image is available (16:9 aspect ratio)
+                if (!searchLocal && imageUrl) {
+                    containerComponents.push({
+                        type: 12,
+                        items: [
+                            {
+                                media: {
+                                    url: imageUrl
+                                }
+                            }
+                        ]
+                    });
+                }
+
                 const payload = {
                     content: ' ',
                     components: [
                         {
                             type: 17,
-                            components: [
-                                {
-                                    type: 9,
-                                    components: [
-                                        {
-                                            type: 10,
-                                            content: `**@${msg.author.username}** searched\n## 🔍 ${query}`
-                                        }
-                                    ],
-                                    accessory: {
-                                        type: 11,
-                                        media: {
-                                            url: botAvatar
-                                        }
-                                    }
-                                },
-                                {
-                                    type: 14
-                                },
-                                {
-                                    type: 10,
-                                    content: resultText.substring(0, 2000)
-                                }
-                            ]
+                            components: containerComponents
                         }
                     ],
                     flags: 32768
