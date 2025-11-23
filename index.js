@@ -1044,9 +1044,32 @@ client.on(Events.InteractionCreate, async interaction => {
                     await client.user.setAvatar(avatarBuffer);
                 }
 
-                return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:1_yes_correct:1439893200981721140> Profile Reset' }, { type: 14 }, { type: 10, content: `✅ Mining Bangladesh official bot icon applied\n\nAll custom profiles reset to default across this server.` }] }], flags: 32768 | MessageFlags.Ephemeral });
+                return interaction.reply({
+                    content: ' ',
+                    components: [{
+                        type: 17,
+                        components: [
+                            { type: 10, content: '## <:1_yes_correct:1439893200981721140> Profile Reset' },
+                            { type: 14 },
+                            { type: 10, content: `✅ Mining Bangladesh official bot icon applied\n\nAll custom profiles reset to default across this server.` }
+                        ]
+                    }],
+                    flags: MessageFlags.Ephemeral
+                });
             } catch (error) {
-                return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:Error:1440296241090265088> Reset Failed' }, { type: 14 }, { type: 10, content: `❌ Error: ${error.message}` }] }], flags: 32768 | MessageFlags.Ephemeral });
+                console.error('Reset error:', error);
+                return interaction.reply({
+                    content: ' ',
+                    components: [{
+                        type: 17,
+                        components: [
+                            { type: 10, content: '## <:Error:1440296241090265088> Reset Failed' },
+                            { type: 14 },
+                            { type: 10, content: `❌ Error: ${error.message}` }
+                        ]
+                    }],
+                    flags: MessageFlags.Ephemeral
+                });
             }
         }
         }
