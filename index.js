@@ -1471,9 +1471,6 @@ client.on(Events.InteractionCreate, async interaction => {
                     }
                 },
                 {
-                    type: 14
-                },
-                {
                     type: 10,
                     content: `## 🔍 ${query}`
                 },
@@ -2335,9 +2332,6 @@ client.on(Events.MessageCreate, async msg => {
                                 url: botAvatar
                             }
                         }
-                    },
-                    {
-                        type: 14
                     },
                     {
                         type: 10,
