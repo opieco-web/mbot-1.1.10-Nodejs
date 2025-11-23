@@ -723,18 +723,47 @@ const welcomeMessages = [
     "Nice to have you {user} — hope you enjoy your time."
 ];
 
+// Initialize status data
+if (!data.status) data.status = { presence: 'online' };
+
 // ------------------------
 // HANDLE SLASH COMMANDS & BUTTONS
 // ------------------------
 client.on(Events.InteractionCreate, async interaction => {
     const { guildId } = interaction;
 
-    // ===== HANDLE BUTTONS FIRST =====
-    if (interaction.isButton()) {
-        const customId = interaction.customId;
+    try {
+        // ===== HANDLE SELECT MENUS (DROPDOWNS) =====
+        if (interaction.isStringSelectMenu()) {
+            const customId = interaction.customId;
 
-        // Config: Set Prefix button
-        if (customId === 'config_set_prefix') {
+            // Config: Online Status dropdown
+            if (customId === 'config_online_status') {
+                const newStatus = interaction.values[0];
+                data.status = data.status || { presence: 'online' };
+                data.status.presence = newStatus;
+                fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
+                applyBotStatus();
+                return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:1_yes_correct:1439893200981721140> Online Status Updated' }, { type: 14 }, { type: 10, content: `Bot visibility set to: **${newStatus === 'dnd' ? 'Do Not Disturb' : newStatus.charAt(0).toUpperCase() + newStatus.slice(1)}**` }] }], flags: 32768 | MessageFlags.Ephemeral });
+            }
+
+            // Config: Activity Type dropdown
+            if (customId === 'config_activity_type') {
+                const newType = interaction.values[0];
+                data.status = data.status || { presence: 'online' };
+                data.status.type = newType;
+                fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
+                applyBotStatus();
+                return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:1_yes_correct:1439893200981721140> Activity Type Updated' }, { type: 14 }, { type: 10, content: `Activity type set to: **${newType}**` }] }], flags: 32768 | MessageFlags.Ephemeral });
+            }
+        }
+
+        // ===== HANDLE BUTTONS =====
+        if (interaction.isButton()) {
+            const customId = interaction.customId;
+
+            // Config: Set Prefix button
+            if (customId === 'config_set_prefix') {
             const modal = {
                 custom_id: 'modal_set_prefix',
                 title: 'Set Server Prefix',
@@ -802,29 +831,7 @@ client.on(Events.InteractionCreate, async interaction => {
             return interaction.showModal(modal);
         }
 
-        // Config: Online Status dropdown
-        if (customId === 'config_online_status') {
-            const newStatus = interaction.values[0];
-            data.status = data.status || {};
-            data.status.presence = newStatus;
-            fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
-            applyBotStatus();
-
-            return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:1_yes_correct:1439893200981721140> Online Status Updated' }, { type: 14 }, { type: 10, content: `Bot visibility set to: **${newStatus === 'dnd' ? 'Do Not Disturb' : newStatus.charAt(0).toUpperCase() + newStatus.slice(1)}**` }] }], flags: 32768 | MessageFlags.Ephemeral });
-        }
-
-        // Config: Activity Type dropdown
-        if (customId === 'config_activity_type') {
-            const newType = interaction.values[0];
-            data.status = data.status || {};
-            data.status.type = newType;
-            fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
-            applyBotStatus();
-
-            return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:1_yes_correct:1439893200981721140> Activity Type Updated' }, { type: 14 }, { type: 10, content: `Activity type set to: **${newType}**` }] }], flags: 32768 | MessageFlags.Ephemeral });
-        }
-
-        // Config: Status Reset button
+            // Config: Status Reset button
         if (customId === 'config_status_reset') {
             data.status = { presence: 'online' };
             fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
@@ -1016,6 +1023,9 @@ client.on(Events.InteractionCreate, async interaction => {
                 }
             });
         }
+        }
+    } catch (error) {
+        console.error('Error handling interaction:', error);
     }
 
     // ===== HANDLE MODAL SUBMISSIONS =====
@@ -1040,24 +1050,35 @@ client.on(Events.InteractionCreate, async interaction => {
         }
 
         if (interaction.customId === 'modal_status_set') {
-            const activityText = interaction.fields.getTextInputValue('status_activity_text');
-            const streamUrl = interaction.fields.getTextInputValue('status_stream_url');
-            const emoji = interaction.fields.getTextInputValue('status_emoji') || null;
+            try {
+                const activityText = interaction.fields.getTextInputValue('status_activity_text');
+                const streamUrl = interaction.fields.getTextInputValue('status_stream_url');
+                const emoji = interaction.fields.getTextInputValue('status_emoji') || null;
 
-            data.status = data.status || {};
-            if (activityText) data.status.text = activityText;
-            if (streamUrl) data.status.streamUrl = streamUrl;
-            if (emoji) data.status.emoji = emoji;
-            data.status.lastUpdatedBy = interaction.user.id;
-            data.status.lastUpdatedAt = new Date().toISOString();
-            fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
-            applyBotStatus();
+                data.status = data.status || { presence: 'online' };
+                if (activityText) {
+                    data.status.text = activityText;
+                }
+                if (streamUrl) {
+                    data.status.streamUrl = streamUrl;
+                }
+                if (emoji) {
+                    data.status.emoji = emoji;
+                }
+                data.status.lastUpdatedBy = interaction.user.id;
+                data.status.lastUpdatedAt = new Date().toISOString();
+                fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
+                applyBotStatus();
 
-            let msg = 'Status info updated: ';
-            if (activityText) msg += `Activity: ${activityText} `;
-            if (emoji) msg += `Emoji: ${emoji} `;
-            if (streamUrl) msg += `Stream: ${streamUrl}`;
-            return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:1_yes_correct:1439893200981721140> Status Updated' }, { type: 14 }, { type: 10, content: msg || 'No changes made.' }] }], flags: 32768 | MessageFlags.Ephemeral });
+                let msg = 'Status info updated: ';
+                if (activityText) msg += `Activity: ${activityText} `;
+                if (emoji) msg += `Emoji: ${emoji} `;
+                if (streamUrl) msg += `Stream: ${streamUrl}`;
+                return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:1_yes_correct:1439893200981721140> Status Updated' }, { type: 14 }, { type: 10, content: msg || 'No changes made.' }] }], flags: 32768 | MessageFlags.Ephemeral });
+            } catch (err) {
+                console.error('Modal status set error:', err);
+                return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:Error:1440296241090265088> Error' }, { type: 14 }, { type: 10, content: `Error updating status: ${err.message}` }] }], flags: 32768 | MessageFlags.Ephemeral });
+            }
         }
     }
 
