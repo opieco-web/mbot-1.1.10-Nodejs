@@ -1402,7 +1402,7 @@ client.on(Events.InteractionCreate, async interaction => {
                     }
 
                     if (results.length > 0) {
-                        resultText = results.join('\n\n');
+                        resultText = results.join('\n');
                     } else {
                         resultText = 'No detailed results found on Wikipedia. Try a different search query.';
                     }
@@ -1417,7 +1417,7 @@ client.on(Events.InteractionCreate, async interaction => {
                     components: [
                         {
                             type: 10,
-                            content: `**@${interaction.user.username}** searched\n## 🔍 ${query}`
+                            content: `**@${interaction.user.username}** searched\n## <:question:1441531934332424314> ${query}`
                         }
                     ],
                     accessory: {
@@ -2236,7 +2236,7 @@ client.on(Events.MessageCreate, async msg => {
                         }
 
                         if (results.length > 0) {
-                            resultText = results.join('\n\n');
+                            resultText = results.join('\n');
                         } else {
                             resultText = 'No detailed results found on Wikipedia. Try a different search query.';
                         }
@@ -2251,7 +2251,7 @@ client.on(Events.MessageCreate, async msg => {
                         components: [
                             {
                                 type: 10,
-                                content: `**@${msg.author.username}** searched\n## 🔍 ${query}`
+                                content: `**@${msg.author.username}** searched\n## <:question:1441531934332424314> ${query}`
                             }
                         ],
                         accessory: {
