@@ -1411,6 +1411,9 @@ client.on(Events.InteractionCreate, async interaction => {
                 }
             }
 
+            // Limit line breaks to max 3 for compact display
+            const limitedText = resultText.replace(/\n{4,}/g, '\n\n\n').substring(0, 2000);
+
             const containerComponents = [
                 {
                     type: 9,
@@ -1428,11 +1431,8 @@ client.on(Events.InteractionCreate, async interaction => {
                     }
                 },
                 {
-                    type: 14
-                },
-                {
                     type: 10,
-                    content: resultText.substring(0, 2000)
+                    content: limitedText
                 }
             ];
 
@@ -2248,6 +2248,9 @@ client.on(Events.MessageCreate, async msg => {
                     }
                 }
 
+                // Limit line breaks to max 3 for compact display
+                const limitedText = resultText.replace(/\n{4,}/g, '\n\n\n').substring(0, 2000);
+
                 const containerComponents = [
                     {
                         type: 9,
@@ -2265,11 +2268,8 @@ client.on(Events.MessageCreate, async msg => {
                         }
                     },
                     {
-                        type: 14
-                    },
-                    {
                         type: 10,
-                        content: resultText.substring(0, 2000)
+                        content: limitedText
                     }
                 ];
 
