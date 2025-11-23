@@ -445,7 +445,12 @@ const commands = [
             option
                 .setName('image')
                 .setDescription('Upload an image to use as meme template (optional)')
-                .setRequired(false))
+                .setRequired(false)),
+
+    // Config command - Component V2 configuration panel
+    new SlashCommandBuilder()
+        .setName('config')
+        .setDescription('View and manage bot configuration settings')
 ].map(cmd => cmd.toJSON());
 
 const rest = new REST({ version: '10' }).setToken(TOKEN);
