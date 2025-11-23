@@ -1479,6 +1479,27 @@ client.on(Events.InteractionCreate, async interaction => {
                 }
             ];
 
+            // Add media thumbnail if available (Wikipedia only)
+            if (!searchLocal && mediaUrl && mediaUrl.trim()) {
+                let imageUrl = mediaUrl;
+                if (!imageUrl.startsWith('http')) {
+                    imageUrl = 'https:' + imageUrl;
+                }
+                
+                if (imageUrl.includes('commons.wikimedia.org') || imageUrl.includes('upload.wikimedia.org')) {
+                    containerComponents.push({
+                        type: 12,
+                        items: [
+                            {
+                                media: {
+                                    url: imageUrl
+                                }
+                            }
+                        ]
+                    });
+                }
+            }
+
 
             const payload = {
                 content: ' ',
@@ -2338,6 +2359,27 @@ client.on(Events.MessageCreate, async msg => {
                         content: `## 🔍 ${query}\n\n${displayText}`
                     }
                 ];
+
+                // Add media thumbnail if available (Wikipedia only)
+                if (!searchLocal && mediaUrl && mediaUrl.trim()) {
+                    let imageUrl = mediaUrl;
+                    if (!imageUrl.startsWith('http')) {
+                        imageUrl = 'https:' + imageUrl;
+                    }
+                    
+                    if (imageUrl.includes('commons.wikimedia.org') || imageUrl.includes('upload.wikimedia.org')) {
+                        containerComponents.push({
+                            type: 12,
+                            items: [
+                                {
+                                    media: {
+                                        url: imageUrl
+                                    }
+                                }
+                            ]
+                        });
+                    }
+                }
 
 
                 const payload = {
