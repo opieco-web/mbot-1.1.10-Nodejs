@@ -1374,46 +1374,39 @@ client.on(Events.InteractionCreate, async interaction => {
                     resultText = 'No local data found matching your search.';
                 }
             } else {
-                // DuckDuckGo search
-                const response = await fetch(`https://api.duckduckgo.com/?q=${encodeURIComponent(query)}&format=json`);
-                const data = await response.json();
-
+                // Wikipedia API search (free, popular, reliable)
+                const searchResponse = await fetch(`https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&format=json&origin=*`);
+                const searchData = await searchResponse.json();
+                
                 let results = [];
-                let imageUrl = null;
+                let mediaUrl = null;
+                let pageTitle = '';
 
-                // Get abstract (main summary)
-                if (data.AbstractText) {
-                    results.push(data.AbstractText);
-                }
+                // Get search results and fetch full page content
+                if (searchData.query && searchData.query.search && searchData.query.search.length > 0) {
+                    pageTitle = searchData.query.search[0].title;
+                    results.push(searchData.query.search[0].snippet.replace(/<[^>]*>/g, '').substring(0, 500));
 
-                // Get image if available
-                if (data.Image) {
-                    imageUrl = data.Image;
-                }
-
-                // Get related topics for additional context
-                if (data.RelatedTopics && data.RelatedTopics.length > 0) {
-                    for (let i = 0; i < Math.min(3, data.RelatedTopics.length); i++) {
-                        const topic = data.RelatedTopics[i];
-                        if (topic.Text) {
-                            results.push(topic.Text);
-                        } else if (topic.Result) {
-                            // Parse HTML if needed
-                            const cleanResult = topic.Result
-                                .replace(/<[^>]*>/g, '')
-                                .replace(/&nbsp;/g, ' ')
-                                .replace(/&amp;/g, '&')
-                                .trim();
-                            if (cleanResult) results.push(cleanResult);
-                        }
+                    // Get full page info with image
+                    const pageResponse = await fetch(`https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(pageTitle)}&prop=extracts|pageimages&exintro&piprop=original&format=json&origin=*`);
+                    const pageData = await pageResponse.json();
+                    const pages = pageData.query.pages;
+                    const firstPage = pages[Object.keys(pages)[0]];
+                    
+                    if (firstPage.extract) {
+                        const cleanText = firstPage.extract.replace(/<[^>]*>/g, '').substring(0, 1000);
+                        if (cleanText) results.push(cleanText);
+                    }
+                    
+                    if (firstPage.original) {
+                        mediaUrl = firstPage.original.source;
                     }
                 }
 
-                // Combine all results
                 if (results.length > 0) {
                     resultText = results.join('\n\n');
                 } else {
-                    resultText = 'No detailed results found. Try a different search query.';
+                    resultText = 'No detailed results found on Wikipedia. Try a different search query.';
                 }
             }
 
@@ -1442,30 +1435,18 @@ client.on(Events.InteractionCreate, async interaction => {
                 }
             ];
 
-            // Add media gallery if image is available and not local search
-            if (searchLocal === false) {
-                let mediaUrl = null;
-                const response = await fetch(`https://api.duckduckgo.com/?q=${encodeURIComponent(query)}&format=json`);
-                const data = await response.json();
-                if (data.Image) {
-                    mediaUrl = data.Image;
-                    if (!mediaUrl.startsWith('http')) {
-                        mediaUrl = 'https:' + mediaUrl;
-                    }
-                }
-
-                if (mediaUrl) {
-                    containerComponents.push({
-                        type: 12,
-                        items: [
-                            {
-                                media: {
-                                    url: mediaUrl
-                                }
+            // Add media gallery if image is available (16:9 aspect ratio)
+            if (!searchLocal && mediaUrl) {
+                containerComponents.push({
+                    type: 12,
+                    items: [
+                        {
+                            media: {
+                                url: mediaUrl
                             }
-                        ]
-                    });
-                }
+                        }
+                    ]
+                });
             }
 
             const payload = {
@@ -2220,49 +2201,39 @@ client.on(Events.MessageCreate, async msg => {
                         resultText = 'No local data found matching your search.';
                     }
                 } else {
-                    // DuckDuckGo search
-                    const response = await fetch(`https://api.duckduckgo.com/?q=${encodeURIComponent(query)}&format=json`);
-                    const searchData = await response.json();
-
+                    // Wikipedia API search (free, popular, reliable)
+                    const searchResponse = await fetch(`https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&format=json&origin=*`);
+                    const wikiSearch = await searchResponse.json();
+                    
                     let results = [];
-                    let imageUrl = null;
+                    let mediaUrl = null;
+                    let pageTitle = '';
 
-                    // Get abstract (main summary)
-                    if (searchData.AbstractText) {
-                        results.push(searchData.AbstractText);
-                    }
+                    // Get search results and fetch full page content
+                    if (wikiSearch.query && wikiSearch.query.search && wikiSearch.query.search.length > 0) {
+                        pageTitle = wikiSearch.query.search[0].title;
+                        results.push(wikiSearch.query.search[0].snippet.replace(/<[^>]*>/g, '').substring(0, 500));
 
-                    // Get image if available
-                    if (searchData.Image) {
-                        imageUrl = searchData.Image;
-                        if (!imageUrl.startsWith('http')) {
-                            imageUrl = 'https:' + imageUrl;
+                        // Get full page info with image
+                        const pageResponse = await fetch(`https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(pageTitle)}&prop=extracts|pageimages&exintro&piprop=original&format=json&origin=*`);
+                        const pageInfo = await pageResponse.json();
+                        const pages = pageInfo.query.pages;
+                        const firstPage = pages[Object.keys(pages)[0]];
+                        
+                        if (firstPage.extract) {
+                            const cleanText = firstPage.extract.replace(/<[^>]*>/g, '').substring(0, 1000);
+                            if (cleanText) results.push(cleanText);
+                        }
+                        
+                        if (firstPage.original) {
+                            mediaUrl = firstPage.original.source;
                         }
                     }
 
-                    // Get related topics for additional context
-                    if (searchData.RelatedTopics && searchData.RelatedTopics.length > 0) {
-                        for (let i = 0; i < Math.min(3, searchData.RelatedTopics.length); i++) {
-                            const topic = searchData.RelatedTopics[i];
-                            if (topic.Text) {
-                                results.push(topic.Text);
-                            } else if (topic.Result) {
-                                // Parse HTML if needed
-                                const cleanResult = topic.Result
-                                    .replace(/<[^>]*>/g, '')
-                                    .replace(/&nbsp;/g, ' ')
-                                    .replace(/&amp;/g, '&')
-                                    .trim();
-                                if (cleanResult) results.push(cleanResult);
-                            }
-                        }
-                    }
-
-                    // Combine all results
                     if (results.length > 0) {
                         resultText = results.join('\n\n');
                     } else {
-                        resultText = 'No detailed results found. Try a different search query.';
+                        resultText = 'No detailed results found on Wikipedia. Try a different search query.';
                     }
                 }
 
@@ -2292,13 +2263,13 @@ client.on(Events.MessageCreate, async msg => {
                 ];
 
                 // Add media gallery if image is available (16:9 aspect ratio)
-                if (!searchLocal && imageUrl) {
+                if (!searchLocal && mediaUrl) {
                     containerComponents.push({
                         type: 12,
                         items: [
                             {
                                 media: {
-                                    url: imageUrl
+                                    url: mediaUrl
                                 }
                             }
                         ]
