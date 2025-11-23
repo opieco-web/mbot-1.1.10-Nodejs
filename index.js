@@ -810,17 +810,33 @@ client.on(Events.InteractionCreate, async interaction => {
 
         // Config: Page Navigation buttons
         if (customId === 'config_prev' || customId === 'config_next') {
-            const currentPageMatch = interaction.message.content.match(/Page (\d+)\/3/);
-            const currentPage = currentPageMatch ? parseInt(currentPageMatch[1]) : 1;
-            let nextPage = currentPage;
+            // Extract current page from the components
+            const messageComponents = interaction.message.components[0].components;
+            let currentPage = 1;
             
+            // Look for page indicator in text components
+            for (const comp of messageComponents) {
+                if (comp.type === 17) {
+                    for (const inner of comp.components) {
+                        if (inner.content && inner.content.includes('Page')) {
+                            const match = inner.content.match(/Page (\d+)\/3/);
+                            if (match) {
+                                currentPage = parseInt(match[1]);
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            
+            let nextPage = currentPage;
             if (customId === 'config_next' && currentPage < 3) nextPage = currentPage + 1;
             if (customId === 'config_prev' && currentPage > 1) nextPage = currentPage - 1;
             
             const pageComponents = buildConfigPage(nextPage, guildId);
             
             return interaction.update({
-                content: `Page ${nextPage}/3`,
+                content: ' ',
                 components: [{
                     type: 17,
                     components: pageComponents
@@ -1639,10 +1655,14 @@ client.on(Events.InteractionCreate, async interaction => {
         
         let pageComponents = [];
         
+        // Page indicator at the top (stored in content for tracking, but not used in Components V2 display)
+        let pageIndicator = `Page ${pageNum}/3`;
+        
         if (pageNum === 1) {
             // Page 1: Prefix Settings
             pageComponents = [
-                { type: 10, content: `## 🎛️ ${BOT_NAME} Configuration - Page 1/3` },
+                { type: 10, content: `## 🎛️ ${BOT_NAME} Configuration` },
+                { type: 10, content: `**📄 Page 1/3**` },
                 { type: 14, spacing: 1 },
                 { type: 10, content: '### 📌 Prefix Settings' },
                 { type: 10, content: `**Current Prefix:** \`${prefix}\`` },
@@ -1668,7 +1688,8 @@ client.on(Events.InteractionCreate, async interaction => {
             }
             
             pageComponents = [
-                { type: 10, content: `## 🎛️ ${BOT_NAME} Configuration - Page 2/3` },
+                { type: 10, content: `## 🎛️ ${BOT_NAME} Configuration` },
+                { type: 10, content: `**📄 Page 2/3**` },
                 { type: 14, spacing: 1 },
                 { type: 10, content: '### 🤖 Bot Status' },
                 { type: 10, content: statusText },
@@ -1678,7 +1699,8 @@ client.on(Events.InteractionCreate, async interaction => {
         } else if (pageNum === 3) {
             // Page 3: Server Custom Profile
             pageComponents = [
-                { type: 10, content: `## 🎛️ ${BOT_NAME} Configuration - Page 3/3` },
+                { type: 10, content: `## 🎛️ ${BOT_NAME} Configuration` },
+                { type: 10, content: `**📄 Page 3/3**` },
                 { type: 14, spacing: 1 },
                 { type: 10, content: '### 👤 Server Custom Profile' },
                 { type: 10, content: 'Upload custom icon and banner for this server only' },
@@ -1720,7 +1742,7 @@ client.on(Events.InteractionCreate, async interaction => {
         const pageComponents = buildConfigPage(1, guildId);
         
         const configPanel = {
-            content: 'Page 1/3',
+            content: ' ',
             components: [{
                 type: 17,
                 components: pageComponents
