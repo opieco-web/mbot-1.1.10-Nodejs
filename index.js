@@ -313,60 +313,6 @@ const commands = [
         .setDescription('View comprehensive bot information, stats, and configuration')
         .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageGuild),
 
-    // Status Management
-    new SlashCommandBuilder()
-        .setName('status')
-        .setDescription('Manage bot status (mod only)')
-        .addStringOption(option =>
-            option
-                .setName('action')
-                .setDescription('set = customize, reset = default, view = show current status')
-                .setRequired(true)
-                .addChoices(
-                    { name: 'set', value: 'set' },
-                    { name: 'reset', value: 'reset' },
-                    { name: 'view', value: 'view' }
-                ))
-        .addStringOption(option =>
-            option
-                .setName('activity_text')
-                .setDescription('Activity text (e.g., "Minecraft" or "Netflix") - use with set action')
-                .setRequired(false))
-        .addStringOption(option =>
-            option
-                .setName('activity_type')
-                .setDescription('What the bot is doing: Playing/Watching/Listening/Competing/Streaming - use with set action')
-                .setRequired(false)
-                .addChoices(
-                    { name: 'Playing', value: 'Playing' },
-                    { name: 'Watching', value: 'Watching' },
-                    { name: 'Listening', value: 'Listening' },
-                    { name: 'Competing', value: 'Competing' },
-                    { name: 'Streaming', value: 'Streaming' }
-                ))
-        .addStringOption(option =>
-            option
-                .setName('stream_url')
-                .setDescription('Twitch or YouTube URL (only for Streaming activity type)')
-                .setRequired(false))
-        .addStringOption(option =>
-            option
-                .setName('emoji')
-                .setDescription('Emoji to add before status text (optional)')
-                .setRequired(false))
-        .addStringOption(option =>
-            option
-                .setName('online_status')
-                .setDescription('Bot visibility: Online/Idle/Do Not Disturb/Invisible')
-                .setRequired(false)
-                .addChoices(
-                    { name: 'Online', value: 'online' },
-                    { name: 'Idle', value: 'idle' },
-                    { name: 'Do Not Disturb', value: 'dnd' },
-                    { name: 'Invisible', value: 'invisible' }
-                ))
-        .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageGuild),
-
     // Choose command
     new SlashCommandBuilder()
         .setName('choose')
@@ -808,6 +754,62 @@ client.on(Events.InteractionCreate, async interaction => {
             return interaction.showModal(modal);
         }
 
+        // Config: Status Set button
+        if (customId === 'config_status_set') {
+            const modal = {
+                custom_id: 'modal_status_set',
+                title: 'Configure Bot Status',
+                components: [
+                    {
+                        type: 1,
+                        components: [{
+                            type: 4,
+                            custom_id: 'status_activity_text',
+                            label: 'Activity Text',
+                            style: 1,
+                            placeholder: 'e.g., Minecraft, Netflix',
+                            max_length: 128,
+                            required: true
+                        }]
+                    },
+                    {
+                        type: 1,
+                        components: [{
+                            type: 4,
+                            custom_id: 'status_activity_type',
+                            label: 'Activity Type',
+                            style: 1,
+                            placeholder: 'Playing/Watching/Listening/Competing/Streaming',
+                            max_length: 20,
+                            required: true
+                        }]
+                    },
+                    {
+                        type: 1,
+                        components: [{
+                            type: 4,
+                            custom_id: 'status_emoji',
+                            label: 'Emoji (optional)',
+                            style: 1,
+                            placeholder: '😎',
+                            max_length: 10,
+                            required: false
+                        }]
+                    }
+                ]
+            };
+            return interaction.showModal(modal);
+        }
+
+        // Config: Status Reset button
+        if (customId === 'config_status_reset') {
+            data.status = {};
+            fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
+            applyBotStatus();
+
+            return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:1_yes_correct:1439893200981721140> Status Cleared' }, { type: 14 }, { type: 10, content: 'Bot status reset to online.' }] }], flags: 32768 | MessageFlags.Ephemeral });
+        }
+
         // Config: Page Navigation buttons
         if (customId === 'config_prev' || customId === 'config_next') {
             // Extract current page from the components
@@ -1012,6 +1014,31 @@ client.on(Events.InteractionCreate, async interaction => {
                 }],
                 flags: 32768 | MessageFlags.Ephemeral
             });
+        }
+
+        if (interaction.customId === 'modal_status_set') {
+            const activityText = interaction.fields.getTextInputValue('status_activity_text');
+            const activityType = interaction.fields.getTextInputValue('status_activity_type');
+            const emoji = interaction.fields.getTextInputValue('status_emoji') || null;
+
+            if (!activityType || !activityText) {
+                return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:Error:1440296241090265088> Error' }, { type: 14 }, { type: 10, content: 'Provide both activity type and text.' }] }], flags: 32768 | MessageFlags.Ephemeral });
+            }
+
+            data.status = {
+                text: activityText,
+                type: activityType,
+                emoji: emoji,
+                streamUrl: null,
+                presence: 'online',
+                lastUpdatedBy: user.id,
+                lastUpdatedAt: new Date().toISOString()
+            };
+            fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
+            applyBotStatus();
+
+            const displayText = emoji ? `${emoji} ${activityText}` : activityText;
+            return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:1_yes_correct:1439893200981721140> Status Updated' }, { type: 14 }, { type: 10, content: `**${activityType}** ${displayText}` }] }], flags: 32768 | MessageFlags.Ephemeral });
         }
     }
 
@@ -1694,7 +1721,14 @@ client.on(Events.InteractionCreate, async interaction => {
                 { type: 10, content: '### 🤖 Bot Status' },
                 { type: 10, content: statusText },
                 { type: 14, spacing: 1 },
-                { type: 10, content: '💡 Use `/status set` to configure bot activity, or `/status reset` to clear.' }
+                { type: 10, content: '**Configure Bot Activity:**' },
+                {
+                    type: 1,
+                    components: [
+                        { type: 2, style: 1, label: 'Set Status', custom_id: 'config_status_set' },
+                        { type: 2, style: 4, label: 'Reset Status', custom_id: 'config_status_reset' }
+                    ]
+                }
             ];
         } else if (pageNum === 3) {
             // Page 3: Server Custom Profile
@@ -2145,77 +2179,6 @@ client.on(Events.InteractionCreate, async interaction => {
             const listTitle = `## 🔄 Auto-Responses Configured`;
             const listContent = `${list}\n**Total:** ${data.autoresponse[guildId].length} response(s) active`;
             return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: listTitle }, { type: 14, spacing: 1 }, { type: 10, content: listContent }] }], flags: 32768 | MessageFlags.Ephemeral });
-        }
-    }
-
-    // STATUS - Component V2 Container
-    // type 17 = Container | type 10 = TextDisplay | type 14 = Separator
-    if (commandName === 'status') {
-        if (!interaction.member.permissions.has(PermissionsBitField.Flags.ManageGuild)) {
-            return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## 🚫 Permission Denied' }, { type: 14 }, { type: 10, content: 'You need ManageGuild permission.' }] }], flags: 32768 | MessageFlags.Ephemeral });
-        }
-
-        const action = interaction.options.getString('action');
-
-        if (action === 'set') {
-            const activityText = interaction.options.getString('activity_text');
-            const activityType = interaction.options.getString('activity_type');
-            const streamUrl = interaction.options.getString('stream_url');
-            const emoji = interaction.options.getString('emoji');
-            const onlineStatus = interaction.options.getString('online_status');
-
-            if (!activityType || !activityText) {
-                return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:Error:1440296241090265088> Error' }, { type: 14 }, { type: 10, content: 'Provide both activity type and text.' }] }], flags: 32768 | MessageFlags.Ephemeral });
-            }
-
-            if (activityType === 'Streaming' && streamUrl) {
-                const validStreamUrl = streamUrl.match(/^https?:\/\/(www\.)?(twitch\.tv|youtube\.com|youtu\.be)\/.+$/i);
-                if (!validStreamUrl) {
-                    return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:Error:1440296241090265088> Invalid URL' }, { type: 14 }, { type: 10, content: 'Use Twitch or YouTube links.' }] }], flags: 32768 | MessageFlags.Ephemeral });
-                }
-            }
-
-            data.status = {
-                text: activityText,
-                type: activityType,
-                emoji: emoji || null,
-                streamUrl: streamUrl || null,
-                presence: onlineStatus || 'online',
-                lastUpdatedBy: user.id,
-                lastUpdatedAt: new Date().toISOString()
-            };
-            fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
-            applyBotStatus();
-
-            const displayText = emoji ? `${emoji} ${activityText}` : activityText;
-            return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:1_yes_correct:1439893200981721140> Status Updated' }, { type: 14 }, { type: 10, content: `**${activityType}** ${displayText}` }] }], flags: 32768 | MessageFlags.Ephemeral });
-        }
-
-        if (action === 'reset') {
-            data.status = {};
-            fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
-            applyBotStatus();
-
-            return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:1_yes_correct:1439893200981721140> Status Cleared' }, { type: 14 }, { type: 10, content: 'Bot status reset to online.' }] }], flags: 32768 | MessageFlags.Ephemeral });
-        }
-
-        if (action === 'view') {
-            let statusText = '';
-            
-            if (!data.bot.status.text || !data.bot.status.type) {
-                statusText = 'Bot is online with no custom activity.';
-            } else {
-                const displayName = data.bot.status.emoji ? `${data.bot.status.emoji} ${data.bot.status.text}` : data.bot.status.text;
-                statusText += `**Activity:** ${data.bot.status.type} ${displayName}\n`;
-                
-                if (data.bot.status.type === 'Streaming' && data.bot.status.streamUrl) {
-                    statusText += `**Stream:** ${data.bot.status.streamUrl}\n`;
-                }
-                
-                statusText += `**Visibility:** ${data.bot.status.presence || 'online'}`;
-            }
-
-            return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## 🤖 Bot Status' }, { type: 14 }, { type: 10, content: statusText }] }], flags: 32768 | MessageFlags.Ephemeral });
         }
     }
 
