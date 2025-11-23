@@ -127,8 +127,21 @@ async function initializeTopics() {
                 
                 if (channel && channel.isTextBased()) {
                     const message = await channel.messages.fetch(topicData.messageId);
-                    // Store the actual message content
-                    data.topics[topicName].content = message.content;
+                    
+                    // Try to get content - handle both plain text and Component V2 messages
+                    let content = message.content || '';
+                    
+                    // If content is empty, try to extract from embeds (common with rich messages)
+                    if (!content && message.embeds && message.embeds.length > 0) {
+                        const embed = message.embeds[0];
+                        const parts = [];
+                        if (embed.title) parts.push(embed.title);
+                        if (embed.description) parts.push(embed.description);
+                        content = parts.join('\n\n');
+                    }
+                    
+                    // Store the content (even if empty for Component V2, the link will direct them to the full message)
+                    data.topics[topicName].content = content || '[Component V2 Message - See full message for formatted content]';
                     data.topics[topicName].link = `https://discord.com/channels/${message.guildId}/${topicData.channelId}/${topicData.messageId}`;
                 }
             } catch (err) {
