@@ -154,7 +154,7 @@ async function initializeTopics() {
 }
 
 // Initialize topics when bot is ready
-client.once('ready', async () => {
+client.once('clientReady', async () => {
     console.log(`${client.user.tag} is online!`);
     await initializeTopics();
 });

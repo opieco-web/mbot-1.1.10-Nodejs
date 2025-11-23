@@ -77,11 +77,15 @@
   "topics": {
     "rules": {
       "channelId": "1296784800547602494",
-      "messageId": "1426049059977953392"
+      "messageId": "1426049059977953392",
+      "content": "[Component V2 Message - See full message for formatted content]",
+      "link": "https://discord.com/channels/1296783492989980682/1296784800547602494/1426049059977953392"
     },
     "about roles": {
       "channelId": "1296968925191475211",
-      "messageId": "1428355188216827955"
+      "messageId": "1428355188216827955",
+      "content": "[Component V2 Message - See full message for formatted content]",
+      "link": "https://discord.com/channels/1296783492989980682/1296968925191475211/1428355188216827955"
     },
     "about us": {
       "channelId": "1296794666611511308",
