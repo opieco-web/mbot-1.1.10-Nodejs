@@ -833,7 +833,8 @@ client.on(Events.InteractionCreate, async interaction => {
                     try {
                         // Set bot avatar
                         const response = await fetch(attachment.url);
-                        const buffer = await response.buffer();
+                        const arrayBuffer = await response.arrayBuffer();
+                        const buffer = Buffer.from(arrayBuffer);
                         await client.user.setAvatar(buffer);
 
                         // Save to data.json
@@ -906,7 +907,8 @@ client.on(Events.InteractionCreate, async interaction => {
                     try {
                         // Set server banner
                         const response = await fetch(attachment.url);
-                        const buffer = await response.buffer();
+                        const arrayBuffer = await response.arrayBuffer();
+                        const buffer = Buffer.from(arrayBuffer);
                         await interaction.guild.setBanner(buffer);
 
                         // Save to data.json
