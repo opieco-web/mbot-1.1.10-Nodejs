@@ -819,19 +819,20 @@ client.on(Events.InteractionCreate, async interaction => {
         }
     }
 
-    // ------------------------
-    // PREFIX / AFK / AVATAR SLASH COMMANDS
-    // ------------------------
+    // SETPREFIX - Component V2 Container
+    // type 17 = Container | type 10 = TextDisplay | type 14 = Separator
     if (commandName === 'setprefix') {
         const newPrefix = interaction.options.getString('prefix');
         data.prefix[guildId] = newPrefix;
         fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
-        return interaction.reply({ content: `<:1_yes_correct:1439893200981721140> Prefix updated to: ${newPrefix}`, flags: MessageFlags.Ephemeral });
+        return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:1_yes_correct:1439893200981721140> Prefix Updated' }, { type: 14 }, { type: 10, content: `New prefix: **${newPrefix}**` }] }], flags: 32768 | MessageFlags.Ephemeral });
     }
 
+    // PREFIX - Component V2 Container
+    // type 17 = Container | type 10 = TextDisplay | type 14 = Separator
     if (commandName === 'prefix') {
         const prefix = getPrefix(guildId);
-        return interaction.reply({ content: `<:mg_question:1439893408041930894> Current prefix is: ${prefix}`, flags: MessageFlags.Ephemeral });
+        return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:mg_question:1439893408041930894> Current Prefix' }, { type: 14 }, { type: 10, content: `\`${prefix}\`` }] }], flags: 32768 | MessageFlags.Ephemeral });
     }
 
     // BOTINFO - Component V2 Container
@@ -883,14 +884,15 @@ client.on(Events.InteractionCreate, async interaction => {
         return interaction.reply(payload);
     }
 
+    // AFK - Component V2 Container
+    // type 17 = Container | type 10 = TextDisplay | type 14 = Separator
     if (commandName === 'afk') {
         const reason = interaction.options.getString('note') || 'I am currently AFK.';
         afkUsers[user.id] = { reason, timestamp: Date.now() };
         data.afk[user.id] = afkUsers[user.id];
         fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
-        const { resource: replyMsg } = await interaction.reply({ content: `<:mg_alert:1439893442065862698> AFK set: ${reason}`, withResponse: true, flags: MessageFlags.Ephemeral });
+        const { resource: replyMsg } = await interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:mg_alert:1439893442065862698> AFK Set' }, { type: 14 }, { type: 10, content: reason }] }], flags: 32768 | MessageFlags.Ephemeral, withResponse: true });
 
-        // Delete bot reply after 30s
         setTimeout(() => replyMsg.delete().catch(() => {}), 30000);
     }
 
@@ -927,6 +929,8 @@ client.on(Events.InteractionCreate, async interaction => {
         return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## 🚫 Currently AFK' }, { type: 14, spacing: 1 }, { type: 10, content: afkList }] }], flags: 32768 | MessageFlags.Ephemeral });
     }
 
+    // AVATAR - Component V2 Container (via createAvatarComponent)
+    // type 17 = Container | type 10 = TextDisplay | type 12 = MediaGallery | type 14 = Separator
     if (commandName === 'avatar') {
         const target = interaction.options.getUser('user') || user;
         const showServerOnly = interaction.options.getBoolean('server');
