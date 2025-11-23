@@ -831,13 +831,7 @@ client.on(Events.InteractionCreate, async interaction => {
                 const attachment = msg.attachments.first();
                 if (attachment) {
                     try {
-                        // Set bot avatar
-                        const response = await fetch(attachment.url);
-                        const arrayBuffer = await response.arrayBuffer();
-                        const buffer = Buffer.from(arrayBuffer);
-                        await client.user.setAvatar(buffer);
-
-                        // Save to data.json
+                        // Save server-specific header to data.json (does NOT change global bot avatar)
                         data.config = data.config || {};
                         data.config[guildId] = data.config[guildId] || {};
                         data.config[guildId].headerAttachment = attachment.url;
@@ -848,9 +842,9 @@ client.on(Events.InteractionCreate, async interaction => {
                             components: [{
                                 type: 17,
                                 components: [
-                                    { type: 10, content: '## <:Correct:1440296238305116223> Bot Avatar Updated' },
+                                    { type: 10, content: '## <:Correct:1440296238305116223> Server Header Saved' },
                                     { type: 14, spacing: 1 },
-                                    { type: 10, content: `✅ Bot avatar changed successfully!\n\n[View Image](${attachment.url})` }
+                                    { type: 10, content: `✅ Custom header for this server saved!\n\n[View Image](${attachment.url})` }
                                 ]
                             }],
                             flags: 32768
@@ -863,7 +857,7 @@ client.on(Events.InteractionCreate, async interaction => {
                                 components: [
                                     { type: 10, content: '## <:Error:1440296241090265088> Failed' },
                                     { type: 14, spacing: 1 },
-                                    { type: 10, content: `❌ Error updating avatar: ${error.message}` }
+                                    { type: 10, content: `❌ Error saving header: ${error.message}` }
                                 ]
                             }],
                             flags: 32768
@@ -905,13 +899,7 @@ client.on(Events.InteractionCreate, async interaction => {
                 const attachment = msg.attachments.first();
                 if (attachment) {
                     try {
-                        // Set server banner
-                        const response = await fetch(attachment.url);
-                        const arrayBuffer = await response.arrayBuffer();
-                        const buffer = Buffer.from(arrayBuffer);
-                        await interaction.guild.setBanner(buffer);
-
-                        // Save to data.json
+                        // Save server-specific background to data.json (does NOT change global server banner)
                         data.config = data.config || {};
                         data.config[guildId] = data.config[guildId] || {};
                         data.config[guildId].bgAttachment = attachment.url;
@@ -922,9 +910,9 @@ client.on(Events.InteractionCreate, async interaction => {
                             components: [{
                                 type: 17,
                                 components: [
-                                    { type: 10, content: '## <:Correct:1440296238305116223> Server Banner Updated' },
+                                    { type: 10, content: '## <:Correct:1440296238305116223> Server Background Saved' },
                                     { type: 14, spacing: 1 },
-                                    { type: 10, content: `✅ Server banner changed successfully!\n\n[View Image](${attachment.url})` }
+                                    { type: 10, content: `✅ Custom background for this server saved!\n\n[View Image](${attachment.url})` }
                                 ]
                             }],
                             flags: 32768
@@ -937,7 +925,7 @@ client.on(Events.InteractionCreate, async interaction => {
                                 components: [
                                     { type: 10, content: '## <:Error:1440296241090265088> Failed' },
                                     { type: 14, spacing: 1 },
-                                    { type: 10, content: `❌ Error updating banner: ${error.message}` }
+                                    { type: 10, content: `❌ Error saving background: ${error.message}` }
                                 ]
                             }],
                             flags: 32768
@@ -1611,46 +1599,64 @@ client.on(Events.InteractionCreate, async interaction => {
     }
 
     // CONFIG COMMAND - Component V2 Configuration Panel
-    // type 17 = Container | type 10 = TextDisplay | type 14 = Separator | type 1 = Row | type 2 = Button
+    // type 17 = Container | type 10 = TextDisplay | type 14 = Separator | type 1 = Row | type 2 = Button | type 12 = MediaGallery
     if (commandName === 'config') {
         const prefix = getPrefix(guildId);
-        const botAvatar = client.user.displayAvatarURL({ dynamic: true, size: 1024 });
+        const serverConfig = data.config?.[guildId] || {};
+        const headerUrl = serverConfig.headerAttachment;
+        const bgUrl = serverConfig.bgAttachment;
+
+        const configComponents = [
+            // Header
+            { type: 10, content: `## 🎛️ ${BOT_NAME} Configuration` },
+            { type: 14, spacing: 1 },
+
+            // Prefix Configuration Section
+            { type: 10, content: '### 📌 Prefix Settings' },
+            { type: 10, content: `**Current Prefix:** \`${prefix}\`` },
+            {
+                type: 1,
+                components: [
+                    { type: 2, style: 1, label: 'Set Prefix', custom_id: 'config_set_prefix' }
+                ]
+            },
+            { type: 14, spacing: 1 },
+
+            // Server Custom Profile Section
+            { type: 10, content: '### 👤 Server Custom Profile' },
+            { type: 10, content: 'Upload custom header and background for this server only' },
+            {
+                type: 1,
+                components: [
+                    { type: 2, style: 1, label: 'Header Attachment', custom_id: 'config_header_attach' },
+                    { type: 2, style: 1, label: 'BG Attachment', custom_id: 'config_banner_attach' }
+                ]
+            }
+        ];
+
+        // Add media gallery if images exist
+        if (headerUrl || bgUrl) {
+            configComponents.push({ type: 14, spacing: 1 });
+            configComponents.push({ type: 10, content: '### 📸 Current Custom Profile Images' });
+            
+            const mediaItems = [];
+            if (headerUrl) mediaItems.push({ type: 1, media: { url: headerUrl }, description: 'Header' });
+            if (bgUrl) mediaItems.push({ type: 1, media: { url: bgUrl }, description: 'Background' });
+            
+            configComponents.push({
+                type: 12,
+                items: mediaItems
+            });
+        }
+
+        configComponents.push({ type: 14, spacing: 1 });
+        configComponents.push({ type: 10, content: '✨ More options coming soon...' });
 
         const configPanel = {
             content: ' ',
             components: [{
                 type: 17,
-                components: [
-                    // Header
-                    { type: 10, content: `## 🎛️ ${BOT_NAME} Configuration` },
-                    { type: 14, spacing: 1 },
-
-                    // Prefix Configuration Section
-                    { type: 10, content: '### 📌 Prefix Settings' },
-                    { type: 10, content: `**Current Prefix:** \`${prefix}\`` },
-                    {
-                        type: 1,
-                        components: [
-                            { type: 2, style: 1, label: 'Set Prefix', custom_id: 'config_set_prefix' }
-                        ]
-                    },
-                    { type: 14, spacing: 1 },
-
-                    // Bot Profile Section
-                    { type: 10, content: '### 👤 Server Customer' },
-                    { type: 10, content: 'Customize your server customer profile' },
-                    {
-                        type: 1,
-                        components: [
-                            { type: 2, style: 1, label: 'Header Attachment', custom_id: 'config_header_attach' },
-                            { type: 2, style: 1, label: 'BG Attachment', custom_id: 'config_banner_attach' }
-                        ]
-                    },
-                    { type: 14, spacing: 1 },
-
-                    // Future Expansion Placeholder
-                    { type: 10, content: '✨ More options coming soon...' }
-                ]
+                components: configComponents
             }],
             flags: 32768 | MessageFlags.Ephemeral
         };
