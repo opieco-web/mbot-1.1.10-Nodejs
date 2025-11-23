@@ -747,9 +747,8 @@ client.on(Events.InteractionCreate, async interaction => {
 
     const { commandName, guildId, member, user } = interaction;
 
-    // ------------------------
-    // NICKNAME SYSTEM
-    // ------------------------
+    // NICKNAME SYSTEM - Component V2 Container
+    // type 17 = Container | type 10 = TextDisplay | type 14 = Separator
     if (commandName === 'nickname') {
         const subcommand = interaction.options.getSubcommand();
 
@@ -780,6 +779,8 @@ client.on(Events.InteractionCreate, async interaction => {
         }
     }
 
+    // NICKNAME FILTER - Component V2 Container
+    // type 17 = Container | type 10 = TextDisplay | type 14 = Separator
     if (commandName === 'nicknamefilter') {
         const action = interaction.options.getString('action');
         const word = interaction.options.getString('word')?.toLowerCase();
@@ -833,6 +834,8 @@ client.on(Events.InteractionCreate, async interaction => {
         return interaction.reply({ content: `<:mg_question:1439893408041930894> Current prefix is: ${prefix}`, flags: MessageFlags.Ephemeral });
     }
 
+    // BOTINFO - Component V2 Container
+    // type 17 = Container | type 10 = TextDisplay | type 14 = Separator | type 9 = Content Accessory
     if (commandName === 'botinfo') {
         const botName = client.user.username;
         const prefix = getPrefix(guildId);
@@ -891,6 +894,8 @@ client.on(Events.InteractionCreate, async interaction => {
         setTimeout(() => replyMsg.delete().catch(() => {}), 30000);
     }
 
+    // AFKLIST - Component V2 Container
+    // type 17 = Container | type 10 = TextDisplay | type 14 = Separator
     if (commandName === 'afklist') {
         if (!member.permissions.has(PermissionsBitField.Flags.ManageGuild) && !member.permissions.has(PermissionsBitField.Flags.Administrator)) {
             return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## 🚫 Permission Denied' }, { type: 14, spacing: 1 }, { type: 10, content: 'You need ManageGuild permission.' }] }], flags: 32768 | MessageFlags.Ephemeral });
