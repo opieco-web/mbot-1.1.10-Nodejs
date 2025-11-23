@@ -96,5 +96,29 @@
   },
   "prefixes": {},
   "autoresponses": {},
-  "status": {}
+  "status": {},
+  "meme": {
+    "templates": [
+      {
+        "name": "Distracted Boyfriend",
+        "url": "https://i.imgflip.com/1ur9b0.jpg"
+      },
+      {
+        "name": "Drake",
+        "url": "https://i.imgflip.com/44gqj2.jpg"
+      },
+      {
+        "name": "Gru's Plan",
+        "url": "https://i.imgflip.com/3xz6me.jpg"
+      },
+      {
+        "name": "Doge",
+        "url": "https://i.imgflip.com/2ep9l2.jpg"
+      },
+      {
+        "name": "Change My Mind",
+        "url": "https://i.imgflip.com/355g3z.jpg"
+      }
+    ]
+  }
 }

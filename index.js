@@ -2056,6 +2056,74 @@ client.on(Events.MessageCreate, async msg => {
             return msg.reply(response);
         }
 
+        // Meme generator prefix command
+        if (cmd === 'meme') {
+            const fullText = args.join(' ');
+            const parts = fullText.split(',').map(p => p.trim());
+            const topText = parts[0] || '';
+            const bottomText = parts[1] || '';
+            
+            if (!topText) {
+                return msg.reply('❌ Usage: `!meme <top text>, <bottom text>`');
+            }
+            
+            const waitMsg = await msg.reply('🎨 Generating meme...');
+            
+            try {
+                const memeTemplates = data.meme?.templates || [];
+                const randomTemplate = memeTemplates[Math.floor(Math.random() * memeTemplates.length)];
+                const imageUrl = randomTemplate.url;
+                
+                const response = await fetch(imageUrl);
+                const buffer = await response.arrayBuffer();
+                
+                const img = new (await import('canvas')).Image();
+                img.src = Buffer.from(buffer);
+                
+                const canvas = createCanvas(img.width, img.height);
+                const ctx = canvas.getContext('2d');
+                
+                ctx.drawImage(img, 0, 0);
+                
+                const fontSize = Math.min(img.width / 8, 60);
+                ctx.font = `bold ${fontSize}px Impact, sans-serif`;
+                ctx.fillStyle = 'white';
+                ctx.strokeStyle = 'black';
+                ctx.lineWidth = Math.max(2, fontSize / 20);
+                ctx.textAlign = 'center';
+                
+                if (topText) {
+                    const lines = topText.match(/(.{1,30})/g) || [];
+                    lines.forEach((line, i) => {
+                        const y = fontSize * (i + 1.5);
+                        ctx.strokeText(line, img.width / 2, y);
+                        ctx.fillText(line, img.width / 2, y);
+                    });
+                }
+                
+                if (bottomText) {
+                    const lines = bottomText.match(/(.{1,30})/g) || [];
+                    lines.forEach((line, i) => {
+                        const y = img.height - (fontSize * (lines.length - i - 0.5));
+                        ctx.strokeText(line, img.width / 2, y);
+                        ctx.fillText(line, img.width / 2, y);
+                    });
+                }
+                
+                const memeBuffer = canvas.toBuffer('image/png');
+                const responses = ['🎉 Your meme is ready!', '😂 LOL!', 'Nice meme!', '🔥 Fire!', 'Hilarious!'];
+                const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+                
+                await waitMsg.delete().catch(() => {});
+                return msg.reply({
+                    content: randomResponse,
+                    files: [{ attachment: memeBuffer, name: 'meme.png' }]
+                });
+            } catch (error) {
+                return waitMsg.edit(`❌ Meme generation failed: ${error.message}`);
+            }
+        }
+
         // Fun command: Truth or Dare
         if (cmd === 'td') {
             const cooldownRemaining = checkAndWarnCooldown(msg.author.id, 'td', 5000);
