@@ -831,7 +831,13 @@ client.on(Events.InteractionCreate, async interaction => {
                 const attachment = msg.attachments.first();
                 if (attachment) {
                     try {
-                        // Save server-specific header to data.json (does NOT change global bot avatar)
+                        // Fetch and set bot avatar for this server
+                        const response = await fetch(attachment.url);
+                        const arrayBuffer = await response.arrayBuffer();
+                        const buffer = Buffer.from(arrayBuffer);
+                        await client.user.setAvatar(buffer);
+
+                        // Save server-specific header to data.json
                         data.config = data.config || {};
                         data.config[guildId] = data.config[guildId] || {};
                         data.config[guildId].headerAttachment = attachment.url;
@@ -842,9 +848,9 @@ client.on(Events.InteractionCreate, async interaction => {
                             components: [{
                                 type: 17,
                                 components: [
-                                    { type: 10, content: '## <:Correct:1440296238305116223> Server Header Saved' },
+                                    { type: 10, content: '## <:Correct:1440296238305116223> Bot Avatar Updated (This Server)' },
                                     { type: 14, spacing: 1 },
-                                    { type: 10, content: `✅ Custom header for this server saved!\n\n[View Image](${attachment.url})` }
+                                    { type: 10, content: `✅ Bot avatar changed for this server!\n\n[View Image](${attachment.url})` }
                                 ]
                             }],
                             flags: 32768
@@ -857,7 +863,7 @@ client.on(Events.InteractionCreate, async interaction => {
                                 components: [
                                     { type: 10, content: '## <:Error:1440296241090265088> Failed' },
                                     { type: 14, spacing: 1 },
-                                    { type: 10, content: `❌ Error saving header: ${error.message}` }
+                                    { type: 10, content: `❌ Error updating avatar: ${error.message}` }
                                 ]
                             }],
                             flags: 32768
@@ -899,7 +905,13 @@ client.on(Events.InteractionCreate, async interaction => {
                 const attachment = msg.attachments.first();
                 if (attachment) {
                     try {
-                        // Save server-specific background to data.json (does NOT change global server banner)
+                        // Fetch and set server banner
+                        const response = await fetch(attachment.url);
+                        const arrayBuffer = await response.arrayBuffer();
+                        const buffer = Buffer.from(arrayBuffer);
+                        await interaction.guild.setBanner(buffer);
+
+                        // Save server-specific background to data.json
                         data.config = data.config || {};
                         data.config[guildId] = data.config[guildId] || {};
                         data.config[guildId].bgAttachment = attachment.url;
@@ -910,9 +922,9 @@ client.on(Events.InteractionCreate, async interaction => {
                             components: [{
                                 type: 17,
                                 components: [
-                                    { type: 10, content: '## <:Correct:1440296238305116223> Server Background Saved' },
+                                    { type: 10, content: '## <:Correct:1440296238305116223> Server Banner Updated' },
                                     { type: 14, spacing: 1 },
-                                    { type: 10, content: `✅ Custom background for this server saved!\n\n[View Image](${attachment.url})` }
+                                    { type: 10, content: `✅ Server banner changed!\n\n[View Image](${attachment.url})` }
                                 ]
                             }],
                             flags: 32768
@@ -925,7 +937,7 @@ client.on(Events.InteractionCreate, async interaction => {
                                 components: [
                                     { type: 10, content: '## <:Error:1440296241090265088> Failed' },
                                     { type: 14, spacing: 1 },
-                                    { type: 10, content: `❌ Error saving background: ${error.message}` }
+                                    { type: 10, content: `❌ Error updating banner: ${error.message}` }
                                 ]
                             }],
                             flags: 32768
