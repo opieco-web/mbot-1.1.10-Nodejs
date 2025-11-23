@@ -1451,7 +1451,7 @@ client.on(Events.InteractionCreate, async interaction => {
             let displayText = limitedText;
             if (pageTitle && !searchLocal) {
                 const wikiUrl = `https://en.wikipedia.org/wiki/${encodeURIComponent(pageTitle.replace(/ /g, '_'))}`;
-                displayText = `${limitedText}\n\n📖 **Read Full Article:**\n${wikiUrl}`;
+                displayText = `${limitedText}\n\n<:question:1441531934332424314> **Read Full Article:**\n${wikiUrl}`;
             }
 
             const containerComponents = [
@@ -2311,7 +2311,7 @@ client.on(Events.MessageCreate, async msg => {
                 let displayText = limitedText;
                 if (pageTitle && !searchLocal) {
                     const wikiUrl = `https://en.wikipedia.org/wiki/${encodeURIComponent(pageTitle.replace(/ /g, '_'))}`;
-                    displayText = `${limitedText}\n\n📖 **Read Full Article:**\n${wikiUrl}`;
+                    displayText = `${limitedText}\n\n<:question:1441531934332424314> **Read Full Article:**\n${wikiUrl}`;
                 }
 
                 const containerComponents = [
