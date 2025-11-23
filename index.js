@@ -1,5 +1,6 @@
 import { Client, GatewayIntentBits, Partials, Collection, ButtonStyle, ActionRowBuilder, ButtonBuilder, Events, PermissionsBitField, REST, Routes, SlashCommandBuilder, EmbedBuilder, MessageFlags, ActivityType, ContainerBuilder, TextDisplayBuilder, MediaGalleryBuilder, MediaGalleryItemBuilder } from 'discord.js';
 import fs from 'fs';
+import { createCanvas, registerFont } from 'canvas';
 
 const TOKEN = process.env.DISCORD_BOT_TOKEN;
 const CLIENT_ID = process.env.DISCORD_CLIENT_ID;
@@ -428,6 +429,26 @@ const commands = [
             option
                 .setName('local')
                 .setDescription('Search local bot data instead of DuckDuckGo? (default: false)')
+                .setRequired(false)),
+
+    // Meme generator command
+    new SlashCommandBuilder()
+        .setName('meme')
+        .setDescription('Generate a meme with custom text')
+        .addStringOption(option =>
+            option
+                .setName('top_text')
+                .setDescription('Text for top of meme')
+                .setRequired(true))
+        .addStringOption(option =>
+            option
+                .setName('bottom_text')
+                .setDescription('Text for bottom of meme (optional)')
+                .setRequired(false))
+        .addAttachmentOption(option =>
+            option
+                .setName('image')
+                .setDescription('Upload an image to use as meme template (optional)')
                 .setRequired(false))
 ].map(cmd => cmd.toJSON());
 
@@ -1526,6 +1547,77 @@ client.on(Events.InteractionCreate, async interaction => {
                 content: `<:Error:1440296241090265088> Search failed: ${error.message}`,
                 flags: MessageFlags.Ephemeral
             });
+        }
+    }
+
+    // MEME GENERATOR
+    // ------------------------
+    if (commandName === 'meme') {
+        await interaction.deferReply();
+        
+        const topText = interaction.options.getString('top_text') || '';
+        const bottomText = interaction.options.getString('bottom_text') || '';
+        const imageAttachment = interaction.options.getAttachment('image');
+        
+        try {
+            const memeTemplates = data.meme?.templates || [];
+            let imageUrl = imageAttachment?.url;
+            
+            if (!imageUrl && memeTemplates.length > 0) {
+                const randomTemplate = memeTemplates[Math.floor(Math.random() * memeTemplates.length)];
+                imageUrl = randomTemplate.url;
+            }
+            
+            if (!imageUrl) {
+                return interaction.editReply('❌ No image provided and no meme templates available.');
+            }
+            
+            const response = await fetch(imageUrl);
+            const buffer = await response.arrayBuffer();
+            
+            const img = new (await import('canvas')).Image();
+            img.src = Buffer.from(buffer);
+            
+            const canvas = createCanvas(img.width, img.height);
+            const ctx = canvas.getContext('2d');
+            
+            ctx.drawImage(img, 0, 0);
+            
+            const fontSize = Math.min(img.width / 8, 60);
+            ctx.font = `bold ${fontSize}px Impact, sans-serif`;
+            ctx.fillStyle = 'white';
+            ctx.strokeStyle = 'black';
+            ctx.lineWidth = Math.max(2, fontSize / 20);
+            ctx.textAlign = 'center';
+            
+            if (topText) {
+                const lines = topText.match(/(.{1,30})/g) || [];
+                lines.forEach((line, i) => {
+                    const y = fontSize * (i + 1.5);
+                    ctx.strokeText(line, img.width / 2, y);
+                    ctx.fillText(line, img.width / 2, y);
+                });
+            }
+            
+            if (bottomText) {
+                const lines = bottomText.match(/(.{1,30})/g) || [];
+                lines.forEach((line, i) => {
+                    const y = img.height - (fontSize * (lines.length - i - 0.5));
+                    ctx.strokeText(line, img.width / 2, y);
+                    ctx.fillText(line, img.width / 2, y);
+                });
+            }
+            
+            const memeBuffer = canvas.toBuffer('image/png');
+            const responses = ['🎉 Your meme is ready!', '😂 LOL!', 'Nice meme!', '🔥 Fire!', 'Hilarious!'];
+            const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+            
+            return interaction.editReply({
+                content: randomResponse,
+                files: [{ attachment: memeBuffer, name: 'meme.png' }]
+            });
+        } catch (error) {
+            return interaction.editReply(`<:Error:1440296241090265088> Meme generation failed: ${error.message}`);
         }
     }
 
