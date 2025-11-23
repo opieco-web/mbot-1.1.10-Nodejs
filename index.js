@@ -1354,26 +1354,34 @@ client.on(Events.InteractionCreate, async interaction => {
                 const queryLower = query.toLowerCase();
                 
                 // Check if query matches a topic
-                if (data.topics && data.topics[queryLower]) {
-                    const topicData = data.topics[queryLower];
-                    
-                    // If topicData is a message ID (string of digits), fetch the message
-                    if (topicData && /^\d+_\d+_\d+$/.test(topicData)) {
-                        const [channelId, messageId] = topicData.split('_');
-                        try {
-                            const channel = await client.channels.fetch(channelId);
-                            if (channel && channel.isTextBased()) {
-                                const message = await channel.messages.fetch(messageId);
-                                const messageLink = `https://discord.com/channels/${guildId}/${channelId}/${messageId}`;
-                                const summary = message.content.substring(0, 800);
-                                resultText = `**${query}**\n\n${summary}\n\n<:question:1441531934332424314> [**View Full Message**](${messageLink})`;
-                            }
-                        } catch (err) {
-                            resultText = `Topic "${query}" not found or message not accessible.`;
+                let foundTopic = null;
+                if (data.topics) {
+                    for (const [topicName, topicData] of Object.entries(data.topics)) {
+                        if (topicName.toLowerCase().includes(queryLower) || queryLower.includes(topicName.toLowerCase())) {
+                            foundTopic = topicData;
+                            break;
                         }
-                    } else if (typeof topicData === 'string') {
-                        // Direct content stored
-                        resultText = `**${query}**\n\n${topicData}`;
+                    }
+                }
+                
+                if (foundTopic && typeof foundTopic === 'object') {
+                    const { channelId, messageId, threadId } = foundTopic;
+                    try {
+                        let channel = await client.channels.fetch(channelId);
+                        
+                        // If it's a thread, fetch the thread channel
+                        if (threadId && channel.threads) {
+                            channel = await channel.threads.fetch(threadId);
+                        }
+                        
+                        if (channel && channel.isTextBased()) {
+                            const message = await channel.messages.fetch(messageId);
+                            const messageLink = `https://discord.com/channels/${guildId}/${channelId}/${messageId}`;
+                            const summary = message.content.substring(0, 800);
+                            resultText = `**${query}**\n\n${summary}\n\n<:question:1441531934332424314> [**View Full Message**](${messageLink})`;
+                        }
+                    } catch (err) {
+                        resultText = `Topic "${query}" not found or message not accessible.`;
                     }
                 } else {
                     // Search in autoresponses
@@ -1388,7 +1396,8 @@ client.on(Events.InteractionCreate, async interaction => {
                     if (searchResults.length > 0) {
                         resultText = searchResults.slice(0, 5).join('\n');
                     } else {
-                        resultText = `No topic or auto-response found for "${query}". Available topics: ${Object.keys(data.topics || {}).join(', ')}`;
+                        const availableTopics = Object.keys(data.topics || {}).join(', ');
+                        resultText = `No topic or auto-response found for "${query}".\n\nAvailable topics: ${availableTopics}`;
                     }
                 }
             } else {
