@@ -1640,8 +1640,8 @@ client.on(Events.InteractionCreate, async interaction => {
             {
                 type: 1,
                 components: [
-                    { type: 2, style: 1, label: 'Header Attachment', custom_id: 'config_header_attach' },
-                    { type: 2, style: 1, label: 'BG Attachment', custom_id: 'config_banner_attach' }
+                    { type: 2, style: 1, label: 'Bot Icon', custom_id: 'config_header_attach' },
+                    { type: 2, style: 1, label: 'Bot Banner', custom_id: 'config_banner_attach' }
                 ]
             }
         ];
