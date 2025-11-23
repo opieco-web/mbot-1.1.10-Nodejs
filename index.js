@@ -1344,9 +1344,8 @@ client.on(Events.InteractionCreate, async interaction => {
         return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: `### ${emoji} ${pick}` }, { type: 14, spacing: 1 }, { type: 10, content: question }] }], flags: 32768 });
     }
 
-    // ------------------------
-    // FUN COMMAND: Choose
-    // ------------------------
+    // CHOOSE - Component V2 Container
+    // type 17 = Container | type 10 = TextDisplay | type 14 = Separator
     if (commandName === 'choose') {
         const subjectA = interaction.options.getString('a');
         const subjectB = interaction.options.getString('b');
@@ -1374,9 +1373,8 @@ client.on(Events.InteractionCreate, async interaction => {
         });
     }
 
-    // ------------------------
-    // SEARCH COMMAND
-    // ------------------------
+    // SEARCH - Component V2 Container
+    // type 17 = Container | type 10 = TextDisplay | type 14 = Separator | type 9 = Content Accessory
     if (commandName === 'search') {
         await interaction.deferReply();
         const query = interaction.options.getString('query');
@@ -1591,8 +1589,8 @@ client.on(Events.InteractionCreate, async interaction => {
         }
     }
 
-    // SEND MESSAGE COMMAND
-    // ------------------------
+    // SEND - Component V2 Container
+    // type 17 = Container | type 10 = TextDisplay | type 14 = Separator | type 9 = Content Accessory
     if (commandName === 'send') {
         const title = interaction.options.getString('title');
         const content = interaction.options.getString('content');
@@ -1661,9 +1659,8 @@ client.on(Events.InteractionCreate, async interaction => {
         }
     }
 
-    // ------------------------
-    // FUN COMMAND: Coin Flip
-    // ------------------------
+    // COINFLIP - Component V2 Container
+    // type 17 = Container | type 10 = TextDisplay | type 14 = Separator
     if (commandName === 'coinflip') {
         const cooldownRemaining = checkAndWarnCooldown(user.id, 'coinflip', 5000);
         if (cooldownRemaining > 0) {
@@ -1675,9 +1672,8 @@ client.on(Events.InteractionCreate, async interaction => {
         return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '### <:Tails:1441153955412312134> Coin Flip' }, { type: 14, spacing: 1 }, { type: 10, content: `The coin landed on: **${result}**!` }] }], flags: 32768 });
     }
 
-    // ------------------------
-    // MODERATION: Auto-response
-    // ------------------------
+    // AUTORESPONSE - Component V2 Container
+    // type 17 = Container | type 10 = TextDisplay | type 14 = Separator
     if (commandName === 'autoresponse') {
         const action = interaction.options.getString('action');
         const trigger = interaction.options.getString('trigger');
@@ -1772,12 +1768,11 @@ client.on(Events.InteractionCreate, async interaction => {
         }
     }
 
-    // ------------------------
-    // BOT MANAGEMENT (Status)
-    // ------------------------
+    // STATUS - Component V2 Container
+    // type 17 = Container | type 10 = TextDisplay | type 14 = Separator
     if (commandName === 'status') {
         if (!interaction.member.permissions.has(PermissionsBitField.Flags.ManageGuild)) {
-            return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> You need ManageGuild permission to use this command.', flags: MessageFlags.Ephemeral });
+            return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## 🚫 Permission Denied' }, { type: 14 }, { type: 10, content: 'You need ManageGuild permission.' }] }], flags: 32768 | MessageFlags.Ephemeral });
         }
 
         const action = interaction.options.getString('action');
@@ -1790,13 +1785,13 @@ client.on(Events.InteractionCreate, async interaction => {
             const onlineStatus = interaction.options.getString('online_status');
 
             if (!activityType || !activityText) {
-                return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> You must provide both activity type and activity text.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:Error:1440296241090265088> Error' }, { type: 14 }, { type: 10, content: 'Provide both activity type and text.' }] }], flags: 32768 | MessageFlags.Ephemeral });
             }
 
             if (activityType === 'Streaming' && streamUrl) {
                 const validStreamUrl = streamUrl.match(/^https?:\/\/(www\.)?(twitch\.tv|youtube\.com|youtu\.be)\/.+$/i);
                 if (!validStreamUrl) {
-                    return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> Invalid streaming URL. Use Twitch or YouTube links.', flags: MessageFlags.Ephemeral });
+                    return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:Error:1440296241090265088> Invalid URL' }, { type: 14 }, { type: 10, content: 'Use Twitch or YouTube links.' }] }], flags: 32768 | MessageFlags.Ephemeral });
                 }
             }
 
@@ -1813,7 +1808,7 @@ client.on(Events.InteractionCreate, async interaction => {
             applyBotStatus();
 
             const displayText = emoji ? `${emoji} ${activityText}` : activityText;
-            return interaction.reply({ content: `<:1_yes_correct:1439893200981721140> Status updated: **${activityType}** ${displayText}`, flags: MessageFlags.Ephemeral });
+            return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:1_yes_correct:1439893200981721140> Status Updated' }, { type: 14 }, { type: 10, content: `**${activityType}** ${displayText}` }] }], flags: 32768 | MessageFlags.Ephemeral });
         }
 
         if (action === 'reset') {
@@ -1821,14 +1816,14 @@ client.on(Events.InteractionCreate, async interaction => {
             fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
             applyBotStatus();
 
-            return interaction.reply({ content: '<:1_yes_correct:1439893200981721140> Status cleared. Bot is now online with no activity.', flags: MessageFlags.Ephemeral });
+            return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:1_yes_correct:1439893200981721140> Status Cleared' }, { type: 14 }, { type: 10, content: 'Bot status reset to online.' }] }], flags: 32768 | MessageFlags.Ephemeral });
         }
 
         if (action === 'view') {
             let statusText = '';
             
             if (!data.bot.status.text || !data.bot.status.type) {
-                statusText = '<:Correct:1440296238305116223> Bot is online with no custom activity set.';
+                statusText = 'Bot is online with no custom activity.';
             } else {
                 const displayName = data.bot.status.emoji ? `${data.bot.status.emoji} ${data.bot.status.text}` : data.bot.status.text;
                 statusText += `**Activity:** ${data.bot.status.type} ${displayName}\n`;
@@ -1837,25 +1832,15 @@ client.on(Events.InteractionCreate, async interaction => {
                     statusText += `**Stream:** ${data.bot.status.streamUrl}\n`;
                 }
                 
-                statusText += `**Visibility:** ${data.bot.status.presence || 'online'}\n`;
-                
-                if (data.bot.status.lastUpdatedBy) {
-                    statusText += `**Updated By:** <@${data.bot.status.lastUpdatedBy}>\n`;
-                }
-                
-                if (data.bot.status.lastUpdatedAt) {
-                    const date = new Date(data.bot.status.lastUpdatedAt);
-                    statusText += `**Updated:** <t:${Math.floor(date.getTime() / 1000)}:R>`;
-                }
+                statusText += `**Visibility:** ${data.bot.status.presence || 'online'}`;
             }
 
-            return interaction.reply({ embeds: [createModeratorEmbed('🤖 Bot Status', statusText, 0x2F3136)], flags: MessageFlags.Ephemeral });
+            return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## 🤖 Bot Status' }, { type: 14 }, { type: 10, content: statusText }] }], flags: 32768 | MessageFlags.Ephemeral });
         }
     }
 
-    // ------------------------
-    // WELCOME SYSTEM
-    // ------------------------
+    // WELCOME - Component V2 Container
+    // type 17 = Container | type 10 = TextDisplay | type 14 = Separator
     if (commandName === 'welcome') {
         const subcommand = interaction.options.getSubcommand();
 
