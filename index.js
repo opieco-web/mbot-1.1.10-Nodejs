@@ -1356,7 +1356,7 @@ client.on(Events.InteractionCreate, async interaction => {
                 if (data.autoresponse[guildId]) {
                     data.autoresponse[guildId].forEach(ar => {
                         if (ar.trigger.toLowerCase().includes(query.toLowerCase()) || ar.response.toLowerCase().includes(query.toLowerCase())) {
-                            searchResults.push(`**AR:** ${ar.trigger.substring(0, 30)} → ${ar.response.substring(0, 40)}...`);
+                            searchResults.push(`**AR:** ${ar.trigger} → ${ar.response}`);
                         }
                     });
                 }
@@ -2213,7 +2213,7 @@ client.on(Events.MessageCreate, async msg => {
                     if (data.autoresponse[guildId]) {
                         data.autoresponse[guildId].forEach(ar => {
                             if (ar.trigger.toLowerCase().includes(query.toLowerCase()) || ar.response.toLowerCase().includes(query.toLowerCase())) {
-                                searchResults.push(`**AR:** ${ar.trigger.substring(0, 30)} → ${ar.response.substring(0, 40)}...`);
+                                searchResults.push(`**AR:** ${ar.trigger} → ${ar.response}`);
                             }
                         });
                     }
@@ -2230,7 +2230,7 @@ client.on(Events.MessageCreate, async msg => {
                     // Search in AFK data
                     for (const [userId, afkData] of Object.entries(data.afk || {})) {
                         if (afkData.reason.toLowerCase().includes(query.toLowerCase())) {
-                            searchResults.push(`**AFK:** <@${userId}> - ${afkData.reason.substring(0, 40)}...`);
+                            searchResults.push(`**AFK:** <@${userId}> - ${afkData.reason}`);
                         }
                     }
 
