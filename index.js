@@ -879,9 +879,9 @@ client.on(Events.InteractionCreate, async interaction => {
                 components: [{
                     type: 17,
                     components: [
-                        { type: 10, content: '### 📎 Header Attachment' },
+                        { type: 10, content: '### 🎯 Bot Icon Upload' },
                         { type: 14, spacing: 1 },
-                        { type: 10, content: '**Upload a header image for your server profile**\n\nRecommended size: **1920x480px**\n\n⏳ Waiting for file... (60 seconds)' }
+                        { type: 10, content: '**Upload a custom icon for your bot (this server only)**\n\nRecommended size: **1024x1024px** (PNG/JPG)\n\n⏳ Waiting for file... (60 seconds)' }
                     ]
                 }],
                 flags: 32768 | MessageFlags.Ephemeral
@@ -953,9 +953,9 @@ client.on(Events.InteractionCreate, async interaction => {
                 components: [{
                     type: 17,
                     components: [
-                        { type: 10, content: '### 🎨 BG Attachment' },
+                        { type: 10, content: '### 🎨 Bot Banner Upload' },
                         { type: 14, spacing: 1 },
-                        { type: 10, content: '**Upload a background image for your server**\n\nRecommended size: **1200x300px**\n\n⏳ Waiting for file... (60 seconds)' }
+                        { type: 10, content: '**Upload a custom banner for your bot (this server only)**\n\nRecommended size: **1920x540px** (PNG/JPG)\n\n⏳ Waiting for file... (60 seconds)' }
                     ]
                 }],
                 flags: 32768 | MessageFlags.Ephemeral
@@ -969,13 +969,7 @@ client.on(Events.InteractionCreate, async interaction => {
                 const attachment = msg.attachments.first();
                 if (attachment) {
                     try {
-                        // Fetch and set server banner
-                        const response = await fetch(attachment.url);
-                        const arrayBuffer = await response.arrayBuffer();
-                        const buffer = Buffer.from(arrayBuffer);
-                        await interaction.guild.setBanner(buffer);
-
-                        // Save server-specific background to data.json
+                        // Save server-specific bot banner to data.json
                         data.config = data.config || {};
                         data.config[guildId] = data.config[guildId] || {};
                         data.config[guildId].bgAttachment = attachment.url;
@@ -986,9 +980,9 @@ client.on(Events.InteractionCreate, async interaction => {
                             components: [{
                                 type: 17,
                                 components: [
-                                    { type: 10, content: '## <:Correct:1440296238305116223> Server Banner Updated' },
+                                    { type: 10, content: '## <:Correct:1440296238305116223> Bot Banner Updated' },
                                     { type: 14, spacing: 1 },
-                                    { type: 10, content: `✅ Server banner changed!\n\n[View Image](${attachment.url})` }
+                                    { type: 10, content: `✅ Bot banner saved for this server!\n\n[View Image](${attachment.url})` }
                                 ]
                             }],
                             flags: 32768
@@ -1001,7 +995,7 @@ client.on(Events.InteractionCreate, async interaction => {
                                 components: [
                                     { type: 10, content: '## <:Error:1440296241090265088> Failed' },
                                     { type: 14, spacing: 1 },
-                                    { type: 10, content: `❌ Error updating banner: ${error.message}` }
+                                    { type: 10, content: `❌ Error saving banner: ${error.message}` }
                                 ]
                             }],
                             flags: 32768
@@ -1018,6 +1012,17 @@ client.on(Events.InteractionCreate, async interaction => {
                     });
                 }
             });
+        }
+
+        // Config: Profile Reset button
+        if (customId === 'config_profile_reset') {
+            data.config = data.config || {};
+            data.config[guildId] = data.config[guildId] || {};
+            delete data.config[guildId].headerAttachment;
+            delete data.config[guildId].bgAttachment;
+            fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
+
+            return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:1_yes_correct:1439893200981721140> Profile Reset' }, { type: 14 }, { type: 10, content: 'Bot Icon and Banner reset to default.' }] }], flags: 32768 | MessageFlags.Ephemeral });
         }
         }
     } catch (error) {
@@ -1832,6 +1837,13 @@ client.on(Events.InteractionCreate, async interaction => {
                 if (bgUrl) {
                     pageComponents.push({ type: 10, content: `**Bot Banner:**\n${bgUrl}` });
                 }
+                pageComponents.push({ type: 14, spacing: 1 });
+                pageComponents.push({
+                    type: 1,
+                    components: [
+                        { type: 2, style: 4, label: 'Reset to Default', custom_id: 'config_profile_reset' }
+                    ]
+                });
             }
         }
         
