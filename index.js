@@ -1444,28 +1444,6 @@ client.on(Events.InteractionCreate, async interaction => {
                 }
             ];
 
-            // Add media gallery if image is available (16:9 aspect ratio)
-            if (!searchLocal && mediaUrl && mediaUrl.trim()) {
-                // Ensure URL is proper and accessible
-                let imageUrl = mediaUrl;
-                if (!imageUrl.startsWith('http')) {
-                    imageUrl = 'https:' + imageUrl;
-                }
-                
-                // Only add image if it's a valid Wikipedia/Commons URL
-                if (imageUrl.includes('commons.wikimedia.org') || imageUrl.includes('upload.wikimedia.org')) {
-                    containerComponents.push({
-                        type: 12,
-                        items: [
-                            {
-                                media: {
-                                    url: imageUrl
-                                }
-                            }
-                        ]
-                    });
-                }
-            }
 
             const payload = {
                 content: ' ',
@@ -2289,28 +2267,6 @@ client.on(Events.MessageCreate, async msg => {
                     }
                 ];
 
-                // Add media gallery if image is available (16:9 aspect ratio)
-                if (!searchLocal && mediaUrl && mediaUrl.trim()) {
-                    // Ensure URL is proper and accessible
-                    let imageUrl = mediaUrl;
-                    if (!imageUrl.startsWith('http')) {
-                        imageUrl = 'https:' + imageUrl;
-                    }
-                    
-                    // Only add image if it's a valid Wikipedia/Commons URL
-                    if (imageUrl.includes('commons.wikimedia.org') || imageUrl.includes('upload.wikimedia.org')) {
-                        containerComponents.push({
-                            type: 12,
-                            items: [
-                                {
-                                    media: {
-                                        url: imageUrl
-                                    }
-                                }
-                            ]
-                        });
-                    }
-                }
 
                 const payload = {
                     content: ' ',
