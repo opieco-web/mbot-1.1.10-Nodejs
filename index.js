@@ -1352,16 +1352,16 @@ client.on(Events.InteractionCreate, async interaction => {
                 // Local search - search all server data + APK channel messages
                 const searchResults = [];
                 
-                // Search in APK channel if configured
-                if (data.channels?.apk) {
+                // Search in FAQ channel if configured
+                if (data.channels?.faq) {
                     try {
-                        const apkChannel = await client.channels.fetch(data.channels.apk);
-                        if (apkChannel && apkChannel.isTextBased()) {
-                            const messages = await apkChannel.messages.fetch({ limit: 100 });
+                        const faqChannel = await client.channels.fetch(data.channels.faq);
+                        if (faqChannel && faqChannel.isTextBased()) {
+                            const messages = await faqChannel.messages.fetch({ limit: 100 });
                             messages.forEach(msg => {
                                 if (msg.content.toLowerCase().includes(query.toLowerCase())) {
-                                    const messageLink = `https://discord.com/channels/${guildId}/${apkChannel.id}/${msg.id}`;
-                                    searchResults.push(`**[APK]** ${msg.author.username}: ${msg.content.substring(0, 60)}\n${messageLink}`);
+                                    const messageLink = `https://discord.com/channels/${guildId}/${faqChannel.id}/${msg.id}`;
+                                    searchResults.push(`**[FAQ]** ${msg.author.username}: ${msg.content.substring(0, 60)}\n${messageLink}`);
                                 }
                             });
                         }
