@@ -100,7 +100,10 @@
   "status": {
     "text": "Morning",
     "lastUpdatedBy": "1065350468928290828",
-    "lastUpdatedAt": "2025-11-23T20:40:29.868Z"
+    "lastUpdatedAt": "2025-11-23T20:43:47.455Z",
+    "emoji": "🎀",
+    "presence": "dnd",
+    "type": "Watching"
   },
   "meme": {
     "templates": [

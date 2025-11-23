@@ -1830,10 +1830,12 @@ client.on(Events.InteractionCreate, async interaction => {
             if (headerUrl || bgUrl) {
                 pageComponents.push({ type: 14, spacing: 1 });
                 pageComponents.push({ type: 10, content: '### 📸 Current Custom Profile' });
-                const mediaItems = [];
-                if (headerUrl) mediaItems.push({ type: 1, media: { url: headerUrl }, description: 'Bot Icon' });
-                if (bgUrl) mediaItems.push({ type: 1, media: { url: bgUrl }, description: 'Bot Banner' });
-                pageComponents.push({ type: 12, items: mediaItems });
+                if (headerUrl) {
+                    pageComponents.push({ type: 10, content: `**Bot Icon:**\n${headerUrl}` });
+                }
+                if (bgUrl) {
+                    pageComponents.push({ type: 10, content: `**Bot Banner:**\n${bgUrl}` });
+                }
             }
         }
         
