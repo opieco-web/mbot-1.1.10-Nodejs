@@ -810,33 +810,105 @@ client.on(Events.InteractionCreate, async interaction => {
 
         // Config: Header Attachment button
         if (customId === 'config_header_attach') {
-            return interaction.reply({
+            await interaction.reply({
                 content: ' ',
                 components: [{
                     type: 17,
                     components: [
                         { type: 10, content: '### 📎 Header Attachment' },
                         { type: 14, spacing: 1 },
-                        { type: 10, content: 'Upload a header image for your server profile. Recommended size: 1920x480px' }
+                        { type: 10, content: '**Upload a header image for your server profile**\n\nRecommended size: **1920x480px**\n\n⏳ Waiting for file... (60 seconds)' }
                     ]
                 }],
                 flags: 32768 | MessageFlags.Ephemeral
             });
+
+            // Create a message collector for file uploads
+            const filter = msg => msg.author.id === interaction.user.id && msg.attachments.size > 0;
+            const collector = interaction.channel.createMessageCollector({ filter, time: 60000, max: 1 });
+
+            collector.on('collect', async msg => {
+                const attachment = msg.attachments.first();
+                if (attachment) {
+                    data.config = data.config || {};
+                    data.config[guildId] = data.config[guildId] || {};
+                    data.config[guildId].headerAttachment = attachment.url;
+                    fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
+
+                    await msg.reply({
+                        content: ' ',
+                        components: [{
+                            type: 17,
+                            components: [
+                                { type: 10, content: '## <:Correct:1440296238305116223> Header Attachment Saved' },
+                                { type: 14, spacing: 1 },
+                                { type: 10, content: `✅ Your header image has been saved!\n\n[View Image](${attachment.url})` }
+                            ]
+                        }],
+                        flags: 32768
+                    });
+                }
+            });
+
+            collector.on('end', (collected) => {
+                if (collected.size === 0) {
+                    interaction.followUp({
+                        content: '⏰ Upload timeout - no file received.',
+                        flags: MessageFlags.Ephemeral
+                    });
+                }
+            });
         }
 
-        // Config: Server Banner button
+        // Config: BG Attachment button
         if (customId === 'config_banner_attach') {
-            return interaction.reply({
+            await interaction.reply({
                 content: ' ',
                 components: [{
                     type: 17,
                     components: [
-                        { type: 10, content: '### 🎨 Server Banner' },
+                        { type: 10, content: '### 🎨 BG Attachment' },
                         { type: 14, spacing: 1 },
-                        { type: 10, content: 'Upload a banner image for your server. Recommended size: 1200x300px' }
+                        { type: 10, content: '**Upload a background image for your server**\n\nRecommended size: **1200x300px**\n\n⏳ Waiting for file... (60 seconds)' }
                     ]
                 }],
                 flags: 32768 | MessageFlags.Ephemeral
+            });
+
+            // Create a message collector for file uploads
+            const filter = msg => msg.author.id === interaction.user.id && msg.attachments.size > 0;
+            const collector = interaction.channel.createMessageCollector({ filter, time: 60000, max: 1 });
+
+            collector.on('collect', async msg => {
+                const attachment = msg.attachments.first();
+                if (attachment) {
+                    data.config = data.config || {};
+                    data.config[guildId] = data.config[guildId] || {};
+                    data.config[guildId].bgAttachment = attachment.url;
+                    fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
+
+                    await msg.reply({
+                        content: ' ',
+                        components: [{
+                            type: 17,
+                            components: [
+                                { type: 10, content: '## <:Correct:1440296238305116223> BG Attachment Saved' },
+                                { type: 14, spacing: 1 },
+                                { type: 10, content: `✅ Your background image has been saved!\n\n[View Image](${attachment.url})` }
+                            ]
+                        }],
+                        flags: 32768
+                    });
+                }
+            });
+
+            collector.on('end', (collected) => {
+                if (collected.size === 0) {
+                    interaction.followUp({
+                        content: '⏰ Upload timeout - no file received.',
+                        flags: MessageFlags.Ephemeral
+                    });
+                }
             });
         }
     }
@@ -1527,7 +1599,7 @@ client.on(Events.InteractionCreate, async interaction => {
                         type: 1,
                         components: [
                             { type: 2, style: 1, label: 'Header Attachment', custom_id: 'config_header_attach' },
-                            { type: 2, style: 1, label: 'Server Banner', custom_id: 'config_banner_attach' }
+                            { type: 2, style: 1, label: 'BG Attachment', custom_id: 'config_banner_attach' }
                         ]
                     },
                     { type: 14, spacing: 1 },
