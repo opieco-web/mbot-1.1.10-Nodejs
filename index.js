@@ -830,23 +830,44 @@ client.on(Events.InteractionCreate, async interaction => {
             collector.on('collect', async msg => {
                 const attachment = msg.attachments.first();
                 if (attachment) {
-                    data.config = data.config || {};
-                    data.config[guildId] = data.config[guildId] || {};
-                    data.config[guildId].headerAttachment = attachment.url;
-                    fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
+                    try {
+                        // Set bot avatar
+                        const response = await fetch(attachment.url);
+                        const buffer = await response.buffer();
+                        await client.user.setAvatar(buffer);
 
-                    await msg.reply({
-                        content: ' ',
-                        components: [{
-                            type: 17,
-                            components: [
-                                { type: 10, content: '## <:Correct:1440296238305116223> Header Attachment Saved' },
-                                { type: 14, spacing: 1 },
-                                { type: 10, content: `✅ Your header image has been saved!\n\n[View Image](${attachment.url})` }
-                            ]
-                        }],
-                        flags: 32768
-                    });
+                        // Save to data.json
+                        data.config = data.config || {};
+                        data.config[guildId] = data.config[guildId] || {};
+                        data.config[guildId].headerAttachment = attachment.url;
+                        fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
+
+                        await msg.reply({
+                            content: ' ',
+                            components: [{
+                                type: 17,
+                                components: [
+                                    { type: 10, content: '## <:Correct:1440296238305116223> Bot Avatar Updated' },
+                                    { type: 14, spacing: 1 },
+                                    { type: 10, content: `✅ Bot avatar changed successfully!\n\n[View Image](${attachment.url})` }
+                                ]
+                            }],
+                            flags: 32768
+                        });
+                    } catch (error) {
+                        await msg.reply({
+                            content: ' ',
+                            components: [{
+                                type: 17,
+                                components: [
+                                    { type: 10, content: '## <:Error:1440296241090265088> Failed' },
+                                    { type: 14, spacing: 1 },
+                                    { type: 10, content: `❌ Error updating avatar: ${error.message}` }
+                                ]
+                            }],
+                            flags: 32768
+                        });
+                    }
                 }
             });
 
@@ -882,23 +903,44 @@ client.on(Events.InteractionCreate, async interaction => {
             collector.on('collect', async msg => {
                 const attachment = msg.attachments.first();
                 if (attachment) {
-                    data.config = data.config || {};
-                    data.config[guildId] = data.config[guildId] || {};
-                    data.config[guildId].bgAttachment = attachment.url;
-                    fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
+                    try {
+                        // Set server banner
+                        const response = await fetch(attachment.url);
+                        const buffer = await response.buffer();
+                        await interaction.guild.setBanner(buffer);
 
-                    await msg.reply({
-                        content: ' ',
-                        components: [{
-                            type: 17,
-                            components: [
-                                { type: 10, content: '## <:Correct:1440296238305116223> BG Attachment Saved' },
-                                { type: 14, spacing: 1 },
-                                { type: 10, content: `✅ Your background image has been saved!\n\n[View Image](${attachment.url})` }
-                            ]
-                        }],
-                        flags: 32768
-                    });
+                        // Save to data.json
+                        data.config = data.config || {};
+                        data.config[guildId] = data.config[guildId] || {};
+                        data.config[guildId].bgAttachment = attachment.url;
+                        fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
+
+                        await msg.reply({
+                            content: ' ',
+                            components: [{
+                                type: 17,
+                                components: [
+                                    { type: 10, content: '## <:Correct:1440296238305116223> Server Banner Updated' },
+                                    { type: 14, spacing: 1 },
+                                    { type: 10, content: `✅ Server banner changed successfully!\n\n[View Image](${attachment.url})` }
+                                ]
+                            }],
+                            flags: 32768
+                        });
+                    } catch (error) {
+                        await msg.reply({
+                            content: ' ',
+                            components: [{
+                                type: 17,
+                                components: [
+                                    { type: 10, content: '## <:Error:1440296241090265088> Failed' },
+                                    { type: 14, spacing: 1 },
+                                    { type: 10, content: `❌ Error updating banner: ${error.message}` }
+                                ]
+                            }],
+                            flags: 32768
+                        });
+                    }
                 }
             });
 
