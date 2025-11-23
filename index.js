@@ -1349,14 +1349,14 @@ client.on(Events.InteractionCreate, async interaction => {
             let pageTitle = null;
 
             if (searchLocal) {
-                // Local search - search bot's stored data
+                // Local search - search all server data
                 const searchResults = [];
                 
                 // Search in autoresponses
                 if (data.autoresponse[guildId]) {
                     data.autoresponse[guildId].forEach(ar => {
                         if (ar.trigger.toLowerCase().includes(query.toLowerCase()) || ar.response.toLowerCase().includes(query.toLowerCase())) {
-                            searchResults.push(`**Auto-response:** ${ar.trigger} → ${ar.response.substring(0, 50)}...`);
+                            searchResults.push(`**AR:** ${ar.trigger.substring(0, 30)} → ${ar.response.substring(0, 40)}...`);
                         }
                     });
                 }
@@ -1365,13 +1365,45 @@ client.on(Events.InteractionCreate, async interaction => {
                 if (data.nickname.filter && data.nickname.filter.length > 0) {
                     data.nickname.filter.forEach(word => {
                         if (word.toLowerCase().includes(query.toLowerCase())) {
-                            searchResults.push(`**Banned Word:** ${word}`);
+                            searchResults.push(`**Filter:** ${word}`);
                         }
                     });
                 }
 
+                // Search in AFK data
+                for (const [userId, afkData] of Object.entries(data.afk || {})) {
+                    if (afkData.reason.toLowerCase().includes(query.toLowerCase())) {
+                        searchResults.push(`**AFK:** <@${userId}> - ${afkData.reason.substring(0, 40)}...`);
+                    }
+                }
+
+                // Search in welcome data
+                for (const [guildIdKey, welcomeData] of Object.entries(data.welcome || {})) {
+                    if (guildIdKey === guildId) {
+                        if (query.toLowerCase().includes('welcome') || query.toLowerCase().includes('join')) {
+                            searchResults.push(`**Welcome:** <#${welcomeData.channelId}> (${welcomeData.enabled ? 'Enabled' : 'Disabled'})`);
+                        }
+                    }
+                }
+
+                // Search in prefix data
+                if (data.prefix[guildId]) {
+                    const prefixChar = data.prefix[guildId];
+                    if (query.toLowerCase().includes('prefix')) {
+                        searchResults.push(`**Prefix:** \`${prefixChar}\``);
+                    }
+                }
+
+                // Search in bot status
+                if (data.bot?.status) {
+                    const status = data.bot.status;
+                    if (status.text.toLowerCase().includes(query.toLowerCase()) || status.emoji.toLowerCase().includes(query.toLowerCase())) {
+                        searchResults.push(`**Status:** ${status.text} ${status.emoji}`);
+                    }
+                }
+
                 if (searchResults.length > 0) {
-                    resultText = searchResults.slice(0, 10).join('\n');
+                    resultText = searchResults.slice(0, 15).join('\n');
                 } else {
                     resultText = 'No local data found matching your search.';
                 }
@@ -1413,13 +1445,13 @@ client.on(Events.InteractionCreate, async interaction => {
             }
 
             // Limit line breaks to max 3 for compact display
-            const limitedText = resultText.replace(/\n{4,}/g, '\n\n\n').substring(0, 2000);
+            const limitedText = resultText.replace(/\n{4,}/g, '\n\n\n').substring(0, 1500);
             
             // Add clickable Wikipedia link if we have a page title
             let displayText = limitedText;
             if (pageTitle && !searchLocal) {
                 const wikiUrl = `https://en.wikipedia.org/wiki/${encodeURIComponent(pageTitle.replace(/ /g, '_'))}`;
-                displayText = `${limitedText}\n\n### [📖 Read Full Article on Wikipedia](${wikiUrl})`;
+                displayText = `${limitedText}\n\n[📖 Read Full Article on Wikipedia](${wikiUrl})`;
             }
 
             const containerComponents = [
@@ -1428,7 +1460,7 @@ client.on(Events.InteractionCreate, async interaction => {
                     components: [
                         {
                             type: 10,
-                            content: `**@${interaction.user.username}** searched\n## <:question:1441531934332424314> ${query}`
+                            content: `**@${interaction.user.username}** searched • <:question:1441531934332424314> **${query}**`
                         }
                     ],
                     accessory: {
@@ -2174,27 +2206,61 @@ client.on(Events.MessageCreate, async msg => {
                 let pageTitle = null;
 
                 if (searchLocal) {
-                    // Local search
+                    // Local search - search all server data
                     const searchResults = [];
                     
+                    // Search in autoresponses
                     if (data.autoresponse[guildId]) {
                         data.autoresponse[guildId].forEach(ar => {
                             if (ar.trigger.toLowerCase().includes(query.toLowerCase()) || ar.response.toLowerCase().includes(query.toLowerCase())) {
-                                searchResults.push(`**Auto-response:** ${ar.trigger} → ${ar.response.substring(0, 50)}...`);
+                                searchResults.push(`**AR:** ${ar.trigger.substring(0, 30)} → ${ar.response.substring(0, 40)}...`);
                             }
                         });
                     }
 
+                    // Search in banned words
                     if (data.nickname.filter && data.nickname.filter.length > 0) {
                         data.nickname.filter.forEach(word => {
                             if (word.toLowerCase().includes(query.toLowerCase())) {
-                                searchResults.push(`**Banned Word:** ${word}`);
+                                searchResults.push(`**Filter:** ${word}`);
                             }
                         });
                     }
 
+                    // Search in AFK data
+                    for (const [userId, afkData] of Object.entries(data.afk || {})) {
+                        if (afkData.reason.toLowerCase().includes(query.toLowerCase())) {
+                            searchResults.push(`**AFK:** <@${userId}> - ${afkData.reason.substring(0, 40)}...`);
+                        }
+                    }
+
+                    // Search in welcome data
+                    for (const [guildIdKey, welcomeData] of Object.entries(data.welcome || {})) {
+                        if (guildIdKey === guildId) {
+                            if (query.toLowerCase().includes('welcome') || query.toLowerCase().includes('join')) {
+                                searchResults.push(`**Welcome:** <#${welcomeData.channelId}> (${welcomeData.enabled ? 'Enabled' : 'Disabled'})`);
+                            }
+                        }
+                    }
+
+                    // Search in prefix data
+                    if (data.prefix[guildId]) {
+                        const prefixChar = data.prefix[guildId];
+                        if (query.toLowerCase().includes('prefix')) {
+                            searchResults.push(`**Prefix:** \`${prefixChar}\``);
+                        }
+                    }
+
+                    // Search in bot status
+                    if (data.bot?.status) {
+                        const status = data.bot.status;
+                        if (status.text.toLowerCase().includes(query.toLowerCase()) || status.emoji.toLowerCase().includes(query.toLowerCase())) {
+                            searchResults.push(`**Status:** ${status.text} ${status.emoji}`);
+                        }
+                    }
+
                     if (searchResults.length > 0) {
-                        resultText = searchResults.slice(0, 10).join('\n');
+                        resultText = searchResults.slice(0, 15).join('\n');
                     } else {
                         resultText = 'No local data found matching your search.';
                     }
@@ -2236,13 +2302,13 @@ client.on(Events.MessageCreate, async msg => {
                 }
 
                 // Limit line breaks to max 3 for compact display
-                const limitedText = resultText.replace(/\n{4,}/g, '\n\n\n').substring(0, 2000);
+                const limitedText = resultText.replace(/\n{4,}/g, '\n\n\n').substring(0, 1500);
                 
                 // Add clickable Wikipedia link if we have a page title
                 let displayText = limitedText;
                 if (pageTitle && !searchLocal) {
                     const wikiUrl = `https://en.wikipedia.org/wiki/${encodeURIComponent(pageTitle.replace(/ /g, '_'))}`;
-                    displayText = `${limitedText}\n\n### [📖 Read Full Article on Wikipedia](${wikiUrl})`;
+                    displayText = `${limitedText}\n\n[📖 Read Full Article on Wikipedia](${wikiUrl})`;
                 }
 
                 const containerComponents = [
@@ -2251,7 +2317,7 @@ client.on(Events.MessageCreate, async msg => {
                         components: [
                             {
                                 type: 10,
-                                content: `**@${msg.author.username}** searched\n## <:question:1441531934332424314> ${query}`
+                                content: `**@${msg.author.username}** searched • <:question:1441531934332424314> **${query}**`
                             }
                         ],
                         accessory: {
