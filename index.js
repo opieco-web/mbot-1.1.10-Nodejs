@@ -922,7 +922,15 @@ client.on(Events.InteractionCreate, async interaction => {
                             content: '## <:Correct:1440296238305116223> Bot Icon Saved\n✅ Custom icon applied to **' + interaction.guild.name + '**',
                             flags: MessageFlags.Ephemeral
                         });
-                        await msg.delete().catch(() => {});
+                        
+                        // Delete user's upload message from chat
+                        setTimeout(() => {
+                            msg.delete().then(() => {
+                                console.log('✅ Icon upload message deleted');
+                            }).catch(err => {
+                                console.error('Could not delete icon upload message:', err.message);
+                            });
+                        }, 500);
                     } catch (error) {
                         console.error('Icon upload error:', error);
                     }
@@ -974,7 +982,15 @@ client.on(Events.InteractionCreate, async interaction => {
                             content: '## <:Correct:1440296238305116223> Bot Banner Saved\n✅ Custom banner applied to **' + interaction.guild.name + '**',
                             flags: MessageFlags.Ephemeral
                         });
-                        await msg.delete().catch(() => {});
+                        
+                        // Delete user's upload message from chat
+                        setTimeout(() => {
+                            msg.delete().then(() => {
+                                console.log('✅ Banner upload message deleted');
+                            }).catch(err => {
+                                console.error('Could not delete banner upload message:', err.message);
+                            });
+                        }, 500);
                     } catch (error) {
                         console.error('Banner upload error:', error);
                     }
