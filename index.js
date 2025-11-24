@@ -1185,9 +1185,7 @@ client.on(Events.InteractionCreate, async interaction => {
         afkUsers[user.id] = { reason, timestamp: Date.now() };
         data.afk[user.id] = afkUsers[user.id];
         fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
-        const { resource: replyMsg } = await interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:mg_alert:1439893442065862698> AFK Set' }, { type: 14 }, { type: 10, content: reason }] }], flags: 32768 | MessageFlags.Ephemeral, withResponse: true });
-
-        setTimeout(() => replyMsg.delete().catch(() => {}), 30000);
+        return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:mg_alert:1439893442065862698> AFK Set' }, { type: 14 }, { type: 10, content: reason }] }], flags: 32768 | MessageFlags.Ephemeral });
     }
 
     // AFKLIST - Component V2 Container
