@@ -1896,8 +1896,7 @@ client.on(Events.InteractionCreate, async interaction => {
             components: [{
                 type: 17,
                 components: pageComponents
-            }],
-            flags: 32768 | MessageFlags.Ephemeral
+            }]
         };
 
         return interaction.reply(configPanel);
