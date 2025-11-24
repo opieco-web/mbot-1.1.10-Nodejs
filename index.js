@@ -876,10 +876,7 @@ client.on(Events.InteractionCreate, async interaction => {
             
             return interaction.update({
                 content: ' ',
-                components: [{
-                    type: 17,
-                    components: pageComponents
-                }]
+                components: pageComponents
             });
         }
 
@@ -1891,15 +1888,10 @@ client.on(Events.InteractionCreate, async interaction => {
     if (commandName === 'config') {
         const pageComponents = buildConfigPage(1, guildId);
         
-        const configPanel = {
+        return interaction.reply({
             content: ' ',
-            components: [{
-                type: 17,
-                components: pageComponents
-            }]
-        };
-
-        return interaction.reply(configPanel);
+            components: pageComponents
+        });
     }
 
     // SEARCH - Component V2 Container
