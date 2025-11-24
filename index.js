@@ -919,15 +919,7 @@ client.on(Events.InteractionCreate, async interaction => {
                         fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
 
                         await msg.reply({
-                            content: ' ',
-                            components: [{
-                                type: 17,
-                                components: [
-                                    { type: 10, content: '## <:Correct:1440296238305116223> Bot Icon Saved' },
-                                    { type: 14, spacing: 1 },
-                                    { type: 10, content: `✅ Custom icon applied to **${interaction.guild.name}**` }
-                                ]
-                            }]
+                            content: '## <:Correct:1440296238305116223> Bot Icon Saved\n✅ Custom icon applied to **' + interaction.guild.name + '**'
                         });
                         await msg.delete().catch(() => {});
                     } catch (error) {
@@ -978,15 +970,7 @@ client.on(Events.InteractionCreate, async interaction => {
                         console.log(`📌 Banner saved for ${guildId}:`, attachment.url);
                         
                         await msg.reply({
-                            content: ' ',
-                            components: [{
-                                type: 17,
-                                components: [
-                                    { type: 10, content: '## <:Correct:1440296238305116223> Bot Banner Saved' },
-                                    { type: 14, spacing: 1 },
-                                    { type: 10, content: `✅ Custom banner applied to **${interaction.guild.name}**` }
-                                ]
-                            }]
+                            content: '## <:Correct:1440296238305116223> Bot Banner Saved\n✅ Custom banner applied to **' + interaction.guild.name + '**'
                         });
                         await msg.delete().catch(() => {});
                     } catch (error) {
