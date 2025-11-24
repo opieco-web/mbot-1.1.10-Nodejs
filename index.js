@@ -363,26 +363,6 @@ const commands = [
                 .setDescription('Search local bot data instead of DuckDuckGo? (default: false)')
                 .setRequired(false)),
 
-    // Meme generator command
-    new SlashCommandBuilder()
-        .setName('meme')
-        .setDescription('Generate a meme with custom text')
-        .addStringOption(option =>
-            option
-                .setName('top_text')
-                .setDescription('Text for top of meme')
-                .setRequired(true))
-        .addStringOption(option =>
-            option
-                .setName('bottom_text')
-                .setDescription('Text for bottom of meme (optional)')
-                .setRequired(false))
-        .addAttachmentOption(option =>
-            option
-                .setName('image')
-                .setDescription('Upload an image to use as meme template (optional)')
-                .setRequired(false)),
-
     // Config command - Component V2 configuration panel
     new SlashCommandBuilder()
         .setName('config')
@@ -1989,74 +1969,6 @@ client.on(Events.InteractionCreate, async interaction => {
         }
     }
 
-    // MEME GENERATOR - Component V2 Container
-    // type 17 = Container (main wrapper for Component V2)
-    // type 10 = TextDisplay (for title/text)
-    // type 12 = MediaGallery (for image display)
-    // type 14 = Separator (visual line)
-    if (commandName === 'meme') {
-        await interaction.deferReply();
-        const topText = interaction.options.getString('top_text') || '';
-        const bottomText = interaction.options.getString('bottom_text') || '';
-        const imageAttachment = interaction.options.getAttachment('image');
-        
-        try {
-            let imageUrl = imageAttachment?.url || data.meme?.templates?.[Math.floor(Math.random() * data.meme.templates.length)]?.url;
-            if (!imageUrl) return interaction.editReply('❌ No image found');
-            
-            const buffer = await (await fetch(imageUrl)).arrayBuffer();
-            const img = new (await import('canvas')).Image();
-            img.src = Buffer.from(buffer);
-            
-            const cv = createCanvas(img.width, img.height);
-            const ctx = cv.getContext('2d');
-            ctx.drawImage(img, 0, 0);
-            
-            const fontSize = Math.min(img.width / 8, 60);
-            ctx.font = `bold ${fontSize}px Impact`;
-            ctx.fillStyle = 'white';
-            ctx.strokeStyle = 'black';
-            ctx.lineWidth = Math.max(2, fontSize / 20);
-            ctx.textAlign = 'center';
-            
-            const drawText = (text, isTop) => {
-                const lines = text.match(/(.{1,30})/g) || [];
-                lines.forEach((line, i) => {
-                    const y = isTop ? fontSize * (i + 1.5) : img.height - (fontSize * (lines.length - i - 0.5));
-                    ctx.strokeText(line, img.width / 2, y);
-                    ctx.fillText(line, img.width / 2, y);
-                });
-            };
-            
-            if (topText) drawText(topText, true);
-            if (bottomText) drawText(bottomText, false);
-            
-            const memeBuffer = cv.toBuffer('image/png');
-            const responses = ['🎉 Your meme is ready!', '😂 LOL!', 'Nice meme!', '🔥 Fire!', 'Hilarious!'];
-            const msg = responses[Math.floor(Math.random() * responses.length)];
-            
-            const payload = {
-                content: ' ',
-                components: [
-                    {
-                        type: 17,
-                        components: [
-                            { type: 10, content: `### ${msg}` },
-                            { type: 14 },
-                            { type: 12, items: [{ type: 1, media: { url: `attachment://meme.png` } }] }
-                        ]
-                    }
-                ],
-                files: [{ attachment: memeBuffer, name: 'meme.png' }],
-                flags: 32768
-            };
-            
-            return interaction.editReply(payload);
-        } catch (error) {
-            return interaction.editReply(`❌ Failed: ${error.message}`);
-        }
-    }
-
     // SEND - Component V2 Container
     // type 17 = Container | type 10 = TextDisplay | type 14 = Separator | type 9 = Content Accessory
     if (commandName === 'send') {
@@ -2406,69 +2318,6 @@ client.on(Events.MessageCreate, async msg => {
             
             const response = createAvatarComponent(displayName, defaultAvatar, guildAvatar, mode);
             return msg.reply(response);
-        }
-
-        // Prefix Meme - Component V2 Container
-        if (cmd === 'meme') {
-            const [topText, bottomText] = args.join(' ').split(',').map(p => p.trim());
-            if (!topText) return msg.reply('❌ Usage: `!meme <top text>, <bottom text>`');
-            
-            const wait = await msg.reply('🎨 Generating...');
-            try {
-                const imageUrl = data.meme?.templates?.[Math.floor(Math.random() * data.meme.templates.length)]?.url;
-                if (!imageUrl) return wait.edit('❌ No templates found');
-                
-                const buffer = await (await fetch(imageUrl)).arrayBuffer();
-                const img = new (await import('canvas')).Image();
-                img.src = Buffer.from(buffer);
-                
-                const cv = createCanvas(img.width, img.height);
-                const ctx = cv.getContext('2d');
-                ctx.drawImage(img, 0, 0);
-                
-                const fontSize = Math.min(img.width / 8, 60);
-                ctx.font = `bold ${fontSize}px Impact`;
-                ctx.fillStyle = 'white';
-                ctx.strokeStyle = 'black';
-                ctx.lineWidth = Math.max(2, fontSize / 20);
-                ctx.textAlign = 'center';
-                
-                const drawText = (text, isTop) => {
-                    const lines = text.match(/(.{1,30})/g) || [];
-                    lines.forEach((line, i) => {
-                        const y = isTop ? fontSize * (i + 1.5) : img.height - (fontSize * (lines.length - i - 0.5));
-                        ctx.strokeText(line, img.width / 2, y);
-                        ctx.fillText(line, img.width / 2, y);
-                    });
-                };
-                
-                if (topText) drawText(topText, true);
-                if (bottomText) drawText(bottomText, false);
-                
-                const memeBuffer = cv.toBuffer('image/png');
-                const responses = ['🎉 Your meme is ready!', '😂 LOL!', 'Nice meme!', '🔥 Fire!', 'Hilarious!'];
-                const msgText = responses[Math.floor(Math.random() * responses.length)];
-                
-                const payload = {
-                    content: ' ',
-                    components: [
-                        {
-                            type: 17,
-                            components: [
-                                { type: 10, content: `### ${msgText}` },
-                                { type: 14 },
-                                { type: 12, items: [{ type: 1, media: { url: `attachment://meme.png` } }] }
-                            ]
-                        }
-                    ],
-                    files: [{ attachment: memeBuffer, name: 'meme.png' }]
-                };
-                
-                await wait.delete();
-                return msg.reply(payload);
-            } catch (error) {
-                return wait.edit(`❌ Failed: ${error.message}`);
-            }
         }
 
         // Fun command: Truth or Dare

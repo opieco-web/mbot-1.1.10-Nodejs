@@ -12,7 +12,6 @@
     "mode": "auto",
     "filter": [
       "gay",
-      "hogalala",
       "pron star"
     ]
   },
@@ -50,12 +49,7 @@
       }
     ]
   },
-  "afk": {
-    "1054967242497982476": {
-      "reason": "ok ok ok ok la la la la",
-      "timestamp": 1763914194333
-    }
-  },
+  "afk": {},
   "welcome": {
     "1296783492989980682": {
       "channelId": "1296783493430513747",
@@ -98,12 +92,12 @@
   "prefixes": {},
   "autoresponses": {},
   "status": {
-    "text": "m•bot Now on maintenance break indefinitely",
+    "presence": "idle",
+    "text": "m•bot│maintenance will continue indefinitely",
+    "emoji": "⚠️",
     "lastUpdatedBy": "1065350468928290828",
-    "lastUpdatedAt": "2025-11-24T07:21:37.793Z",
-    "presence": "dnd",
-    "type": "Competing",
-    "emoji": "🚫"
+    "lastUpdatedAt": "2025-11-24T08:08:09.680Z",
+    "type": "Competing"
   },
   "meme": {
     "templates": [
