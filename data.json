@@ -50,7 +50,12 @@
       }
     ]
   },
-  "afk": {},
+  "afk": {
+    "1054967242497982476": {
+      "reason": "😢",
+      "timestamp": 1763949011902
+    }
+  },
   "welcome": {
     "1296783492989980682": {
       "channelId": "1296783493430513747",
@@ -126,7 +131,7 @@
   },
   "config": {
     "1296783492989980682": {
-      "headerAttachment": "https://cdn.discordapp.com/attachments/1429390306670805142/1442328507198869515/mg_cat_tired_1313050751659937825.png?ex=69250899&is=6923b719&hm=fbc22411870a479dfead1ad80354ad810ae4c7e3d19787f5a9ce7ae16295693a&",
+      "headerAttachment": "https://cdn.discordapp.com/attachments/1429390306670805142/1442376875124064380/mg_cat_goodjob_1313050713382846484.png?ex=692535a5&is=6923e425&hm=3e70c267136c6a80f7ede70ef856d7c91b11d2337e11aed72eb548ca3d7662d9&",
       "bgAttachment": "https://cdn.discordapp.com/attachments/1429390306670805142/1442263441686528091/b6494b41e9efbb41ac728d257b3d6052.jpg?ex=6924cc00&is=69237a80&hm=fd3c99d88affc09a1facbdf18f1a8e9020c1aa442440cb25976fd1553147c8c0&"
     }
   }

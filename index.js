@@ -919,16 +919,7 @@ client.on(Events.InteractionCreate, async interaction => {
                         fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
 
                         await msg.reply({
-                            content: ' ',
-                            components: [{
-                                type: 17,
-                                components: [
-                                    { type: 10, content: '## <:Correct:1440296238305116223> Bot Icon Saved' },
-                                    { type: 14, spacing: 1 },
-                                    { type: 10, content: `✅ Custom bot icon applied to **${interaction.guild.name}**\n\nThis server will see this unique icon. Other servers see the bot's default avatar.\n\n[View Image](${attachment.url})` }
-                                ]
-                            }],
-                            flags: MessageFlags.Ephemeral
+                            content: `✅ **Bot Icon Saved**\n\nCustom bot icon applied to **${interaction.guild.name}**\n\nThis server will see this unique icon. Other servers see the bot's default avatar.\n\n[View Image](${attachment.url})`
                         });
                         await msg.delete().catch(() => {});
                     } catch (error) {
@@ -979,16 +970,7 @@ client.on(Events.InteractionCreate, async interaction => {
                         console.log(`📌 Banner saved for ${guildId}:`, attachment.url);
                         
                         await msg.reply({
-                            content: ' ',
-                            components: [{
-                                type: 17,
-                                components: [
-                                    { type: 10, content: '## <:Correct:1440296238305116223> Bot Banner Saved' },
-                                    { type: 14, spacing: 1 },
-                                    { type: 10, content: `✅ Custom bot banner applied to **${interaction.guild.name}**\n\nThis server will see this unique banner. Other servers see the bot's default banner.\n\n[View Image](${attachment.url})` }
-                                ]
-                            }],
-                            flags: MessageFlags.Ephemeral
+                            content: `✅ **Bot Banner Saved**\n\nCustom bot banner applied to **${interaction.guild.name}**\n\nThis server will see this unique banner. Other servers see the bot's default banner.\n\n[View Image](${attachment.url})`
                         });
                         await msg.delete().catch(() => {});
                     } catch (error) {
