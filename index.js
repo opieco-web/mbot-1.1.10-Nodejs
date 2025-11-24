@@ -2729,7 +2729,7 @@ client.on(Events.MessageCreate, async msg => {
             const question = pick === 'Truth' ? truths[Math.floor(Math.random()*truths.length)] : dares[Math.floor(Math.random()*dares.length)];
             const emoji = tdEmojis[Math.floor(Math.random() * tdEmojis.length)];
             
-            return msg.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: `### ${emoji} ${pick}` }, { type: 14, spacing: 1 }, { type: 10, content: question }] }], flags: 32768 });
+            return msg.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: `### ${emoji} ${pick}` }, { type: 14, spacing: 1 }, { type: 10, content: question }] }] });
         }
 
         // Fun command: Choose
@@ -2739,7 +2739,7 @@ client.on(Events.MessageCreate, async msg => {
             
             if (subjects.length < 2) {
                 const usageText = `**Choose between 2-3 options:**\n\n\`!cs <Subject A> , <Subject B>\`\n\n**or**\n\n\`!cs <Subject A> , <Subject B> , <Subject C>\``;
-                const warnMsg = await msg.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:warning:1441531830607151195> Usage Format' }, { type: 14 }, { type: 10, content: usageText }] }] }], flags: 32768 | MessageFlags.Ephemeral });
+                const warnMsg = await msg.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:warning:1441531830607151195> Usage Format' }, { type: 14 }, { type: 10, content: usageText }] }], flags: 32768 | MessageFlags.Ephemeral });
                 msg.delete().catch(() => {});
                 setTimeout(() => warnMsg.delete().catch(() => {}), 10000);
                 return;
@@ -2759,8 +2759,7 @@ client.on(Events.MessageCreate, async msg => {
                         { type: 14, spacing: 1 },
                         { type: 10, content: `**${choice}**` }
                     ]
-                }],
-                flags: 32768
+                }]
             });
         }
 
