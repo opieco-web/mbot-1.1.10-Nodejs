@@ -2236,7 +2236,7 @@ client.on(Events.InteractionCreate, async interaction => {
 
         const result = Math.random() < 0.5 ? 'Heads' : 'Tails';
         
-        return interaction.reply({ content: ' ', components: [{ type: 1, components: [{ type: 17, components: [{ type: 10, content: '### <:Tails:1441153955412312134> Coin Flip' }, { type: 14, spacing: 1 }, { type: 10, content: `The coin landed on: **${result}**!` }] }], flags: 32768 });
+        return interaction.reply({ content: ' ', components: [{ type: 1, components: [{ type: 17, components: [{ type: 10, content: '### <:Tails:1441153955412312134> Coin Flip' }, { type: 14, spacing: 1 }, { type: 10, content: `The coin landed on: **${result}**!` }] }] }], flags: 32768 });
     }
 
     // AUTORESPONSE - Component V2 Container
