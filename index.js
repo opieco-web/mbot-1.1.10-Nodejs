@@ -1133,10 +1133,10 @@ client.on(Events.InteractionCreate, async interaction => {
                 if (activityText) msg += `Activity: ${activityText} `;
                 if (emoji) msg += `Emoji: ${emoji} `;
                 if (streamUrl) msg += `Stream: ${streamUrl}`;
-                return interaction.reply({ content: ' ', components: [{ type: 1, components: [{ type: 17, components: [{ type: 10, content: '## <:1_yes_correct:1439893200981721140> Status Updated' }, { type: 14 }, { type: 10, content: msg || 'No changes made.' }] }], flags: 32768 | MessageFlags.Ephemeral });
+                return interaction.reply({ content: ' ', components: [{ type: 1, components: [{ type: 17, components: [{ type: 10, content: '## <:1_yes_correct:1439893200981721140> Status Updated' }, { type: 14 }, { type: 10, content: msg || 'No changes made.' }] }] }], flags: 32768 | MessageFlags.Ephemeral });
             } catch (err) {
                 console.error('Modal status set error:', err);
-                return interaction.reply({ content: ' ', components: [{ type: 1, components: [{ type: 17, components: [{ type: 10, content: '## <:Error:1440296241090265088> Error' }, { type: 14 }, { type: 10, content: `Error updating status: ${err.message}` }] }], flags: 32768 | MessageFlags.Ephemeral });
+                return interaction.reply({ content: ' ', components: [{ type: 1, components: [{ type: 17, components: [{ type: 10, content: '## <:Error:1440296241090265088> Error' }, { type: 14 }, { type: 10, content: `Error updating status: ${err.message}` }] }] }], flags: 32768 | MessageFlags.Ephemeral });
             }
         }
     }
@@ -1165,7 +1165,7 @@ client.on(Events.InteractionCreate, async interaction => {
             data.nickname.mode = mode;
             fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
 
-            return interaction.reply({ content: ' ', components: [{ type: 1, components: [{ type: 17, components: [{ type: 10, content: '## ✅ Setup Complete' }, { type: 14, spacing: 1 }, { type: 10, content: `Channel: ${channel}\nMode: **${mode}**` }] }], flags: 32768 | MessageFlags.Ephemeral });
+            return interaction.reply({ content: ' ', components: [{ type: 1, components: [{ type: 17, components: [{ type: 10, content: '## ✅ Setup Complete' }, { type: 14, spacing: 1 }, { type: 10, content: `Channel: ${channel}\nMode: **${mode}**` }] }] }], flags: 32768 | MessageFlags.Ephemeral });
         }
 
         if (subcommand === 'reset') {
