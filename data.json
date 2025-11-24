@@ -52,8 +52,8 @@
   },
   "afk": {
     "1054967242497982476": {
-      "reason": "😢",
-      "timestamp": 1763949011902
+      "reason": "ok ok ok ok la la la la",
+      "timestamp": 1763914194333
     }
   },
   "welcome": {
@@ -98,12 +98,9 @@
   "prefixes": {},
   "autoresponses": {},
   "status": {
-    "text": "m•bot│v1.0.95",
+    "text": "Morning",
     "lastUpdatedBy": "1065350468928290828",
-    "lastUpdatedAt": "2025-11-23T20:49:47.132Z",
-    "emoji": "🛟",
-    "presence": "idle",
-    "type": "Competing"
+    "lastUpdatedAt": "2025-11-23T20:40:29.868Z"
   },
   "meme": {
     "templates": [
@@ -131,8 +128,8 @@
   },
   "config": {
     "1296783492989980682": {
-      "headerAttachment": "https://cdn.discordapp.com/attachments/1429390306670805142/1442384612340006922/1763817305749.png?ex=69253cd9&is=6923eb59&hm=b1d3a72bb096846d8cf2e34a1c782b63e27690f246e08b12f9f0a72038aaa386&",
-      "bgAttachment": "https://cdn.discordapp.com/attachments/1429390306670805142/1442384682556592220/20251124_111532.jpg?ex=69253cea&is=6923eb6a&hm=728e61190d51c21c307a7315756365ca2c1eb8d7a783ba425da360e1dcd65889&"
+      "headerAttachment": "https://cdn.discordapp.com/attachments/1429390306670805142/1442243184217428040/Screenshot_2025_1120_234854.png?ex=6924b922&is=692367a2&hm=cbed03b856ba661f2d7d7dc9252dd5fe7789d7eaac85b0a7cc980f80ddf3da45&",
+      "bgAttachment": "https://cdn.discordapp.com/attachments/1429390306670805142/1442243258796478604/5f6b67489ef05a8c8c7e2bdd5e09a1ee.jpg?ex=6924b934&is=692367b4&hm=c58aeeffd162581da503e344cdc4111c1aeb61002b9651c48565fb93c196fc5a&"
     }
   }
 }

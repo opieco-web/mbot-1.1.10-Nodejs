@@ -15,12 +15,50 @@ let data = JSON.parse(fs.readFileSync(dataFile, 'utf8'));
 function tryParseAndSendComponent(msg, responseText) {
     try {
         const jsonData = JSON.parse(responseText);
+        
+        // Check if it's a full Component V2 structure with components array
         if (jsonData.components && Array.isArray(jsonData.components)) {
+            // Send the full Component V2 structure as-is
             msg.reply({ content: ' ', components: jsonData.components, flags: MessageFlags.IsComponentsV2 }).catch(() => {});
             return true;
         }
+        
+        // Otherwise, build a simple component from the JSON
+        const container = new ContainerBuilder();
+        
+        // If it has "text" field, add as TextDisplay
+        if (jsonData.text) {
+            const textDisplay = new TextDisplayBuilder().setContent(jsonData.text);
+            container.addTextDisplayComponents(textDisplay);
+        }
+        
+        // If it has "separator" field, add as Separator
+        if (jsonData.separator === true) {
+            container.addComponent({ type: 14, spacing: 1 });
+        }
+        
+        // If it has multiple text blocks, add all of them
+        if (Array.isArray(jsonData.blocks)) {
+            for (const block of jsonData.blocks) {
+                if (block.text) {
+                    const textDisplay = new TextDisplayBuilder().setContent(block.text);
+                    container.addTextDisplayComponents(textDisplay);
+                }
+                if (block.separator === true) {
+                    container.addComponent({ type: 14, spacing: 1 });
+                }
+            }
+        }
+        
+        // Only send if we actually added something to the container
+        if (jsonData.text || jsonData.separator === true || jsonData.blocks) {
+            msg.reply({ content: ' ', components: [container], flags: MessageFlags.IsComponentsV2 }).catch(() => {});
+            return true;
+        }
+        
         return false;
     } catch (e) {
+        // Not valid JSON or parsing failed, return false to send as plain text
         return false;
     }
 }
@@ -50,6 +88,7 @@ async function initializeTopics() {
                 // If it's a thread, fetch the thread
                 if (topicData.threadId && channel.threads) {
                     channel = await channel.threads.fetch(topicData.threadId);
+                }
                 
                 if (channel && channel.isTextBased()) {
                     const message = await channel.messages.fetch(topicData.messageId);
@@ -64,28 +103,25 @@ async function initializeTopics() {
                         if (embed.title) parts.push(embed.title);
                         if (embed.description) parts.push(embed.description);
                         content = parts.join('\n\n');
+                    }
                     
                     // Store the content (even if empty for Component V2, the link will direct them to the full message)
                     data.topics[topicName].content = content || '[Component V2 Message - See full message for formatted content]';
                     data.topics[topicName].link = `https://discord.com/channels/${message.guildId}/${topicData.channelId}/${topicData.messageId}`;
+                }
             } catch (err) {
                 console.error(`Failed to fetch topic "${topicName}":`, err.message);
+            }
+        }
+    }
     // Save updated data with cached content
     fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
+}
 
 // Initialize topics when bot is ready
 client.once('clientReady', async () => {
     console.log(`${client.user.tag} is online!`);
     await initializeTopics();
-    
-    // Set default avatar on startup
-    try {
-        if (fs.existsSync('./default-avatar.png')) {
-            const avatarBuffer = fs.readFileSync('./default-avatar.png');
-            await client.user.setAvatar(avatarBuffer);
-            console.log('✅ Default bot avatar set');
-    } catch (err) {
-        console.error('Failed to set default avatar:', err.message);
     
     // Keep-alive mechanism: Update activity every 30 minutes to prevent idle timeout
     setInterval(() => {
@@ -99,6 +135,7 @@ client.once('clientReady', async () => {
             client.user.setActivity(activity.name, { type: ActivityType[activity.type] }).catch(() => {});
         } catch (err) {
             console.error('Keep-alive activity update failed:', err.message);
+        }
     }, 1800000); // 30 minutes
     
     console.log('✅ Keep-alive mechanism activated');
@@ -387,6 +424,7 @@ function applyBotStatus() {
         let name = statusData.text;
         if (statusData.emoji) {
             name = `${statusData.emoji} ${name}`;
+        }
 
         const activity = {
             name: name,
@@ -395,10 +433,13 @@ function applyBotStatus() {
 
         if (statusData.type === 'Streaming' && statusData.streamUrl) {
             activity.url = statusData.streamUrl;
+        }
 
         presenceData.activities = [activity];
+    }
     
     client.user.setPresence(presenceData);
+}
 
 // ------------------------
 // BOT READY
@@ -410,6 +451,7 @@ client.once(Events.ClientReady, () => {
     // Load AFK data from storage
     if (data.afk) {
         afkUsers = { ...data.afk };
+    }
 });
 
 // ------------------------
@@ -431,6 +473,7 @@ function checkAndWarnCooldown(userId, commandName, cooldownMs = 5000) {
     const now = Date.now();
     if (!commandCooldowns.has(userId)) {
         commandCooldowns.set(userId, {});
+    }
     
     const userCooldowns = commandCooldowns.get(userId);
     const lastUsed = userCooldowns[commandName];
@@ -439,9 +482,11 @@ function checkAndWarnCooldown(userId, commandName, cooldownMs = 5000) {
         const remainingMs = cooldownMs - (now - lastUsed);
         const remainingSecs = Math.ceil(remainingMs / 1000);
         return remainingSecs;
+    }
     
     userCooldowns[commandName] = now;
     return 0;
+}
 
 // HELPER: Create Component V2 format for avatar display
 // mode: 'both' (default), 'server_only', 'default_only'
@@ -474,12 +519,14 @@ function createAvatarComponent(username, defaultAvatarUrl, serverAvatarUrl = nul
                     .setURL(serverAvatarUrl)
                     .setDescription(`${username}'s Server Avatar`)
             );
+        }
         items.push(
             new MediaGalleryItemBuilder()
                 .setURL(defaultAvatarUrl)
                 .setDescription(`${username}'s Discord Avatar`)
         );
         title = `${username}'s Avatar${serverAvatarUrl ? 's' : ''}`;
+    }
     
     const gallery = new MediaGalleryBuilder().addItems(...items);
     const textDisplay = new TextDisplayBuilder().setContent(`## ${title}`);
@@ -492,6 +539,7 @@ function createAvatarComponent(username, defaultAvatarUrl, serverAvatarUrl = nul
         components: [container],
         flags: MessageFlags.IsComponentsV2
     };
+}
 
 // HELPER: Create beautiful embed response for moderator commands
 function createModeratorEmbed(title, description, color = 0x2F3136) {
@@ -499,6 +547,7 @@ function createModeratorEmbed(title, description, color = 0x2F3136) {
         .setTitle(title)
         .setDescription(description)
         .setColor(color);
+}
 
 // HELPER: Calculate AFK duration with smart format (shows only relevant units)
 function calculateDuration(time) {
@@ -516,8 +565,10 @@ function calculateDuration(time) {
         duration = minutes + 'm ' + seconds + 's';
     } else {
         duration = seconds + 's';
+    }
     
     return '**' + duration + '**';
+}
 
 // HELPER: Format bot uptime
 function formatUptime(time) {
@@ -527,12 +578,14 @@ function formatUptime(time) {
     const hours = Math.floor((diffMs % 86400000) / 3600000);
     const mins = Math.floor((diffMs % 3600000) / 60000);
     return `${days}d ${hours}h ${mins}m`;
+}
 
 // ------------------------
 // HELPER: get prefix per guild
 // ------------------------
 function getPrefix(guildId) {
     return data.prefix[guildId] || defaultPrefix;
+}
 
 // HELPER: Check if nickname contains banned words
 function containsBannedWord(nickname) {
@@ -540,7 +593,10 @@ function containsBannedWord(nickname) {
     for (const word of data.nickname.filter) {
         if (lowerNickname.includes(word.toLowerCase())) {
             return word;
+        }
+    }
     return null;
+}
 
 // HELPER: Parse delay string format (e.g., 5s, 10s, 1m, 1h) to milliseconds
 function parseDelayString(delayStr) {
@@ -557,6 +613,8 @@ function parseDelayString(delayStr) {
         case 'm': return value * 60 * 1000;
         case 'h': return value * 60 * 60 * 1000;
         default: return 120000;
+    }
+}
 
 // ------------------------
 // WELCOME MESSAGES
@@ -680,6 +738,59 @@ client.on(Events.InteractionCreate, async interaction => {
             const customId = interaction.customId;
 
             // Config: Online Status dropdown
+            if (customId === 'config_online_status') {
+                const newStatus = interaction.values[0];
+                data.status = data.status || { presence: 'online' };
+                data.status.presence = newStatus;
+                fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
+                applyBotStatus();
+                return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:1_yes_correct:1439893200981721140> Online Status Updated' }, { type: 14 }, { type: 10, content: `Bot visibility set to: **${newStatus === 'dnd' ? 'Do Not Disturb' : newStatus.charAt(0).toUpperCase() + newStatus.slice(1)}**` }] }], flags: 32768 | MessageFlags.Ephemeral });
+            }
+
+            // Config: Activity Type dropdown
+            if (customId === 'config_activity_type') {
+                const newType = interaction.values[0];
+                data.status = data.status || { presence: 'online' };
+                data.status.type = newType;
+                fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
+                applyBotStatus();
+                return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:1_yes_correct:1439893200981721140> Activity Type Updated' }, { type: 14 }, { type: 10, content: `Activity type set to: **${newType}**` }] }], flags: 32768 | MessageFlags.Ephemeral });
+            }
+        }
+
+        // ===== HANDLE BUTTONS =====
+        if (interaction.isButton()) {
+            const customId = interaction.customId;
+
+            // Config: Set Prefix button
+            if (customId === 'config_set_prefix') {
+            const modal = {
+                custom_id: 'modal_set_prefix',
+                title: 'Set Server Prefix',
+                components: [{
+                    type: 1,
+                    components: [{
+                        type: 4,
+                        custom_id: 'prefix_input',
+                        label: 'Enter new prefix (1-3 characters)',
+                        style: 1,
+                        placeholder: '!',
+                        max_length: 3,
+                        min_length: 1,
+                        required: true
+                    }]
+                }]
+            };
+            return interaction.showModal(modal);
+        }
+
+        // Config: Status Set button
+        if (customId === 'config_status_set') {
+            const modal = {
+                custom_id: 'modal_status_set',
+                title: 'Configure Bot Status',
+                components: [
+                    {
                         type: 1,
                         components: [{
                             type: 4,
@@ -714,11 +825,76 @@ client.on(Events.InteractionCreate, async interaction => {
                             max_length: 10,
                             required: false
                         }]
+                    }
                 ]
             };
             return interaction.showModal(modal);
+        }
 
             // Config: Status Reset button
+        if (customId === 'config_status_reset') {
+            data.status = { presence: 'online' };
+            fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
+            applyBotStatus();
+
+            return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:1_yes_correct:1439893200981721140> Status Cleared' }, { type: 14 }, { type: 10, content: 'Bot status reset to online.' }] }], flags: 32768 | MessageFlags.Ephemeral });
+        }
+
+        // Config: Page Navigation buttons
+        if (customId === 'config_prev' || customId === 'config_next') {
+            // Extract current page from the components
+            const messageComponents = interaction.message.components[0].components;
+            let currentPage = 1;
+            
+            // Look for page indicator in text components
+            for (const comp of messageComponents) {
+                if (comp.type === 17) {
+                    for (const inner of comp.components) {
+                        if (inner.content && inner.content.includes('Page')) {
+                            const match = inner.content.match(/Page (\d+)\/3/);
+                            if (match) {
+                                currentPage = parseInt(match[1]);
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            
+            let nextPage = currentPage;
+            if (customId === 'config_next' && currentPage < 3) nextPage = currentPage + 1;
+            if (customId === 'config_prev' && currentPage > 1) nextPage = currentPage - 1;
+            
+            const pageComponents = buildConfigPage(nextPage, guildId);
+            
+            return interaction.update({
+                content: ' ',
+                components: [{
+                    type: 17,
+                    components: pageComponents
+                }]
+            });
+        }
+
+        // Config: Header Attachment button
+        if (customId === 'config_header_attach') {
+            await interaction.reply({
+                content: ' ',
+                components: [{
+                    type: 17,
+                    components: [
+                        { type: 10, content: '### 📎 Header Attachment' },
+                        { type: 14, spacing: 1 },
+                        { type: 10, content: '**Upload a header image for your server profile**\n\nRecommended size: **1920x480px**\n\n⏳ Waiting for file... (60 seconds)' }
+                    ]
+                }],
+                flags: 32768 | MessageFlags.Ephemeral
+            });
+
+            // Create a message collector for file uploads
+            const filter = msg => msg.author.id === interaction.user.id && msg.attachments.size > 0;
+            const collector = interaction.channel.createMessageCollector({ filter, time: 60000, max: 1 });
+
             collector.on('collect', async msg => {
                 const attachment = msg.attachments.first();
                 if (attachment) {
@@ -735,21 +911,33 @@ client.on(Events.InteractionCreate, async interaction => {
                         data.config[guildId].headerAttachment = attachment.url;
                         fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
 
-                        await interaction.followUp({
-                            content: '## <:Correct:1440296238305116223> Bot Icon Saved\n✅ Custom icon applied to **' + interaction.guild.name + '**',
-                            flags: MessageFlags.Ephemeral
+                        await msg.reply({
+                            content: ' ',
+                            components: [{
+                                type: 17,
+                                components: [
+                                    { type: 10, content: '## <:Correct:1440296238305116223> Bot Avatar Updated (This Server)' },
+                                    { type: 14, spacing: 1 },
+                                    { type: 10, content: `✅ Bot avatar changed for this server!\n\n[View Image](${attachment.url})` }
+                                ]
+                            }],
+                            flags: 32768
                         });
-                        
-                        // Delete user's upload message from chat
-                        setTimeout(() => {
-                            msg.delete().then(() => {
-                                console.log('✅ Icon upload message deleted');
-                            }).catch(err => {
-                                console.error('Could not delete icon upload message:', err.message);
-                            });
-                        }, 500);
                     } catch (error) {
-                        console.error('Icon upload error:', error);
+                        await msg.reply({
+                            content: ' ',
+                            components: [{
+                                type: 17,
+                                components: [
+                                    { type: 10, content: '## <:Error:1440296241090265088> Failed' },
+                                    { type: 14, spacing: 1 },
+                                    { type: 10, content: `❌ Error updating avatar: ${error.message}` }
+                                ]
+                            }],
+                            flags: 32768
+                        });
+                    }
+                }
             });
 
             collector.on('end', (collected) => {
@@ -758,15 +946,108 @@ client.on(Events.InteractionCreate, async interaction => {
                         content: '⏰ Upload timeout - no file received.',
                         flags: MessageFlags.Ephemeral
                     });
+                }
             });
+        }
 
         // Config: BG Attachment button
+        if (customId === 'config_banner_attach') {
+            await interaction.reply({
+                content: ' ',
+                components: [{
+                    type: 17,
+                    components: [
+                        { type: 10, content: '### 🎨 BG Attachment' },
+                        { type: 14, spacing: 1 },
+                        { type: 10, content: '**Upload a background image for your server**\n\nRecommended size: **1200x300px**\n\n⏳ Waiting for file... (60 seconds)' }
+                    ]
+                }],
+                flags: 32768 | MessageFlags.Ephemeral
             });
 
-        // Config: Profile Reset button
-                }],
-                flags: 64
+            // Create a message collector for file uploads
+            const filter = msg => msg.author.id === interaction.user.id && msg.attachments.size > 0;
+            const collector = interaction.channel.createMessageCollector({ filter, time: 60000, max: 1 });
+
+            collector.on('collect', async msg => {
+                const attachment = msg.attachments.first();
+                if (attachment) {
+                    try {
+                        // Fetch and set server banner
+                        const response = await fetch(attachment.url);
+                        const arrayBuffer = await response.arrayBuffer();
+                        const buffer = Buffer.from(arrayBuffer);
+                        await interaction.guild.setBanner(buffer);
+
+                        // Save server-specific background to data.json
+                        data.config = data.config || {};
+                        data.config[guildId] = data.config[guildId] || {};
+                        data.config[guildId].bgAttachment = attachment.url;
+                        fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
+
+                        await msg.reply({
+                            content: ' ',
+                            components: [{
+                                type: 17,
+                                components: [
+                                    { type: 10, content: '## <:Correct:1440296238305116223> Server Banner Updated' },
+                                    { type: 14, spacing: 1 },
+                                    { type: 10, content: `✅ Server banner changed!\n\n[View Image](${attachment.url})` }
+                                ]
+                            }],
+                            flags: 32768
+                        });
+                    } catch (error) {
+                        await msg.reply({
+                            content: ' ',
+                            components: [{
+                                type: 17,
+                                components: [
+                                    { type: 10, content: '## <:Error:1440296241090265088> Failed' },
+                                    { type: 14, spacing: 1 },
+                                    { type: 10, content: `❌ Error updating banner: ${error.message}` }
+                                ]
+                            }],
+                            flags: 32768
+                        });
+                    }
+                }
             });
+
+            collector.on('end', (collected) => {
+                if (collected.size === 0) {
+                    interaction.followUp({
+                        content: '⏰ Upload timeout - no file received.',
+                        flags: MessageFlags.Ephemeral
+                    });
+                }
+            });
+        }
+        }
+    } catch (error) {
+        console.error('Error handling interaction:', error);
+    }
+
+    // ===== HANDLE MODAL SUBMISSIONS =====
+    if (interaction.isModalSubmit()) {
+        if (interaction.customId === 'modal_set_prefix') {
+            const newPrefix = interaction.fields.getTextInputValue('prefix_input');
+            data.prefix[guildId] = newPrefix;
+            fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
+
+            return interaction.reply({
+                content: ' ',
+                components: [{
+                    type: 17,
+                    components: [
+                        { type: 10, content: '## <:Correct:1440296238305116223> Prefix Updated' },
+                        { type: 14, spacing: 1 },
+                        { type: 10, content: `New prefix: \`${newPrefix}\`` }
+                    ]
+                }],
+                flags: 32768 | MessageFlags.Ephemeral
+            });
+        }
 
         if (interaction.customId === 'modal_status_set') {
             try {
@@ -777,10 +1058,13 @@ client.on(Events.InteractionCreate, async interaction => {
                 data.status = data.status || { presence: 'online' };
                 if (activityText) {
                     data.status.text = activityText;
+                }
                 if (streamUrl) {
                     data.status.streamUrl = streamUrl;
+                }
                 if (emoji) {
                     data.status.emoji = emoji;
+                }
                 data.status.lastUpdatedBy = interaction.user.id;
                 data.status.lastUpdatedAt = new Date().toISOString();
                 fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
@@ -790,8 +1074,13 @@ client.on(Events.InteractionCreate, async interaction => {
                 if (activityText) msg += `Activity: ${activityText} `;
                 if (emoji) msg += `Emoji: ${emoji} `;
                 if (streamUrl) msg += `Stream: ${streamUrl}`;
+                return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:1_yes_correct:1439893200981721140> Status Updated' }, { type: 14 }, { type: 10, content: msg || 'No changes made.' }] }], flags: 32768 | MessageFlags.Ephemeral });
             } catch (err) {
                 console.error('Modal status set error:', err);
+                return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:Error:1440296241090265088> Error' }, { type: 14 }, { type: 10, content: `Error updating status: ${err.message}` }] }], flags: 32768 | MessageFlags.Ephemeral });
+            }
+        }
+    }
 
     // ===== HANDLE SLASH COMMANDS =====
     if (!interaction.isChatInputCommand()) return;
@@ -817,11 +1106,18 @@ client.on(Events.InteractionCreate, async interaction => {
             data.nickname.mode = mode;
             fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
 
+            return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## ✅ Setup Complete' }, { type: 14, spacing: 1 }, { type: 10, content: `Channel: ${channel}\nMode: **${mode}**` }] }], flags: 32768 | MessageFlags.Ephemeral });
+        }
 
         if (subcommand === 'reset') {
             try {
                 await member.setNickname(null);
+                return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## Reset' }, { type: 14, spacing: 1 }, { type: 10, content: 'Nickname reset to default.' }] }], flags: 32768 | MessageFlags.Ephemeral });
             } catch {
+                return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## Failed' }, { type: 14, spacing: 1 }, { type: 10, content: 'Couldn\'t reset nickname.' }] }], flags: 32768 | MessageFlags.Ephemeral });
+            }
+        }
+    }
 
     // NICKNAME FILTER - Component V2 Container
     // type 17 = Container | type 10 = TextDisplay | type 14 = Separator
@@ -831,25 +1127,37 @@ client.on(Events.InteractionCreate, async interaction => {
 
         if (action === 'add') {
             if (!word)
+                return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:Error:1440296241090265088> Error' }, { type: 14, spacing: 1 }, { type: 10, content: 'Please provide a word to ban.' }] }], flags: 32768 | MessageFlags.Ephemeral });
 
             if (data.nickname.filter.includes(word))
+                return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:Error:1440296241090265088> Error' }, { type: 14, spacing: 1 }, { type: 10, content: `Word "**${word}**" is already banned.` }] }], flags: 32768 | MessageFlags.Ephemeral });
 
             data.nickname.filter.push(word);
             fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
+            return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:Bin:1441777857205637254> Word Added' }, { type: 14, spacing: 1 }, { type: 10, content: `"**${word}**" added to ban list.` }] }], flags: 32768 | MessageFlags.Ephemeral });
+        }
 
         if (action === 'remove') {
             if (!word)
+                return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:Error:1440296241090265088> Error' }, { type: 14, spacing: 1 }, { type: 10, content: 'Please provide a word to unban.' }] }], flags: 32768 | MessageFlags.Ephemeral });
 
             const index = data.nickname.filter.indexOf(word);
             if (index === -1)
+                return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:Error:1440296241090265088> Error' }, { type: 14, spacing: 1 }, { type: 10, content: `No ban found for "**${word}**".` }] }], flags: 32768 | MessageFlags.Ephemeral });
 
             data.nickname.filter.splice(index, 1);
             fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
+            return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:Correct:1440296238305116223> Word Removed' }, { type: 14, spacing: 1 }, { type: 10, content: `"**${word}**" removed from ban list.` }] }], flags: 32768 | MessageFlags.Ephemeral });
+        }
 
         if (action === 'list') {
             if (data.nickname.filter.length === 0)
+                return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## 📋 Banned Words' }, { type: 14, spacing: 1 }, { type: 10, content: 'No words configured yet.' }] }], flags: 32768 | MessageFlags.Ephemeral });
 
             const list = data.nickname.filter.map((w, i) => `${i+1}. **${w}**`).join('\n');
+            return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## 🚫 Banned Words' }, { type: 14, spacing: 1 }, { type: 10, content: list }] }], flags: 32768 | MessageFlags.Ephemeral });
+        }
+    }
 
     // SETPREFIX - Component V2 Container
     // type 17 = Container | type 10 = TextDisplay | type 14 = Separator
@@ -857,11 +1165,15 @@ client.on(Events.InteractionCreate, async interaction => {
         const newPrefix = interaction.options.getString('prefix');
         data.prefix[guildId] = newPrefix;
         fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
+        return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:1_yes_correct:1439893200981721140> Prefix Updated' }, { type: 14 }, { type: 10, content: `New prefix: **${newPrefix}**` }] }], flags: 32768 | MessageFlags.Ephemeral });
+    }
 
     // PREFIX - Component V2 Container
     // type 17 = Container | type 10 = TextDisplay | type 14 = Separator
     if (commandName === 'prefix') {
         const prefix = getPrefix(guildId);
+        return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:mg_question:1439893408041930894> Current Prefix' }, { type: 14 }, { type: 10, content: `\`${prefix}\`` }] }], flags: 32768 | MessageFlags.Ephemeral });
+    }
 
     // BOTINFO - Component V2 Container
     // type 17 = Container | type 10 = TextDisplay | type 14 = Separator | type 9 = Content Accessory
@@ -894,17 +1206,23 @@ client.on(Events.InteractionCreate, async interaction => {
                                 {
                                     type: 10,
                                     content: infoText
+                                }
                             ],
                             accessory: {
                                 type: 11,
                                 media: {
                                     url: botAvatar
+                                }
+                            }
+                        }
                     ]
+                }
             ],
-            flags: 64
+            flags: 32768 | MessageFlags.Ephemeral
         };
         
         return interaction.reply(payload);
+    }
 
     // AFK - Component V2 Container
     // type 17 = Container | type 10 = TextDisplay | type 14 = Separator
@@ -913,15 +1231,21 @@ client.on(Events.InteractionCreate, async interaction => {
         afkUsers[user.id] = { reason, timestamp: Date.now() };
         data.afk[user.id] = afkUsers[user.id];
         fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
+        const { resource: replyMsg } = await interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:mg_alert:1439893442065862698> AFK Set' }, { type: 14 }, { type: 10, content: reason }] }], flags: 32768 | MessageFlags.Ephemeral, withResponse: true });
 
         setTimeout(() => replyMsg.delete().catch(() => {}), 30000);
+    }
 
     // AFKLIST - Component V2 Container
     // type 17 = Container | type 10 = TextDisplay | type 14 = Separator
     if (commandName === 'afklist') {
         if (!member.permissions.has(PermissionsBitField.Flags.ManageGuild) && !member.permissions.has(PermissionsBitField.Flags.Administrator)) {
+            return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## 🚫 Permission Denied' }, { type: 14, spacing: 1 }, { type: 10, content: 'You need ManageGuild permission.' }] }], flags: 32768 | MessageFlags.Ephemeral });
+        }
 
         if (Object.keys(afkUsers).length === 0) {
+            return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## ⏱️ AFK Status' }, { type: 14, spacing: 1 }, { type: 10, content: 'No users are currently AFK.' }] }], flags: 32768 | MessageFlags.Ephemeral });
+        }
 
         let afkList = '';
         for (const userId in afkUsers) {
@@ -938,7 +1262,12 @@ client.on(Events.InteractionCreate, async interaction => {
                     afkList += `**${user.displayName}** — ${afkData.reason} (${duration})\n`;
                 } catch (e2) {
                     afkList += `**Unknown User** — ${afkData.reason} (${duration})\n`;
+                }
+            }
+        }
 
+        return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## 🚫 Currently AFK' }, { type: 14, spacing: 1 }, { type: 10, content: afkList }] }], flags: 32768 | MessageFlags.Ephemeral });
+    }
 
     // AVATAR - Component V2 Container (via createAvatarComponent)
     // type 17 = Container | type 10 = TextDisplay | type 12 = MediaGallery | type 14 = Separator
@@ -955,9 +1284,11 @@ client.on(Events.InteractionCreate, async interaction => {
             // Check for server-specific avatar - use member's avatar method
             if (member.avatar) {
                 guildAvatar = member.avatarURL({ dynamic: true, size: 1024 });
+            }
         } catch (e) {
             // User not in guild or error fetching member
             displayName = target.displayName;
+        }
         
         // Get default avatar from user object
         const defaultAvatar = target.displayAvatarURL({ dynamic: true, size: 1024 });
@@ -968,15 +1299,18 @@ client.on(Events.InteractionCreate, async interaction => {
             if (guildAvatar) {
                 response = createAvatarComponent(displayName, defaultAvatar, guildAvatar, 'server_only');
             } else {
-                response = { content: '## <:2_no_wrong:1439893245130838047> No Server Avatar\n\nThis user has no server-specific avatar set.', flags: MessageFlags.Ephemeral };
+                response = { content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:2_no_wrong:1439893245130838047> No Server Avatar' }, { type: 14 }, { type: 10, content: 'This user has no server-specific avatar set.' }] }], flags: 32768 | MessageFlags.Ephemeral };
+            }
         } else if (showServerOnly === false) {
             // Show default avatar only
             response = createAvatarComponent(displayName, defaultAvatar, null, 'default_only');
         } else {
             // Show both (server if available, default always)
             response = createAvatarComponent(displayName, defaultAvatar, guildAvatar, 'both');
+        }
         
         return interaction.reply(response);
+    }
 
     // ------------------------
     // FUN COMMAND: Truth or Dare
@@ -985,6 +1319,7 @@ client.on(Events.InteractionCreate, async interaction => {
         const cooldownRemaining = checkAndWarnCooldown(user.id, 'truthordare', 5000);
         if (cooldownRemaining > 0) {
             return interaction.reply({ content: `⏳ Slow down! You can use this command again in **${cooldownRemaining}s**.`, flags: MessageFlags.Ephemeral });
+        }
 
         const truths = [
             "If you could master any skill instantly, what would it be?",
@@ -1346,6 +1681,8 @@ client.on(Events.InteractionCreate, async interaction => {
         const question = pick === 'Truth' ? truths[Math.floor(Math.random()*truths.length)] : dares[Math.floor(Math.random()*dares.length)];
         const emoji = tdEmojis[Math.floor(Math.random() * tdEmojis.length)];
         
+        return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: `### ${emoji} ${pick}` }, { type: 14, spacing: 1 }, { type: 10, content: question }] }], flags: 32768 });
+    }
 
     // CHOOSE - Component V2 Container
     // type 17 = Container | type 10 = TextDisplay | type 14 = Separator
@@ -1363,10 +1700,172 @@ client.on(Events.InteractionCreate, async interaction => {
         const choice = subjects[Math.floor(Math.random() * subjects.length)];
         
         return interaction.reply({
-            content: `### ${emoji} ${style}\n\n**${choice}**`,
-            flags: MessageFlags.Ephemeral
+            content: ' ',
+            components: [{
+                type: 17,
+                components: [
+                    { type: 10, content: `### ${emoji} ${style}` },
+                    { type: 14, spacing: 1 },
+                    { type: 10, content: `**${choice}**` }
+                ]
+            }],
+            flags: 32768
         });
+    }
 
+    // Helper function to build config pages
+    function buildConfigPage(pageNum, guildId) {
+        const prefix = getPrefix(guildId);
+        const serverConfig = data.config?.[guildId] || {};
+        const headerUrl = serverConfig.headerAttachment;
+        const bgUrl = serverConfig.bgAttachment;
+        
+        let pageComponents = [];
+        
+        // Page indicator at the top (stored in content for tracking, but not used in Components V2 display)
+        let pageIndicator = `Page ${pageNum}/3`;
+        
+        if (pageNum === 1) {
+            // Page 1: Prefix Settings
+            pageComponents = [
+                { type: 10, content: `## 🎛️ ${BOT_NAME} Configuration` },
+                { type: 10, content: `**📄 Page 1/3**` },
+                { type: 14, spacing: 1 },
+                { type: 10, content: '### 📌 Prefix Settings' },
+                { type: 10, content: `**Current Prefix:** \`${prefix}\`` },
+                {
+                    type: 1,
+                    components: [
+                        { type: 2, style: 1, label: 'Set Prefix', custom_id: 'config_set_prefix' }
+                    ]
+                }
+            ];
+        } else if (pageNum === 2) {
+            // Page 2: Bot Status
+            let statusText = '';
+            if (!data.status?.text || !data.status?.type) {
+                statusText = '🟢 Bot is online with no custom activity.';
+            } else {
+                const displayName = data.status.emoji ? `${data.status.emoji} ${data.status.text}` : data.status.text;
+                statusText = `**Activity:** ${data.status.type} ${displayName}\n`;
+                if (data.status.type === 'Streaming' && data.status.streamUrl) {
+                    statusText += `**Stream:** ${data.status.streamUrl}\n`;
+                }
+                statusText += `**Visibility:** ${data.status.presence || 'online'}`;
+            }
+            
+            pageComponents = [
+                { type: 10, content: `## 🎛️ ${BOT_NAME} Configuration` },
+                { type: 10, content: `**📄 Page 2/3**` },
+                { type: 14, spacing: 1 },
+                { type: 10, content: '### 🤖 Bot Status' },
+                { type: 10, content: statusText },
+                { type: 14, spacing: 1 },
+                { type: 10, content: '**📝 Set Status Section**' },
+                {
+                    type: 1,
+                    components: [
+                        { type: 2, style: 1, label: 'Add Status Info', custom_id: 'config_status_set' }
+                    ]
+                },
+                {
+                    type: 1,
+                    components: [
+                        {
+                            type: 3,
+                            custom_id: 'config_online_status',
+                            placeholder: 'Select Online Status',
+                            options: [
+                                { label: 'Online', value: 'online', default: (data.status?.presence || 'online') === 'online' },
+                                { label: 'Idle', value: 'idle', default: data.status?.presence === 'idle' },
+                                { label: 'Do Not Disturb', value: 'dnd', default: data.status?.presence === 'dnd' },
+                                { label: 'Invisible', value: 'invisible', default: data.status?.presence === 'invisible' }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    type: 1,
+                    components: [
+                        {
+                            type: 3,
+                            custom_id: 'config_activity_type',
+                            placeholder: 'Select Activity Type',
+                            options: [
+                                { label: 'Playing', value: 'Playing', default: data.status?.type === 'Playing' },
+                                { label: 'Watching', value: 'Watching', default: data.status?.type === 'Watching' },
+                                { label: 'Listening', value: 'Listening', default: data.status?.type === 'Listening' },
+                                { label: 'Competing', value: 'Competing', default: data.status?.type === 'Competing' },
+                                { label: 'Streaming', value: 'Streaming', default: data.status?.type === 'Streaming' }
+                            ]
+                        }
+                    ]
+                },
+                { type: 14, spacing: 1 },
+                { type: 10, content: '**🔄 Reset Status Section**' },
+                {
+                    type: 1,
+                    components: [
+                        { type: 2, style: 4, label: 'Reset Status', custom_id: 'config_status_reset' }
+                    ]
+                }
+            ];
+        } else if (pageNum === 3) {
+            // Page 3: Server Custom Profile
+            pageComponents = [
+                { type: 10, content: `## 🎛️ ${BOT_NAME} Configuration` },
+                { type: 10, content: `**📄 Page 3/3**` },
+                { type: 14, spacing: 1 },
+                { type: 10, content: '### 👤 Server Custom Profile' },
+                { type: 10, content: 'Upload custom icon and banner for this server only' },
+                {
+                    type: 1,
+                    components: [
+                        { type: 2, style: 1, label: 'Bot Icon', custom_id: 'config_header_attach' },
+                        { type: 2, style: 1, label: 'Bot Banner', custom_id: 'config_banner_attach' }
+                    ]
+                }
+            ];
+            
+            if (headerUrl || bgUrl) {
+                pageComponents.push({ type: 14, spacing: 1 });
+                pageComponents.push({ type: 10, content: '### 📸 Current Custom Profile' });
+                const mediaItems = [];
+                if (headerUrl) mediaItems.push({ type: 1, media: { url: headerUrl }, description: 'Bot Icon' });
+                if (bgUrl) mediaItems.push({ type: 1, media: { url: bgUrl }, description: 'Bot Banner' });
+                pageComponents.push({ type: 12, items: mediaItems });
+            }
+        }
+        
+        // Add pagination buttons
+        pageComponents.push({ type: 14, spacing: 1 });
+        pageComponents.push({
+            type: 1,
+            components: [
+                { type: 2, style: 2, label: '◀ Previous', custom_id: 'config_prev', disabled: pageNum === 1 },
+                { type: 2, style: 2, label: 'Next ▶', custom_id: 'config_next', disabled: pageNum === 3 }
+            ]
+        });
+        
+        return pageComponents;
+    }
+
+    // CONFIG COMMAND - Component V2 Configuration Panel with Pagination
+    // type 17 = Container | type 10 = TextDisplay | type 14 = Separator | type 1 = Row | type 2 = Button | type 12 = MediaGallery
+    if (commandName === 'config') {
+        const pageComponents = buildConfigPage(1, guildId);
+        
+        const configPanel = {
+            content: ' ',
+            components: [{
+                type: 17,
+                components: pageComponents
+            }],
+            flags: 32768 | MessageFlags.Ephemeral
+        };
+
+        return interaction.reply(configPanel);
+    }
 
     // SEARCH - Component V2 Container
     // type 17 = Container | type 10 = TextDisplay | type 14 = Separator | type 9 = Content Accessory
@@ -1395,6 +1894,9 @@ client.on(Events.InteractionCreate, async interaction => {
                             foundTopic = topicData;
                             matchedTopicName = topicName;
                             break;
+                        }
+                    }
+                }
                 
                 if (foundTopic && typeof foundTopic === 'object') {
                     if (foundTopic.content) {
@@ -1403,19 +1905,24 @@ client.on(Events.InteractionCreate, async interaction => {
                         resultText = `**${matchedTopicName}**\n\n${foundTopic.content}\n\n<:question:1441531934332424314> [**Read Full Message**](${link})`;
                     } else {
                         resultText = `Topic "${query}" not found.`;
+                    }
                 } else {
                     // Search in autoresponses
                     if (data.autoresponse[guildId]) {
                         data.autoresponse[guildId].forEach(ar => {
                             if (ar.trigger.toLowerCase().includes(queryLower) || ar.response.toLowerCase().includes(queryLower)) {
                                 searchResults.push(`**${ar.trigger}** → ${ar.response}`);
+                            }
                         });
+                    }
                     
                     if (searchResults.length > 0) {
                         resultText = searchResults.slice(0, 5).join('\n');
                     } else {
                         const availableTopics = Object.keys(data.topics || {}).join(', ');
                         resultText = `No topic or auto-response found for "${query}".\n\nAvailable topics: ${availableTopics}`;
+                    }
+                }
             } else {
                 // Wikipedia API search (free, popular, reliable)
                 try {
@@ -1436,16 +1943,22 @@ client.on(Events.InteractionCreate, async interaction => {
                         if (firstPage && firstPage.extract) {
                             const cleanText = firstPage.extract.replace(/<[^>]*>/g, '').substring(0, 1000);
                             if (cleanText) results.push(cleanText);
+                        }
                         
                         if (firstPage && firstPage.original && firstPage.original.source) {
                             mediaUrl = firstPage.original.source;
+                        }
+                    }
 
                     if (results.length > 0) {
                         resultText = results.join('\n');
                     } else {
                         resultText = 'No detailed results found on Wikipedia. Try a different search query.';
+                    }
                 } catch (wikiError) {
                     resultText = 'Wikipedia search unavailable. Try again later.';
+                }
+            }
 
             // Limit line breaks to max 3 for compact display
             const limitedText = resultText.replace(/\n{4,}/g, '\n\n\n').substring(0, 2000);
@@ -1455,6 +1968,7 @@ client.on(Events.InteractionCreate, async interaction => {
             if (pageTitle && !searchLocal) {
                 const wikiUrl = `https://en.wikipedia.org/wiki/${encodeURIComponent(pageTitle.replace(/ /g, '_'))}`;
                 displayText = `${limitedText}\n\n<:question:1441531934332424314> [**Read Full Article:**](${wikiUrl})`;
+            }
 
             const containerComponents = [
                 {
@@ -1463,11 +1977,14 @@ client.on(Events.InteractionCreate, async interaction => {
                         {
                             type: 10,
                             content: `**@${interaction.user.username}** searched\n## 🔍 ${query}`
+                        }
                     ],
                     accessory: {
                         type: 11,
                         media: {
                             url: botAvatar
+                        }
+                    }
                 },
                 {
                     type: 14
@@ -1475,6 +1992,7 @@ client.on(Events.InteractionCreate, async interaction => {
                 {
                     type: 10,
                     content: displayText
+                }
             ];
 
             const payload = {
@@ -1483,6 +2001,7 @@ client.on(Events.InteractionCreate, async interaction => {
                     {
                         type: 17,
                         components: containerComponents
+                    }
                 ],
                 flags: 32768
             };
@@ -1493,7 +2012,76 @@ client.on(Events.InteractionCreate, async interaction => {
                 content: `<:Error:1440296241090265088> Search failed: ${error.message}`,
                 flags: MessageFlags.Ephemeral
             });
+        }
+    }
 
+    // MEME GENERATOR - Component V2 Container
+    // type 17 = Container (main wrapper for Component V2)
+    // type 10 = TextDisplay (for title/text)
+    // type 12 = MediaGallery (for image display)
+    // type 14 = Separator (visual line)
+    if (commandName === 'meme') {
+        await interaction.deferReply();
+        const topText = interaction.options.getString('top_text') || '';
+        const bottomText = interaction.options.getString('bottom_text') || '';
+        const imageAttachment = interaction.options.getAttachment('image');
+        
+        try {
+            let imageUrl = imageAttachment?.url || data.meme?.templates?.[Math.floor(Math.random() * data.meme.templates.length)]?.url;
+            if (!imageUrl) return interaction.editReply('❌ No image found');
+            
+            const buffer = await (await fetch(imageUrl)).arrayBuffer();
+            const img = new (await import('canvas')).Image();
+            img.src = Buffer.from(buffer);
+            
+            const cv = createCanvas(img.width, img.height);
+            const ctx = cv.getContext('2d');
+            ctx.drawImage(img, 0, 0);
+            
+            const fontSize = Math.min(img.width / 8, 60);
+            ctx.font = `bold ${fontSize}px Impact`;
+            ctx.fillStyle = 'white';
+            ctx.strokeStyle = 'black';
+            ctx.lineWidth = Math.max(2, fontSize / 20);
+            ctx.textAlign = 'center';
+            
+            const drawText = (text, isTop) => {
+                const lines = text.match(/(.{1,30})/g) || [];
+                lines.forEach((line, i) => {
+                    const y = isTop ? fontSize * (i + 1.5) : img.height - (fontSize * (lines.length - i - 0.5));
+                    ctx.strokeText(line, img.width / 2, y);
+                    ctx.fillText(line, img.width / 2, y);
+                });
+            };
+            
+            if (topText) drawText(topText, true);
+            if (bottomText) drawText(bottomText, false);
+            
+            const memeBuffer = cv.toBuffer('image/png');
+            const responses = ['🎉 Your meme is ready!', '😂 LOL!', 'Nice meme!', '🔥 Fire!', 'Hilarious!'];
+            const msg = responses[Math.floor(Math.random() * responses.length)];
+            
+            const payload = {
+                content: ' ',
+                components: [
+                    {
+                        type: 17,
+                        components: [
+                            { type: 10, content: `### ${msg}` },
+                            { type: 14 },
+                            { type: 12, items: [{ type: 1, media: { url: `attachment://meme.png` } }] }
+                        ]
+                    }
+                ],
+                files: [{ attachment: memeBuffer, name: 'meme.png' }],
+                flags: 32768
+            };
+            
+            return interaction.editReply(payload);
+        } catch (error) {
+            return interaction.editReply(`❌ Failed: ${error.message}`);
+        }
+    }
 
     // SEND - Component V2 Container
     // type 17 = Container | type 10 = TextDisplay | type 14 = Separator | type 9 = Content Accessory
@@ -1529,11 +2117,14 @@ client.on(Events.InteractionCreate, async interaction => {
                     {
                         type: 10,
                         content: content || ''
+                    }
                 ],
                 accessory: {
                     type: 11,
                     media: {
                         url: thumbnailUrl
+                    }
+                }
             };
 
             components.push(contentComponent);
@@ -1544,6 +2135,7 @@ client.on(Events.InteractionCreate, async interaction => {
                     {
                         type: 17,
                         components: components
+                    }
                 ],
                 flags: 32768
             };
@@ -1558,6 +2150,8 @@ client.on(Events.InteractionCreate, async interaction => {
                 content: `<:Error:1440296241090265088> Failed to send message: ${error.message}`,
                 flags: MessageFlags.Ephemeral
             });
+        }
+    }
 
     // COINFLIP - Component V2 Container
     // type 17 = Container | type 10 = TextDisplay | type 14 = Separator
@@ -1565,9 +2159,12 @@ client.on(Events.InteractionCreate, async interaction => {
         const cooldownRemaining = checkAndWarnCooldown(user.id, 'coinflip', 5000);
         if (cooldownRemaining > 0) {
             return interaction.reply({ content: `⏳ Slow down! You can use this command again in **${cooldownRemaining}s**.`, flags: MessageFlags.Ephemeral });
+        }
 
         const result = Math.random() < 0.5 ? 'Heads' : 'Tails';
         
+        return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '### <:Tails:1441153955412312134> Coin Flip' }, { type: 14, spacing: 1 }, { type: 10, content: `The coin landed on: **${result}**!` }] }], flags: 32768 });
+    }
 
     // AUTORESPONSE - Component V2 Container
     // type 17 = Container | type 10 = TextDisplay | type 14 = Separator
@@ -1580,7 +2177,9 @@ client.on(Events.InteractionCreate, async interaction => {
 
         if (action === 'add') {
             if (!trigger)
+                return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:Error:1440296241090265088> Error' }, { type: 14 }, { type: 10, content: 'Trigger is required.' }] }], flags: 32768 | MessageFlags.Ephemeral });
             if (!type)
+                return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:Error:1440296241090265088> Error' }, { type: 14 }, { type: 10, content: 'Response type is required.' }] }], flags: 32768 | MessageFlags.Ephemeral });
 
             let finalResponse = null;
             let isFromBackup = false;
@@ -1595,9 +2194,13 @@ client.on(Events.InteractionCreate, async interaction => {
                     finalResponse = response;
                     isFromBackup = false;
                 } else {
+                    return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:Error:1440296241090265088> Error' }, { type: 14 }, { type: 10, content: 'Provide either custom text (response) or select a saved message (select_from_backup).' }] }], flags: 32768 | MessageFlags.Ephemeral });
+                }
             } else if (type === 'emoji') {
                 if (!response)
+                    return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:Error:1440296241090265088> Error' }, { type: 14 }, { type: 10, content: 'Emoji response is required.' }] }], flags: 32768 | MessageFlags.Ephemeral });
                 finalResponse = response;
+            }
 
             data.autoresponse[guildId] = data.autoresponse[guildId] || [];
             data.autoresponse[guildId].push({ 
@@ -1613,23 +2216,34 @@ client.on(Events.InteractionCreate, async interaction => {
                 : `Emoji: ${finalResponse}`;
             const addTitle = `## <:Correct:1440296238305116223> Auto-Response Added`;
             const addContent = `**Trigger:** ${trigger}\n**Response Type:** ${type.charAt(0).toUpperCase() + type.slice(1)}\n**Response:** ${displayText}`;
+            return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: addTitle }, { type: 14, spacing: 1 }, { type: 10, content: addContent }] }], flags: 32768 | MessageFlags.Ephemeral });
+        }
 
         if (action === 'remove') {
             if (!trigger)
+                return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:Error:1440296241090265088> Error' }, { type: 14 }, { type: 10, content: 'Trigger is required.' }] }], flags: 32768 | MessageFlags.Ephemeral });
 
             if (!data.autoresponse[guildId] || data.autoresponse[guildId].length === 0) {
+                return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:Error:1440296241090265088> Error' }, { type: 14 }, { type: 10, content: 'No auto-responses configured.' }] }], flags: 32768 | MessageFlags.Ephemeral });
+            }
 
             const initialLength = data.autoresponse[guildId].length;
             data.autoresponse[guildId] = data.autoresponse[guildId].filter(ar => ar.trigger !== trigger);
 
             if (data.autoresponse[guildId].length === initialLength) {
+                return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:Error:1440296241090265088> Error' }, { type: 14 }, { type: 10, content: `No response found for "${trigger}".` }] }], flags: 32768 | MessageFlags.Ephemeral });
+            }
 
             fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
             const removeTitle = `## <:Correct:1440296238305116223> Auto-Response Removed`;
             const removeContent = `**Trigger:** ${trigger}\n\nThis auto-response has been successfully removed from your server.`;
+            return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: removeTitle }, { type: 14, spacing: 1 }, { type: 10, content: removeContent }] }], flags: 32768 | MessageFlags.Ephemeral });
+        }
 
         if (action === 'list') {
             if (!data.autoresponse[guildId] || data.autoresponse[guildId].length === 0) {
+                return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## 🔄 Auto-Responses' }, { type: 14 }, { type: 10, content: 'None configured yet.' }] }], flags: 32768 | MessageFlags.Ephemeral });
+            }
 
             let list = '';
             data.autoresponse[guildId].forEach((ar, index) => {
@@ -1638,11 +2252,15 @@ client.on(Events.InteractionCreate, async interaction => {
                     responseDisplay = ar.isFromBackup ? `📦 Saved: ${ar.response}` : `✏️ Text: ${ar.response.substring(0, 40)}${ar.response.length > 40 ? '...' : ''}`;
                 } else {
                     responseDisplay = `Emoji: ${ar.response}`;
+                }
                 list += `${index + 1}. **${ar.trigger}** (${ar.type})\n   → ${responseDisplay}\n`;
             });
 
             const listTitle = `## 🔄 Auto-Responses Configured`;
             const listContent = `${list}\n**Total:** ${data.autoresponse[guildId].length} response(s) active`;
+            return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: listTitle }, { type: 14, spacing: 1 }, { type: 10, content: listContent }] }], flags: 32768 | MessageFlags.Ephemeral });
+        }
+    }
 
     // WELCOME - Component V2 Container
     // type 17 = Container | type 10 = TextDisplay | type 14 = Separator
@@ -1664,39 +2282,55 @@ client.on(Events.InteractionCreate, async interaction => {
                 const sampleList = welcomeMessages.slice(0, 10).map((msg, i) => `${i + 1}. ${msg}`).join('\n');
                 const contentText = `**Channel:** ${channel}\n**Delay:** ${delayStr || '120s'}\n\n**Sample Messages:**\n${sampleList}\n\n... (${welcomeMessages.length} total messages available)`;
                 
+                return interaction.reply({ 
+                    content: ' ', 
+                    components: [{ 
+                        type: 17, 
                         components: [
                             { type: 10, content: '### <:1_yes_correct:1439893200981721140> Welcome Enabled' },
                             { type: 14, spacing: 1 },
                             { type: 10, content: contentText }
                         ] 
                     }], 
-                    flags: 64 
+                    flags: 32768 | MessageFlags.Ephemeral 
                 });
             } else {
                 const contentText = `**Channel:** ${channel}\n**Delay:** ${delayStr || '120s'}`;
                 
+                return interaction.reply({ 
+                    content: ' ', 
+                    components: [{ 
+                        type: 17, 
                         components: [
                             { type: 10, content: '### <:1_yes_correct:1439893200981721140> Welcome Enabled' },
                             { type: 14, spacing: 1 },
                             { type: 10, content: contentText }
                         ] 
                     }], 
-                    flags: 64 
+                    flags: 32768 | MessageFlags.Ephemeral 
                 });
+            }
+        }
 
         if (subcommand === 'disable') {
             data.welcome[guildId] = data.welcome[guildId] || {};
             data.welcome[guildId].enabled = false;
             fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
 
+            return interaction.reply({ 
+                content: ' ', 
+                components: [{ 
+                    type: 17, 
                     components: [
                         { type: 10, content: '### <:1_yes_correct:1439893200981721140> Welcome Disabled' },
                         { type: 14, spacing: 1 },
                         { type: 10, content: 'Welcome messages have been disabled for this server.' }
                     ] 
                 }], 
-                flags: 64 
+                flags: 32768 | MessageFlags.Ephemeral 
             });
+        }
+    }
 });
 
 // ------------------------
@@ -1722,6 +2356,8 @@ client.on(Events.MessageCreate, async msg => {
             } catch (e) {
                 const replyMsg = await msg.reply(`<:mg_alert:1439893442065862698> **${user.displayName}** is AFK for <t:${timestampSeconds}:R> — ${afkData.reason}.`);
                 setTimeout(() => replyMsg.delete().catch(() => {}), 60000);
+            }
+        }
     });
 
     // ----- Reset AFK on any message -----
@@ -1732,6 +2368,7 @@ client.on(Events.MessageCreate, async msg => {
         delete data.afk[msg.author.id];
         fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
         await msg.reply(`<:1_yes_correct:1439893200981721140> Welcome back ${msg.author}! You were AFK for ${duration}.`);
+    }
 
     // ----- Handle prefix commands -----
     if (msg.content.startsWith(prefix)) {
@@ -1751,6 +2388,7 @@ client.on(Events.MessageCreate, async msg => {
             setTimeout(() => msg.delete().catch(() => {}), 5000);
             // Delete bot reply after 30s
             setTimeout(() => replyMsg.delete().catch(() => {}), 30000);
+        }
 
         // Avatar
         if (cmd === 'av') {
@@ -1761,12 +2399,14 @@ client.on(Events.MessageCreate, async msg => {
             // Check if user mentioned
             if (msg.mentions.users.size > 0) {
                 targetUser = msg.mentions.users.first();
+            }
             
             // Check for 'df' parameter to show default avatar only
             // If user mentioned, 'df' would be at index 1, otherwise at index 0
             const paramIndex = msg.mentions.users.size > 0 ? 1 : 0;
             if (args.length > paramIndex && args[paramIndex].toLowerCase() === 'df') {
                 showDefaultOnly = true;
+            }
             
             let guildAvatar = null;
             try {
@@ -1776,9 +2416,11 @@ client.on(Events.MessageCreate, async msg => {
                 // Get server-specific avatar if exists
                 if (member.avatar) {
                     guildAvatar = member.avatarURL({ dynamic: true, size: 1024 });
+                }
             } catch (e) {
                 // User not in guild or fetch failed
                 displayName = targetUser.displayName;
+            }
             
             // Get default avatar from user
             const defaultAvatar = targetUser.displayAvatarURL({ dynamic: true, size: 1024 });
@@ -1786,9 +2428,11 @@ client.on(Events.MessageCreate, async msg => {
             let mode = 'server_only';
             if (showDefaultOnly) {
                 mode = 'default_only';
+            }
             
             const response = createAvatarComponent(displayName, defaultAvatar, guildAvatar, mode);
             return msg.reply(response);
+        }
 
         // Prefix Meme - Component V2 Container
         if (cmd === 'meme') {
@@ -1841,6 +2485,7 @@ client.on(Events.MessageCreate, async msg => {
                                 { type: 14 },
                                 { type: 12, items: [{ type: 1, media: { url: `attachment://meme.png` } }] }
                             ]
+                        }
                     ],
                     files: [{ attachment: memeBuffer, name: 'meme.png' }]
                 };
@@ -1849,6 +2494,8 @@ client.on(Events.MessageCreate, async msg => {
                 return msg.reply(payload);
             } catch (error) {
                 return wait.edit(`❌ Failed: ${error.message}`);
+            }
+        }
 
         // Fun command: Truth or Dare
         if (cmd === 'td') {
@@ -1857,6 +2504,7 @@ client.on(Events.MessageCreate, async msg => {
                 const warnMsg = await msg.reply({ content: `⏳ Slow down! You can use this command again in **${cooldownRemaining}s**.`, flags: MessageFlags.Ephemeral });
                 setTimeout(() => warnMsg.delete().catch(() => {}), 5000);
                 return;
+            }
 
             const truths = [
                 "If you could master any skill instantly, what would it be?",
@@ -2008,7 +2656,8 @@ client.on(Events.MessageCreate, async msg => {
             const question = pick === 'Truth' ? truths[Math.floor(Math.random()*truths.length)] : dares[Math.floor(Math.random()*dares.length)];
             const emoji = tdEmojis[Math.floor(Math.random() * tdEmojis.length)];
             
-            return msg.reply({ content: `### ${emoji} ${pick}\n\n${question}` });
+            return msg.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: `### ${emoji} ${pick}` }, { type: 14, spacing: 1 }, { type: 10, content: question }] }], flags: 32768 });
+        }
 
         // Fun command: Choose
         if (cmd === 'cs') {
@@ -2017,17 +2666,30 @@ client.on(Events.MessageCreate, async msg => {
             
             if (subjects.length < 2) {
                 const usageText = `**Choose between 2-3 options:**\n\n\`!cs <Subject A> , <Subject B>\`\n\n**or**\n\n\`!cs <Subject A> , <Subject B> , <Subject C>\``;
-                const warnMsg = await msg.reply({ content: `## <:warning:1441531830607151195> Usage Format\n\n${usageText}` });
+                const warnMsg = await msg.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:warning:1441531830607151195> Usage Format' }, { type: 14 }, { type: 10, content: usageText }] }], flags: 32768 | MessageFlags.Ephemeral });
                 msg.delete().catch(() => {});
                 setTimeout(() => warnMsg.delete().catch(() => {}), 10000);
                 return;
+            }
             
             const styles = ['I choose…', 'I picked…', "I'll go for…", 'My decision is…', "I'm choosing…"];
             const style = styles[Math.floor(Math.random() * styles.length)];
             const emoji = Math.random() < 0.5 ? '<a:croissant:1441783019139502112>' : '<a:cherry:1441782972486516946>';
             const choice = subjects[Math.floor(Math.random() * subjects.length)];
             
-            return msg.reply({ content: `### ${emoji} ${style}\n\n**${choice}**` });
+            return msg.reply({
+                content: ' ',
+                components: [{
+                    type: 17,
+                    components: [
+                        { type: 10, content: `### ${emoji} ${style}` },
+                        { type: 14, spacing: 1 },
+                        { type: 10, content: `**${choice}**` }
+                    ]
+                }],
+                flags: 32768
+            });
+        }
 
         // Fun command: Coin Flip
         if (cmd === 'cf') {
@@ -2036,10 +2698,12 @@ client.on(Events.MessageCreate, async msg => {
                 const warnMsg = await msg.reply({ content: `⏳ Slow down! You can use this command again in **${cooldownRemaining}s**.`, flags: MessageFlags.Ephemeral });
                 setTimeout(() => warnMsg.delete().catch(() => {}), 5000);
                 return;
+            }
 
             const result = Math.random() < 0.5 ? 'Heads' : 'Tails';
             
-            return msg.reply({ content: `### <:Tails:1441153955412312134> Coin Flip\n\nThe coin landed on: **${result}**!` });
+            return msg.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '### <:Tails:1441153955412312134> Coin Flip' }, { type: 14, spacing: 1 }, { type: 10, content: `The coin landed on: **${result}**!` }] }], flags: 32768 });
+        }
 
         // Bot Info command
         if (cmd === 'bi') {
@@ -2071,23 +2735,30 @@ client.on(Events.MessageCreate, async msg => {
                                     {
                                         type: 10,
                                         content: infoText
+                                    }
                                 ],
                                 accessory: {
                                     type: 11,
                                     media: {
                                         url: botAvatar
+                                    }
+                                }
+                            }
                         ]
+                    }
                 ],
                 flags: 32768
             };
             
             return msg.reply(payload);
+        }
 
         // Search command
         if (cmd === 'sh') {
             const fullQuery = args.join(' ');
             if (!fullQuery) {
                 return msg.reply({ content: '<:Error:1440296241090265088> Usage: `!sh <query>` or `!sh <query> , local` to search local data', flags: MessageFlags.Ephemeral });
+            }
 
             // Check for comma to determine if local search
             const parts = fullQuery.split(',');
@@ -2110,42 +2781,56 @@ client.on(Events.MessageCreate, async msg => {
                         data.autoresponse[guildId].forEach(ar => {
                             if (ar.trigger.toLowerCase().includes(query.toLowerCase()) || ar.response.toLowerCase().includes(query.toLowerCase())) {
                                 searchResults.push(`**AR:** ${ar.trigger} → ${ar.response}`);
+                            }
                         });
+                    }
 
                     // Search in banned words
                     if (data.nickname.filter && data.nickname.filter.length > 0) {
                         data.nickname.filter.forEach(word => {
                             if (word.toLowerCase().includes(query.toLowerCase())) {
                                 searchResults.push(`**Filter:** ${word}`);
+                            }
                         });
+                    }
 
                     // Search in AFK data
                     for (const [userId, afkData] of Object.entries(data.afk || {})) {
                         if (afkData.reason.toLowerCase().includes(query.toLowerCase())) {
                             searchResults.push(`**AFK:** <@${userId}> - ${afkData.reason}`);
+                        }
+                    }
 
                     // Search in welcome data
                     for (const [guildIdKey, welcomeData] of Object.entries(data.welcome || {})) {
                         if (guildIdKey === guildId) {
                             if (query.toLowerCase().includes('welcome') || query.toLowerCase().includes('join')) {
                                 searchResults.push(`**Welcome:** <#${welcomeData.channelId}> (${welcomeData.enabled ? 'Enabled' : 'Disabled'})`);
+                            }
+                        }
+                    }
 
                     // Search in prefix data
                     if (data.prefix[guildId]) {
                         const prefixChar = data.prefix[guildId];
                         if (query.toLowerCase().includes('prefix')) {
                             searchResults.push(`**Prefix:** \`${prefixChar}\``);
+                        }
+                    }
 
                     // Search in bot status
                     if (data.bot?.status) {
                         const status = data.bot.status;
                         if (status.text.toLowerCase().includes(query.toLowerCase()) || status.emoji.toLowerCase().includes(query.toLowerCase())) {
                             searchResults.push(`**Status:** ${status.text} ${status.emoji}`);
+                        }
+                    }
 
                     if (searchResults.length > 0) {
                         resultText = searchResults.slice(0, 15).join('\n');
                     } else {
                         resultText = 'No local data found matching your search.';
+                    }
                 } else {
                     // Wikipedia API search (free, popular, reliable)
                     try {
@@ -2166,16 +2851,22 @@ client.on(Events.MessageCreate, async msg => {
                             if (firstPage && firstPage.extract) {
                                 const cleanText = firstPage.extract.replace(/<[^>]*>/g, '').substring(0, 1000);
                                 if (cleanText) results.push(cleanText);
+                            }
                             
                             if (firstPage && firstPage.original && firstPage.original.source) {
                                 mediaUrl = firstPage.original.source;
+                            }
+                        }
 
                         if (results.length > 0) {
                             resultText = results.join('\n');
                         } else {
                             resultText = 'No detailed results found on Wikipedia. Try a different search query.';
+                        }
                     } catch (wikiError) {
                         resultText = 'Wikipedia search unavailable. Try again later.';
+                    }
+                }
 
                 // Limit line breaks to max 3 for compact display
                 const limitedText = resultText.replace(/\n{4,}/g, '\n\n\n').substring(0, 2000);
@@ -2185,6 +2876,7 @@ client.on(Events.MessageCreate, async msg => {
                 if (pageTitle && !searchLocal) {
                     const wikiUrl = `https://en.wikipedia.org/wiki/${encodeURIComponent(pageTitle.replace(/ /g, '_'))}`;
                     displayText = `${limitedText}\n\n<:question:1441531934332424314> [**Read Full Article:**](${wikiUrl})`;
+                }
 
                 const containerComponents = [
                     {
@@ -2193,11 +2885,14 @@ client.on(Events.MessageCreate, async msg => {
                             {
                                 type: 10,
                                 content: `**@${msg.author.username}** searched\n## 🔍 ${query}`
+                            }
                         ],
                         accessory: {
                             type: 11,
                             media: {
                                 url: botAvatar
+                            }
+                        }
                     },
                     {
                         type: 14
@@ -2205,6 +2900,7 @@ client.on(Events.MessageCreate, async msg => {
                     {
                         type: 10,
                         content: displayText
+                    }
                 ];
 
                 const payload = {
@@ -2213,6 +2909,7 @@ client.on(Events.MessageCreate, async msg => {
                         {
                             type: 17,
                             components: containerComponents
+                        }
                     ],
                     flags: 32768
                 };
@@ -2223,7 +2920,10 @@ client.on(Events.MessageCreate, async msg => {
                     content: `<:Error:1440296241090265088> Search failed: ${error.message}`,
                     flags: MessageFlags.Ephemeral
                 }).catch(() => {});
+            }
+        }
 
+    }
 
     // ----- Auto-response triggers -----
     if (data.autoresponse[guildId]) {
@@ -2245,17 +2945,25 @@ client.on(Events.MessageCreate, async msg => {
                             if (customMsg.content) {
                                 const contentDisplay = new TextDisplayBuilder().setContent(customMsg.content);
                                 container.addTextDisplayComponents(contentDisplay);
+                            }
                             
                             msg.reply({ content: ' ', components: [container], flags: MessageFlags.IsComponentsV2 }).catch(() => {});
                         } else {
                             msg.reply(`<:warning:1441531830607151195> Saved message "${ar.response}" not found.`).catch(() => {});
+                        }
                     } else {
                         // Plain text or JSON response - try to parse as Component V2 first
                         const isComponent = tryParseAndSendComponent(msg, ar.response);
                         if (!isComponent) {
                             msg.reply(ar.response).catch(() => {});
+                        }
+                    }
                 } else if (ar.type === 'react') {
                     msg.react(ar.response).catch(() => {});
+                }
+            }
+        }
+    }
 });
 
 // ------------------------
@@ -2269,26 +2977,30 @@ client.on(Events.MessageCreate, async msg => {
     const nickname = msg.content.trim();
     if (nickname.toLowerCase() === 'reset') {
         await msg.member.setNickname(null);
-        await msg.reply({ content: '### <:Correct:1440296238305116223> Reset\n\nYour nickname has been reset to default.' });
+        await msg.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '### <:Correct:1440296238305116223> Reset' }, { type: 14, spacing: 1 }, { type: 10, content: 'Your nickname has been reset to default.' }] }], flags: 32768 });
         return;
+    }
 
     if (data.nickname.mode === 'auto') {
         const bannedWord = containsBannedWord(nickname);
         if (bannedWord) {
-            await msg.reply({ content: ' [{ type: 10, content: '### <:Bin:1441777857205637254> Cannot Set' },  { type: 10, content: `Word "**${bannedWord}**" is not allowed.` }], flags: 32768 });
+            await msg.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '### <:Bin:1441777857205637254> Cannot Set' }, { type: 14, spacing: 1 }, { type: 10, content: `Word "**${bannedWord}**" is not allowed.` }] }], flags: 32768 });
             return;
+        }
 
         try {
             const before = msg.member.nickname || msg.member.displayName;
             await msg.member.setNickname(nickname);
-            await msg.reply({ content: ' [{ type: 10, content: `### <:Correct:1440296238305116223> Changed To ${nickname}` },  { type: 10, content: `Your previous nickname was **${before}**` }], flags: 32768 }).catch(() => {});
+            await msg.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: `### <:Correct:1440296238305116223> Changed To ${nickname}` }, { type: 14, spacing: 1 }, { type: 10, content: `Your previous nickname was **${before}**` }] }], flags: 32768 }).catch(() => {});
         } catch {
-            await msg.reply({ content: ' [{ type: 10, content: '### <:warning:1441531830607151195> Failed' },  { type: 10, content: 'Couldn\'t change your nickname. Try again or contact a moderator.' }], flags: 32768 }).catch(() => {});
+            await msg.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '### <:warning:1441531830607151195> Failed' }, { type: 14, spacing: 1 }, { type: 10, content: 'Couldn\'t change your nickname. Try again or contact a moderator.' }] }], flags: 32768 }).catch(() => {});
+        }
     } else if (data.nickname.mode === 'approval') {
         const bannedWord = containsBannedWord(nickname);
         if (bannedWord) {
-            await msg.reply({ content: ' [{ type: 10, content: '### <:Bin:1441777857205637254> Cannot Set' },  { type: 10, content: `Word "**${bannedWord}**" is not allowed.` }], flags: 32768 });
+            await msg.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '### <:Bin:1441777857205637254> Cannot Set' }, { type: 14, spacing: 1 }, { type: 10, content: `Word "**${bannedWord}**" is not allowed.` }] }], flags: 32768 });
             return;
+        }
 
         const approveBtn = new ButtonBuilder()
             .setCustomId(`approve_${msg.author.id}`)
@@ -2320,6 +3032,7 @@ client.on(Events.MessageCreate, async msg => {
         collector.on('collect', async i => {
             if (!i.member.permissions.has(PermissionsBitField.Flags.ManageNicknames)) {
                 return i.reply({ content: '<:2_no_wrong:1439893245130838047> You cannot approve/reject.', flags: MessageFlags.Ephemeral });
+            }
 
             if (i.customId === `approve_${msg.author.id}`) {
                 try {
@@ -2333,13 +3046,16 @@ client.on(Events.MessageCreate, async msg => {
                     const textDisplay = new TextDisplayBuilder().setContent(failedText);
                     const container = new ContainerBuilder().addTextDisplayComponents(textDisplay);
                     await i.update({ content: ' ', components: [container], flags: MessageFlags.IsComponentsV2 });
+                }
             } else if (i.customId === `reject_${msg.author.id}`) {
                 const rejectedText = `## <:Error:1440296241090265088> Rejected\n\n${msg.author} request has been rejected by a moderator.\n\nPlease submit a new request with a different nickname.`;
                 const textDisplay = new TextDisplayBuilder().setContent(rejectedText);
                 const container = new ContainerBuilder().addTextDisplayComponents(textDisplay);
                 await i.update({ content: ' ', components: [container], flags: MessageFlags.IsComponentsV2 });
+            }
             collector.stop();
         });
+    }
 });
 
 // ------------------------
@@ -2351,6 +3067,7 @@ client.on(Events.GuildMemberAdd, async member => {
     const welcomeConfig = data.welcome[guildId];
     if (!welcomeConfig || !welcomeConfig.enabled || !welcomeConfig.channelId) {
         return;
+    }
 
     const delay = (typeof welcomeConfig.delay === 'number') ? welcomeConfig.delay : 120000;
 
@@ -2365,6 +3082,7 @@ client.on(Events.GuildMemberAdd, async member => {
             await channel.send(welcomeText);
         } catch (error) {
             console.error('Welcome message error:', error);
+        }
     }, delay);
 });
 
