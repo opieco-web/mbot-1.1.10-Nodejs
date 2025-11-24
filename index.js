@@ -1887,16 +1887,13 @@ client.on(Events.InteractionCreate, async interaction => {
     }
 
     // CONFIG COMMAND - Component V2 Configuration Panel with Pagination
-    // type 17 = Container | type 10 = TextDisplay | type 14 = Separator | type 1 = Row | type 2 = Button | type 12 = MediaGallery
+    // type 10 = TextDisplay | type 14 = Separator | type 1 = Row | type 2 = Button | type 12 = MediaGallery
     if (commandName === 'config') {
         const pageComponents = buildConfigPage(1, guildId);
         
         const configPanel = {
             content: ' ',
-            components: [{
-                type: 17,
-                components: pageComponents
-            }]
+            components: pageComponents.filter(comp => comp.type === 1)
         };
 
         return interaction.reply(configPanel);
