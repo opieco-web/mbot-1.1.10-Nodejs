@@ -1115,15 +1115,15 @@ client.on(Events.InteractionCreate, async interaction => {
             data.nickname.mode = mode;
             fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
 
-            return v2Reply(interaction, { content: '', components: [{ type: 10, content: '## ✅ Setup Complete' }, { type: 14, spacing: 1 }, { type: 10, content: `Channel: ${channel}\nMode: **${mode}**` }], flags: 64 });
+            return v2Reply(interaction, { content: '', components: [{ type: 10, content: '## ✅ Setup Complete' },  { type: 10, content: `Channel: ${channel}\nMode: **${mode}**` }], flags: 64 });
         }
 
         if (subcommand === 'reset') {
             try {
                 await member.setNickname(null);
-                return v2Reply(interaction, { content: '', components: [{ type: 10, content: '## Reset' }, { type: 14, spacing: 1 }, { type: 10, content: 'Nickname reset to default.' }], flags: 64 });
+                return v2Reply(interaction, { content: '', components: [{ type: 10, content: '## Reset' },  { type: 10, content: 'Nickname reset to default.' }], flags: 64 });
             } catch {
-                return v2Reply(interaction, { content: '', components: [{ type: 10, content: '## Failed' }, { type: 14, spacing: 1 }, { type: 10, content: 'Couldn\'t reset nickname.' }], flags: 64 });
+                return v2Reply(interaction, { content: '', components: [{ type: 10, content: '## Failed' },  { type: 10, content: 'Couldn\'t reset nickname.' }], flags: 64 });
             }
         }
     }
@@ -1136,35 +1136,35 @@ client.on(Events.InteractionCreate, async interaction => {
 
         if (action === 'add') {
             if (!word)
-                return v2Reply(interaction, { content: '', components: [{ type: 10, content: '## <:Error:1440296241090265088> Error' }, { type: 14, spacing: 1 }, { type: 10, content: 'Please provide a word to ban.' }], flags: 64 });
+                return v2Reply(interaction, { content: '', components: [{ type: 10, content: '## <:Error:1440296241090265088> Error' },  { type: 10, content: 'Please provide a word to ban.' }], flags: 64 });
 
             if (data.nickname.filter.includes(word))
-                return v2Reply(interaction, { content: '', components: [{ type: 10, content: '## <:Error:1440296241090265088> Error' }, { type: 14, spacing: 1 }, { type: 10, content: `Word "**${word}**" is already banned.` }], flags: 64 });
+                return v2Reply(interaction, { content: '', components: [{ type: 10, content: '## <:Error:1440296241090265088> Error' },  { type: 10, content: `Word "**${word}**" is already banned.` }], flags: 64 });
 
             data.nickname.filter.push(word);
             fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
-            return v2Reply(interaction, { content: '', components: [{ type: 10, content: '## <:Bin:1441777857205637254> Word Added' }, { type: 14, spacing: 1 }, { type: 10, content: `"**${word}**" added to ban list.` }], flags: 64 });
+            return v2Reply(interaction, { content: '', components: [{ type: 10, content: '## <:Bin:1441777857205637254> Word Added' },  { type: 10, content: `"**${word}**" added to ban list.` }], flags: 64 });
         }
 
         if (action === 'remove') {
             if (!word)
-                return v2Reply(interaction, { content: '', components: [{ type: 10, content: '## <:Error:1440296241090265088> Error' }, { type: 14, spacing: 1 }, { type: 10, content: 'Please provide a word to unban.' }], flags: 64 });
+                return v2Reply(interaction, { content: '', components: [{ type: 10, content: '## <:Error:1440296241090265088> Error' },  { type: 10, content: 'Please provide a word to unban.' }], flags: 64 });
 
             const index = data.nickname.filter.indexOf(word);
             if (index === -1)
-                return v2Reply(interaction, { content: '', components: [{ type: 10, content: '## <:Error:1440296241090265088> Error' }, { type: 14, spacing: 1 }, { type: 10, content: `No ban found for "**${word}**".` }], flags: 64 });
+                return v2Reply(interaction, { content: '', components: [{ type: 10, content: '## <:Error:1440296241090265088> Error' },  { type: 10, content: `No ban found for "**${word}**".` }], flags: 64 });
 
             data.nickname.filter.splice(index, 1);
             fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
-            return v2Reply(interaction, { content: '', components: [{ type: 10, content: '## <:Correct:1440296238305116223> Word Removed' }, { type: 14, spacing: 1 }, { type: 10, content: `"**${word}**" removed from ban list.` }], flags: 64 });
+            return v2Reply(interaction, { content: '', components: [{ type: 10, content: '## <:Correct:1440296238305116223> Word Removed' },  { type: 10, content: `"**${word}**" removed from ban list.` }], flags: 64 });
         }
 
         if (action === 'list') {
             if (data.nickname.filter.length === 0)
-                return v2Reply(interaction, { content: '', components: [{ type: 10, content: '## 📋 Banned Words' }, { type: 14, spacing: 1 }, { type: 10, content: 'No words configured yet.' }], flags: 64 });
+                return v2Reply(interaction, { content: '', components: [{ type: 10, content: '## 📋 Banned Words' },  { type: 10, content: 'No words configured yet.' }], flags: 64 });
 
             const list = data.nickname.filter.map((w, i) => `${i+1}. **${w}**`).join('\n');
-            return v2Reply(interaction, { content: '', components: [{ type: 10, content: '## 🚫 Banned Words' }, { type: 14, spacing: 1 }, { type: 10, content: list }], flags: 64 });
+            return v2Reply(interaction, { content: '', components: [{ type: 10, content: '## 🚫 Banned Words' },  { type: 10, content: list }], flags: 64 });
         }
     }
 
@@ -1249,11 +1249,11 @@ client.on(Events.InteractionCreate, async interaction => {
     // type 17 = Container | type 10 = TextDisplay | type 14 = Separator
     if (commandName === 'afklist') {
         if (!member.permissions.has(PermissionsBitField.Flags.ManageGuild) && !member.permissions.has(PermissionsBitField.Flags.Administrator)) {
-            return v2Reply(interaction, { content: '', components: [{ type: 10, content: '## 🚫 Permission Denied' }, { type: 14, spacing: 1 }, { type: 10, content: 'You need ManageGuild permission.' }], flags: 64 });
+            return v2Reply(interaction, { content: '', components: [{ type: 10, content: '## 🚫 Permission Denied' },  { type: 10, content: 'You need ManageGuild permission.' }], flags: 64 });
         }
 
         if (Object.keys(afkUsers).length === 0) {
-            return v2Reply(interaction, { content: '', components: [{ type: 10, content: '## ⏱️ AFK Status' }, { type: 14, spacing: 1 }, { type: 10, content: 'No users are currently AFK.' }], flags: 64 });
+            return v2Reply(interaction, { content: '', components: [{ type: 10, content: '## ⏱️ AFK Status' },  { type: 10, content: 'No users are currently AFK.' }], flags: 64 });
         }
 
         let afkList = '';
@@ -1275,7 +1275,7 @@ client.on(Events.InteractionCreate, async interaction => {
             }
         }
 
-        return v2Reply(interaction, { content: '', components: [{ type: 10, content: '## 🚫 Currently AFK' }, { type: 14, spacing: 1 }, { type: 10, content: afkList }], flags: 64 });
+        return v2Reply(interaction, { content: '', components: [{ type: 10, content: '## 🚫 Currently AFK' },  { type: 10, content: afkList }], flags: 64 });
     }
 
     // AVATAR - Component V2 Container (via createAvatarComponent)
@@ -1308,7 +1308,7 @@ client.on(Events.InteractionCreate, async interaction => {
             if (guildAvatar) {
                 response = createAvatarComponent(displayName, defaultAvatar, guildAvatar, 'server_only');
             } else {
-                response = { content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:2_no_wrong:1439893245130838047> No Server Avatar' }, { type: 14 }, { type: 10, content: 'This user has no server-specific avatar set.' }], flags: 64 };
+                response = { content: '## <:2_no_wrong:1439893245130838047> No Server Avatar\n\nThis user has no server-specific avatar set.', flags: MessageFlags.Ephemeral };
             }
         } else if (showServerOnly === false) {
             // Show default avatar only
@@ -1690,7 +1690,7 @@ client.on(Events.InteractionCreate, async interaction => {
         const question = pick === 'Truth' ? truths[Math.floor(Math.random()*truths.length)] : dares[Math.floor(Math.random()*dares.length)];
         const emoji = tdEmojis[Math.floor(Math.random() * tdEmojis.length)];
         
-        return v2Reply(interaction, { content: '', components: [{ type: 10, content: `### ${emoji} ${pick}` }, { type: 14, spacing: 1 }, { type: 10, content: question }], flags: 32768 });
+        return v2Reply(interaction, { content: '', components: [{ type: 10, content: `### ${emoji} ${pick}` },  { type: 10, content: question }], flags: 32768 });
     }
 
     // CHOOSE - Component V2 Container
@@ -1944,7 +1944,7 @@ client.on(Events.InteractionCreate, async interaction => {
 
         const result = Math.random() < 0.5 ? 'Heads' : 'Tails';
         
-        return v2Reply(interaction, { content: '', components: [{ type: 10, content: '### <:Tails:1441153955412312134> Coin Flip' }, { type: 14, spacing: 1 }, { type: 10, content: `The coin landed on: **${result}**!` }], flags: 32768 });
+        return v2Reply(interaction, { content: '', components: [{ type: 10, content: '### <:Tails:1441153955412312134> Coin Flip' },  { type: 10, content: `The coin landed on: **${result}**!` }], flags: 32768 });
     }
 
     // AUTORESPONSE - Component V2 Container
@@ -1997,7 +1997,7 @@ client.on(Events.InteractionCreate, async interaction => {
                 : `Emoji: ${finalResponse}`;
             const addTitle = `## <:Correct:1440296238305116223> Auto-Response Added`;
             const addContent = `**Trigger:** ${trigger}\n**Response Type:** ${type.charAt(0).toUpperCase() + type.slice(1)}\n**Response:** ${displayText}`;
-            return v2Reply(interaction, { content: '', components: [{ type: 10, content: addTitle }, { type: 14, spacing: 1 }, { type: 10, content: addContent }], flags: 64 });
+            return v2Reply(interaction, { content: '', components: [{ type: 10, content: addTitle },  { type: 10, content: addContent }], flags: 64 });
         }
 
         if (action === 'remove') {
@@ -2018,7 +2018,7 @@ client.on(Events.InteractionCreate, async interaction => {
             fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
             const removeTitle = `## <:Correct:1440296238305116223> Auto-Response Removed`;
             const removeContent = `**Trigger:** ${trigger}\n\nThis auto-response has been successfully removed from your server.`;
-            return v2Reply(interaction, { content: '', components: [{ type: 10, content: removeTitle }, { type: 14, spacing: 1 }, { type: 10, content: removeContent }], flags: 64 });
+            return v2Reply(interaction, { content: '', components: [{ type: 10, content: removeTitle },  { type: 10, content: removeContent }], flags: 64 });
         }
 
         if (action === 'list') {
@@ -2039,7 +2039,7 @@ client.on(Events.InteractionCreate, async interaction => {
 
             const listTitle = `## 🔄 Auto-Responses Configured`;
             const listContent = `${list}\n**Total:** ${data.autoresponse[guildId].length} response(s) active`;
-            return v2Reply(interaction, { content: '', components: [{ type: 10, content: listTitle }, { type: 14, spacing: 1 }, { type: 10, content: listContent }], flags: 64 });
+            return v2Reply(interaction, { content: '', components: [{ type: 10, content: listTitle },  { type: 10, content: listContent }], flags: 64 });
         }
     }
 
@@ -2428,7 +2428,7 @@ client.on(Events.MessageCreate, async msg => {
             const question = pick === 'Truth' ? truths[Math.floor(Math.random()*truths.length)] : dares[Math.floor(Math.random()*dares.length)];
             const emoji = tdEmojis[Math.floor(Math.random() * tdEmojis.length)];
             
-            return msg.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: `### ${emoji} ${pick}` }, { type: 14, spacing: 1 }, { type: 10, content: question }], flags: 32768 });
+            return msg.reply({ content: `{ type: 10, content: `### ${emoji} ${pick}` },  { type: 10, content: question }], flags: 32768 });
         }
 
         // Fun command: Choose
@@ -2474,7 +2474,7 @@ client.on(Events.MessageCreate, async msg => {
 
             const result = Math.random() < 0.5 ? 'Heads' : 'Tails';
             
-            return msg.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '### <:Tails:1441153955412312134> Coin Flip' }, { type: 14, spacing: 1 }, { type: 10, content: `The coin landed on: **${result}**!` }], flags: 32768 });
+            return msg.reply({ content: `{ type: 10, content: '### <:Tails:1441153955412312134> Coin Flip' },  { type: 10, content: `The coin landed on: **${result}**!` }], flags: 32768 });
         }
 
         // Bot Info command
@@ -2749,28 +2749,28 @@ client.on(Events.MessageCreate, async msg => {
     const nickname = msg.content.trim();
     if (nickname.toLowerCase() === 'reset') {
         await msg.member.setNickname(null);
-        await msg.reply({ content:  components: [{ type: 10, content: '### <:Correct:1440296238305116223> Reset' }, { type: 14, spacing: 1 }, { type: 10, content: 'Your nickname has been reset to default.' }], flags: 32768 });
+        await msg.reply({ content:  components: [{ type: 10, content: '### <:Correct:1440296238305116223> Reset' },  { type: 10, content: 'Your nickname has been reset to default.' }], flags: 32768 });
         return;
     }
 
     if (data.nickname.mode === 'auto') {
         const bannedWord = containsBannedWord(nickname);
         if (bannedWord) {
-            await msg.reply({ content:  components: [{ type: 10, content: '### <:Bin:1441777857205637254> Cannot Set' }, { type: 14, spacing: 1 }, { type: 10, content: `Word "**${bannedWord}**" is not allowed.` }], flags: 32768 });
+            await msg.reply({ content:  components: [{ type: 10, content: '### <:Bin:1441777857205637254> Cannot Set' },  { type: 10, content: `Word "**${bannedWord}**" is not allowed.` }], flags: 32768 });
             return;
         }
 
         try {
             const before = msg.member.nickname || msg.member.displayName;
             await msg.member.setNickname(nickname);
-            await msg.reply({ content:  components: [{ type: 10, content: `### <:Correct:1440296238305116223> Changed To ${nickname}` }, { type: 14, spacing: 1 }, { type: 10, content: `Your previous nickname was **${before}**` }], flags: 32768 }).catch(() => {});
+            await msg.reply({ content:  components: [{ type: 10, content: `### <:Correct:1440296238305116223> Changed To ${nickname}` },  { type: 10, content: `Your previous nickname was **${before}**` }], flags: 32768 }).catch(() => {});
         } catch {
-            await msg.reply({ content:  components: [{ type: 10, content: '### <:warning:1441531830607151195> Failed' }, { type: 14, spacing: 1 }, { type: 10, content: 'Couldn\'t change your nickname. Try again or contact a moderator.' }], flags: 32768 }).catch(() => {});
+            await msg.reply({ content:  components: [{ type: 10, content: '### <:warning:1441531830607151195> Failed' },  { type: 10, content: 'Couldn\'t change your nickname. Try again or contact a moderator.' }], flags: 32768 }).catch(() => {});
         }
     } else if (data.nickname.mode === 'approval') {
         const bannedWord = containsBannedWord(nickname);
         if (bannedWord) {
-            await msg.reply({ content:  components: [{ type: 10, content: '### <:Bin:1441777857205637254> Cannot Set' }, { type: 14, spacing: 1 }, { type: 10, content: `Word "**${bannedWord}**" is not allowed.` }], flags: 32768 });
+            await msg.reply({ content:  components: [{ type: 10, content: '### <:Bin:1441777857205637254> Cannot Set' },  { type: 10, content: `Word "**${bannedWord}**" is not allowed.` }], flags: 32768 });
             return;
         }
 
