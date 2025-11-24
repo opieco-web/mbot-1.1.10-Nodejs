@@ -1740,7 +1740,7 @@ client.on(Events.InteractionCreate, async interaction => {
         const question = pick === 'Truth' ? truths[Math.floor(Math.random()*truths.length)] : dares[Math.floor(Math.random()*dares.length)];
         const emoji = tdEmojis[Math.floor(Math.random() * tdEmojis.length)];
         
-        return interaction.reply({ content: ' ', components: [{ type: 1, components: [{ type: 17, components: [{ type: 10, content: `### ${emoji} ${pick}` }, { type: 14, spacing: 1 }, { type: 10, content: question }] }], flags: 32768 });
+        return interaction.reply({ content: ' ', components: [{ type: 1, components: [{ type: 17, components: [{ type: 10, content: `### ${emoji} ${pick}` }, { type: 14, spacing: 1 }, { type: 10, content: question }] }] }], flags: 32768 });
     }
 
     // CHOOSE - Component V2 Container
@@ -1761,12 +1761,15 @@ client.on(Events.InteractionCreate, async interaction => {
         return interaction.reply({
             content: ' ',
             components: [{
-                type: 17,
-                components: [
-                    { type: 10, content: `### ${emoji} ${style}` },
-                    { type: 14, spacing: 1 },
-                    { type: 10, content: `**${choice}**` }
-                ]
+                type: 1,
+                components: [{
+                    type: 17,
+                    components: [
+                        { type: 10, content: `### ${emoji} ${style}` },
+                        { type: 14, spacing: 1 },
+                        { type: 10, content: `**${choice}**` }
+                    ]
+                }]
             }],
             flags: 32768
         });
