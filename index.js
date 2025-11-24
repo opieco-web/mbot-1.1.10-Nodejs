@@ -1929,11 +1929,8 @@ client.on(Events.InteractionCreate, async interaction => {
         const configPanel = {
             content: ' ',
             components: [{
-                type: 1,
-                components: [{
-                    type: 17,
-                    components: pageComponents
-                }]
+                type: 17,
+                components: pageComponents
             }]
         };
 
