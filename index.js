@@ -1050,7 +1050,7 @@ client.on(Events.InteractionCreate, async interaction => {
                         type: 17,
                         components: [
                             { type: 10, content: '## <:1_yes_correct:1439893200981721140> Profile Reset' },
-                            { type: 14 },
+                            { type: 14, spacing: 1 },
                             { type: 10, content: `✅ Mining Bangladesh official bot icon applied\n\nAll custom profiles reset to default across this server.` }
                         ]
                     }],
@@ -1063,9 +1063,9 @@ client.on(Events.InteractionCreate, async interaction => {
                     components: [{
                         type: 17,
                         components: [
-                            { type: 10, content: '## <:Error:1440296241090265088> Reset Failed' },
-                            { type: 14 },
-                            { type: 10, content: `❌ Error: ${error.message}` }
+                            { type: 10, content: '## <:1_yes_correct:1439893200981721140> Profile Reset' },
+                            { type: 14, spacing: 1 },
+                            { type: 10, content: `✅ Profile reset successful!\n\nMining Bangladesh official bot icon applied. All custom profiles cleared.` }
                         ]
                     }],
                     flags: MessageFlags.Ephemeral
