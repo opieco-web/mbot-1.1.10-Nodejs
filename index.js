@@ -203,17 +203,7 @@ const commands = [
                 .setRequired(false))
         .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageNicknames),
 
-    // Prefix / AFK / Avatar commands
-    new SlashCommandBuilder()
-        .setName('setprefix')
-        .setDescription('Change server prefix (admin only)')
-        .addStringOption(option => option.setName('prefix').setDescription('New prefix character(s)').setRequired(true))
-        .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageGuild),
-
-    new SlashCommandBuilder()
-        .setName('prefix')
-        .setDescription('Show the current server prefix for prefix commands'),
-
+    // AFK / Avatar commands
     new SlashCommandBuilder()
         .setName('afk')
         .setDescription('Set AFK status with optional reason')
@@ -1157,22 +1147,6 @@ client.on(Events.InteractionCreate, async interaction => {
             const list = data.nickname.filter.map((w, i) => `${i+1}. **${w}**`).join('\n');
             return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## 🚫 Banned Words' }, { type: 14, spacing: 1 }, { type: 10, content: list }] }], flags: 32768 | MessageFlags.Ephemeral });
         }
-    }
-
-    // SETPREFIX - Component V2 Container
-    // type 17 = Container | type 10 = TextDisplay | type 14 = Separator
-    if (commandName === 'setprefix') {
-        const newPrefix = interaction.options.getString('prefix');
-        data.prefix[guildId] = newPrefix;
-        fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
-        return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:1_yes_correct:1439893200981721140> Prefix Updated' }, { type: 14 }, { type: 10, content: `New prefix: **${newPrefix}**` }] }], flags: 32768 | MessageFlags.Ephemeral });
-    }
-
-    // PREFIX - Component V2 Container
-    // type 17 = Container | type 10 = TextDisplay | type 14 = Separator
-    if (commandName === 'prefix') {
-        const prefix = getPrefix(guildId);
-        return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:mg_question:1439893408041930894> Current Prefix' }, { type: 14 }, { type: 10, content: `\`${prefix}\`` }] }], flags: 32768 | MessageFlags.Ephemeral });
     }
 
     // BOTINFO - Component V2 Container

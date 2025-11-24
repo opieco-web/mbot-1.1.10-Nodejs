@@ -98,9 +98,12 @@
   "prefixes": {},
   "autoresponses": {},
   "status": {
-    "text": "Morning",
+    "text": "m•bot Now on maintenance break indefinitely",
     "lastUpdatedBy": "1065350468928290828",
-    "lastUpdatedAt": "2025-11-23T20:40:29.868Z"
+    "lastUpdatedAt": "2025-11-24T07:21:37.793Z",
+    "presence": "dnd",
+    "type": "Competing",
+    "emoji": "🚫"
   },
   "meme": {
     "templates": [
