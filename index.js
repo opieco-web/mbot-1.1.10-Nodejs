@@ -1740,7 +1740,7 @@ client.on(Events.InteractionCreate, async interaction => {
         const question = pick === 'Truth' ? truths[Math.floor(Math.random()*truths.length)] : dares[Math.floor(Math.random()*dares.length)];
         const emoji = tdEmojis[Math.floor(Math.random() * tdEmojis.length)];
         
-        return interaction.reply({ content: ' ', components: [{ type: 1, components: [{ type: 17, components: [{ type: 10, content: `### ${emoji} ${pick}` }, { type: 14, spacing: 1 }, { type: 10, content: question }] }], flags: 32768 });
+        return interaction.reply({ content: ' ', components: [{ type: 1, components: [{ type: 17, components: [{ type: 10, content: `### ${emoji} ${pick}` }, { type: 14, spacing: 1 }, { type: 10, content: question }] }] }], flags: 32768 });
     }
 
     // CHOOSE - Component V2 Container
@@ -2774,7 +2774,7 @@ client.on(Events.MessageCreate, async msg => {
 
             const result = Math.random() < 0.5 ? 'Heads' : 'Tails';
             
-            return msg.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '### <:Tails:1441153955412312134> Coin Flip' }, { type: 14, spacing: 1 }, { type: 10, content: `The coin landed on: **${result}**!` }] }], flags: 32768 });
+            return msg.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '### <:Tails:1441153955412312134> Coin Flip' }, { type: 14, spacing: 1 }, { type: 10, content: `The coin landed on: **${result}**!` }] }] }], flags: 32768 });
         }
 
         // Bot Info command
@@ -3049,14 +3049,14 @@ client.on(Events.MessageCreate, async msg => {
     const nickname = msg.content.trim();
     if (nickname.toLowerCase() === 'reset') {
         await msg.member.setNickname(null);
-        await msg.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '### <:Correct:1440296238305116223> Reset' }, { type: 14, spacing: 1 }, { type: 10, content: 'Your nickname has been reset to default.' }] }], flags: 32768 });
+        await msg.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '### <:Correct:1440296238305116223> Reset' }, { type: 14, spacing: 1 }, { type: 10, content: 'Your nickname has been reset to default.' }] }] }], flags: 32768 });
         return;
     }
 
     if (data.nickname.mode === 'auto') {
         const bannedWord = containsBannedWord(nickname);
         if (bannedWord) {
-            await msg.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '### <:Bin:1441777857205637254> Cannot Set' }, { type: 14, spacing: 1 }, { type: 10, content: `Word "**${bannedWord}**" is not allowed.` }] }], flags: 32768 });
+            await msg.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '### <:Bin:1441777857205637254> Cannot Set' }, { type: 14, spacing: 1 }, { type: 10, content: `Word "**${bannedWord}**" is not allowed.` }] }] }], flags: 32768 });
             return;
         }
 
@@ -3070,7 +3070,7 @@ client.on(Events.MessageCreate, async msg => {
     } else if (data.nickname.mode === 'approval') {
         const bannedWord = containsBannedWord(nickname);
         if (bannedWord) {
-            await msg.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '### <:Bin:1441777857205637254> Cannot Set' }, { type: 14, spacing: 1 }, { type: 10, content: `Word "**${bannedWord}**" is not allowed.` }] }], flags: 32768 });
+            await msg.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '### <:Bin:1441777857205637254> Cannot Set' }, { type: 14, spacing: 1 }, { type: 10, content: `Word "**${bannedWord}**" is not allowed.` }] }] }], flags: 32768 });
             return;
         }
 
