@@ -848,7 +848,7 @@ client.on(Events.InteractionCreate, async interaction => {
             fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
             applyBotStatus();
 
-            return v2Reply(interaction, { content: '', components: [{ type: 10, content: '## <:1_yes_correct:1439893200981721140> Status Cleared' }, { type: 14 }, { type: 10, content: 'Bot status reset to online.' }], flags: 64 });
+            return v2Reply(interaction, { content: '', components: [{ type: 10, content: '## <:1_yes_correct:1439893200981721140> Status Cleared' }, { type: 14 }\nBot status reset to online.' }], flags: 64 });
         }
 
         // Config: Page Navigation buttons
@@ -1958,9 +1958,9 @@ client.on(Events.InteractionCreate, async interaction => {
 
         if (action === 'add') {
             if (!trigger)
-                return v2Reply(interaction, { content: '', components: [{ type: 10, content: '## <:Error:1440296241090265088> Error' }, { type: 14 }, { type: 10, content: 'Trigger is required.' }], flags: 64 });
+                return v2Reply(interaction, { content: '', components: [{ type: 10, content: '## <:Error:1440296241090265088> Error' }, { type: 14 }\nTrigger is required.' }], flags: 64 });
             if (!type)
-                return v2Reply(interaction, { content: '', components: [{ type: 10, content: '## <:Error:1440296241090265088> Error' }, { type: 14 }, { type: 10, content: 'Response type is required.' }], flags: 64 });
+                return v2Reply(interaction, { content: '', components: [{ type: 10, content: '## <:Error:1440296241090265088> Error' }, { type: 14 }\nResponse type is required.' }], flags: 64 });
 
             let finalResponse = null;
             let isFromBackup = false;
@@ -1975,11 +1975,11 @@ client.on(Events.InteractionCreate, async interaction => {
                     finalResponse = response;
                     isFromBackup = false;
                 } else {
-                    return v2Reply(interaction, { content: '', components: [{ type: 10, content: '## <:Error:1440296241090265088> Error' }, { type: 14 }, { type: 10, content: 'Provide either custom text (response) or select a saved message (select_from_backup).' }], flags: 64 });
+                    return v2Reply(interaction, { content: '', components: [{ type: 10, content: '## <:Error:1440296241090265088> Error' }, { type: 14 }\nProvide either custom text (response) or select a saved message (select_from_backup).' }], flags: 64 });
                 }
             } else if (type === 'emoji') {
                 if (!response)
-                    return v2Reply(interaction, { content: '', components: [{ type: 10, content: '## <:Error:1440296241090265088> Error' }, { type: 14 }, { type: 10, content: 'Emoji response is required.' }], flags: 64 });
+                    return v2Reply(interaction, { content: '', components: [{ type: 10, content: '## <:Error:1440296241090265088> Error' }, { type: 14 }\nEmoji response is required.' }], flags: 64 });
                 finalResponse = response;
             }
 
@@ -2002,10 +2002,10 @@ client.on(Events.InteractionCreate, async interaction => {
 
         if (action === 'remove') {
             if (!trigger)
-                return v2Reply(interaction, { content: '', components: [{ type: 10, content: '## <:Error:1440296241090265088> Error' }, { type: 14 }, { type: 10, content: 'Trigger is required.' }], flags: 64 });
+                return v2Reply(interaction, { content: '', components: [{ type: 10, content: '## <:Error:1440296241090265088> Error' }, { type: 14 }\nTrigger is required.' }], flags: 64 });
 
             if (!data.autoresponse[guildId] || data.autoresponse[guildId].length === 0) {
-                return v2Reply(interaction, { content: '', components: [{ type: 10, content: '## <:Error:1440296241090265088> Error' }, { type: 14 }, { type: 10, content: 'No auto-responses configured.' }], flags: 64 });
+                return v2Reply(interaction, { content: '', components: [{ type: 10, content: '## <:Error:1440296241090265088> Error' }, { type: 14 }\nNo auto-responses configured.' }], flags: 64 });
             }
 
             const initialLength = data.autoresponse[guildId].length;
@@ -2023,7 +2023,7 @@ client.on(Events.InteractionCreate, async interaction => {
 
         if (action === 'list') {
             if (!data.autoresponse[guildId] || data.autoresponse[guildId].length === 0) {
-                return v2Reply(interaction, { content: '', components: [{ type: 10, content: '## 🔄 Auto-Responses' }, { type: 14 }, { type: 10, content: 'None configured yet.' }], flags: 64 });
+                return v2Reply(interaction, { content: '', components: [{ type: 10, content: '## 🔄 Auto-Responses' }, { type: 14 }\nNone configured yet.' }], flags: 64 });
             }
 
             let list = '';
@@ -2428,7 +2428,7 @@ client.on(Events.MessageCreate, async msg => {
             const question = pick === 'Truth' ? truths[Math.floor(Math.random()*truths.length)] : dares[Math.floor(Math.random()*dares.length)];
             const emoji = tdEmojis[Math.floor(Math.random() * tdEmojis.length)];
             
-            return msg.reply({ content: `{ type: 10, content: `### ${emoji} ${pick}` },  { type: 10, content: question }], flags: 32768 });
+            return msg.reply({ content: `### ${emoji} ${pick}\n\n${question}` });
         }
 
         // Fun command: Choose
@@ -2438,7 +2438,7 @@ client.on(Events.MessageCreate, async msg => {
             
             if (subjects.length < 2) {
                 const usageText = `**Choose between 2-3 options:**\n\n\`!cs <Subject A> , <Subject B>\`\n\n**or**\n\n\`!cs <Subject A> , <Subject B> , <Subject C>\``;
-                const warnMsg = await msg.reply({ content:  components: [{ type: 10, content: '## <:warning:1441531830607151195> Usage Format' }, { type: 14 }, { type: 10, content: usageText }], flags: 64 });
+                const warnMsg = await msg.reply({ content: `## <:warning:1441531830607151195> Usage Format\n\n${usageText}` });
                 msg.delete().catch(() => {});
                 setTimeout(() => warnMsg.delete().catch(() => {}), 10000);
                 return;
@@ -2449,18 +2449,7 @@ client.on(Events.MessageCreate, async msg => {
             const emoji = Math.random() < 0.5 ? '<a:croissant:1441783019139502112>' : '<a:cherry:1441782972486516946>';
             const choice = subjects[Math.floor(Math.random() * subjects.length)];
             
-            return msg.reply({
-                content: ' ',
-                components: [{
-                    type: 17,
-                    components: [
-                        { type: 10, content: `### ${emoji} ${style}` },
-                        { type: 14, spacing: 1 },
-                        { type: 10, content: `**${choice}**` }
-                    ]
-                }],
-                flags: 32768
-            });
+            return msg.reply({ content: `### ${emoji} ${style}\n\n**${choice}**` });
         }
 
         // Fun command: Coin Flip
@@ -2474,7 +2463,7 @@ client.on(Events.MessageCreate, async msg => {
 
             const result = Math.random() < 0.5 ? 'Heads' : 'Tails';
             
-            return msg.reply({ content: `{ type: 10, content: '### <:Tails:1441153955412312134> Coin Flip' },  { type: 10, content: `The coin landed on: **${result}**!` }], flags: 32768 });
+            return msg.reply({ content: `### <:Tails:1441153955412312134> Coin Flip\n\nThe coin landed on: **${result}**!` });
         }
 
         // Bot Info command
@@ -2749,28 +2738,28 @@ client.on(Events.MessageCreate, async msg => {
     const nickname = msg.content.trim();
     if (nickname.toLowerCase() === 'reset') {
         await msg.member.setNickname(null);
-        await msg.reply({ content:  components: [{ type: 10, content: '### <:Correct:1440296238305116223> Reset' },  { type: 10, content: 'Your nickname has been reset to default.' }], flags: 32768 });
+        await msg.reply({ content: '### <:Correct:1440296238305116223> Reset\n\nYour nickname has been reset to default.' });
         return;
     }
 
     if (data.nickname.mode === 'auto') {
         const bannedWord = containsBannedWord(nickname);
         if (bannedWord) {
-            await msg.reply({ content:  components: [{ type: 10, content: '### <:Bin:1441777857205637254> Cannot Set' },  { type: 10, content: `Word "**${bannedWord}**" is not allowed.` }], flags: 32768 });
+            await msg.reply({ content: ' [{ type: 10, content: '### <:Bin:1441777857205637254> Cannot Set' },  { type: 10, content: `Word "**${bannedWord}**" is not allowed.` }], flags: 32768 });
             return;
         }
 
         try {
             const before = msg.member.nickname || msg.member.displayName;
             await msg.member.setNickname(nickname);
-            await msg.reply({ content:  components: [{ type: 10, content: `### <:Correct:1440296238305116223> Changed To ${nickname}` },  { type: 10, content: `Your previous nickname was **${before}**` }], flags: 32768 }).catch(() => {});
+            await msg.reply({ content: ' [{ type: 10, content: `### <:Correct:1440296238305116223> Changed To ${nickname}` },  { type: 10, content: `Your previous nickname was **${before}**` }], flags: 32768 }).catch(() => {});
         } catch {
-            await msg.reply({ content:  components: [{ type: 10, content: '### <:warning:1441531830607151195> Failed' },  { type: 10, content: 'Couldn\'t change your nickname. Try again or contact a moderator.' }], flags: 32768 }).catch(() => {});
+            await msg.reply({ content: ' [{ type: 10, content: '### <:warning:1441531830607151195> Failed' },  { type: 10, content: 'Couldn\'t change your nickname. Try again or contact a moderator.' }], flags: 32768 }).catch(() => {});
         }
     } else if (data.nickname.mode === 'approval') {
         const bannedWord = containsBannedWord(nickname);
         if (bannedWord) {
-            await msg.reply({ content:  components: [{ type: 10, content: '### <:Bin:1441777857205637254> Cannot Set' },  { type: 10, content: `Word "**${bannedWord}**" is not allowed.` }], flags: 32768 });
+            await msg.reply({ content: ' [{ type: 10, content: '### <:Bin:1441777857205637254> Cannot Set' },  { type: 10, content: `Word "**${bannedWord}**" is not allowed.` }], flags: 32768 });
             return;
         }
 
