@@ -932,18 +932,7 @@ client.on(Events.InteractionCreate, async interaction => {
                         });
                         await msg.delete().catch(() => {});
                     } catch (error) {
-                        await msg.reply({
-                            content: ' ',
-                            components: [{
-                                type: 17,
-                                components: [
-                                    { type: 10, content: '## <:Error:1440296241090265088> Failed' },
-                                    { type: 14, spacing: 1 },
-                                    { type: 10, content: `❌ Error updating avatar: ${error.message}` }
-                                ]
-                            }],
-                            flags: 32768
-                        });
+                        console.error('Icon upload error:', error);
                     }
                 }
             });
@@ -1003,18 +992,7 @@ client.on(Events.InteractionCreate, async interaction => {
                         });
                         await msg.delete().catch(() => {});
                     } catch (error) {
-                        await msg.reply({
-                            content: ' ',
-                            components: [{
-                                type: 17,
-                                components: [
-                                    { type: 10, content: '## <:Error:1440296241090265088> Failed' },
-                                    { type: 14, spacing: 1 },
-                                    { type: 10, content: `❌ Error saving banner: ${error.message}` }
-                                ]
-                            }],
-                            flags: 32768
-                        });
+                        console.error('Banner upload error:', error);
                     }
                 }
             });
