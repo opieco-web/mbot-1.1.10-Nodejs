@@ -1724,16 +1724,8 @@ client.on(Events.InteractionCreate, async interaction => {
         const choice = subjects[Math.floor(Math.random() * subjects.length)];
         
         return interaction.reply({
-            content: ' ',
-            components: [{
-                type: 17,
-                components: [
-                    { type: 10, content: `### ${emoji} ${style}` },
-                    { type: 14, spacing: 1 },
-                    { type: 10, content: `**${choice}**` }
-                ]
-            }],
-            flags: 32768
+            content: `### ${emoji} ${style}\n\n**${choice}**`,
+            flags: MessageFlags.Ephemeral
         });
     }
 
