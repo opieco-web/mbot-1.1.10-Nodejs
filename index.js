@@ -947,8 +947,16 @@ client.on(Events.InteractionCreate, async interaction => {
 
             collector.on('end', (collected) => {
                 if (collected.size === 0) {
-                    interaction.followUp({
-                        content: '⏰ Upload timeout - no file received.',
+                    interaction.editReply({
+                        content: ' ',
+                        components: [{
+                            type: 17,
+                            components: [
+                                { type: 10, content: '## ⏰ Upload Timeout' },
+                                { type: 14, spacing: 1 },
+                                { type: 10, content: 'No file received.' }
+                            ]
+                        }],
                         flags: MessageFlags.Ephemeral
                     });
                 }
@@ -1015,8 +1023,16 @@ client.on(Events.InteractionCreate, async interaction => {
 
             collector.on('end', (collected) => {
                 if (collected.size === 0) {
-                    interaction.followUp({
-                        content: '⏰ Upload timeout - no file received.',
+                    interaction.editReply({
+                        content: ' ',
+                        components: [{
+                            type: 17,
+                            components: [
+                                { type: 10, content: '## ⏰ Upload Timeout' },
+                                { type: 14, spacing: 1 },
+                                { type: 10, content: 'No file received.' }
+                            ]
+                        }],
                         flags: MessageFlags.Ephemeral
                     });
                 }
