@@ -755,7 +755,7 @@ client.on(Events.InteractionCreate, async interaction => {
                 data.status.presence = newStatus;
                 fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
                 applyBotStatus();
-                return interaction.reply({ content: ' ', components: [{ type: 1, components: [{ type: 17, components: [{ type: 10, content: '## <:1_yes_correct:1439893200981721140> Online Status Updated' }, { type: 14 }, { type: 10, content: `Bot visibility set to: **${newStatus === 'dnd' ? 'Do Not Disturb' : newStatus.charAt(0).toUpperCase() + newStatus.slice(1)}**` }] }], flags: 32768 | MessageFlags.Ephemeral });
+                return interaction.reply({ content: ' ', components: [{ type: 1, components: [{ type: 17, components: [{ type: 10, content: '## <:1_yes_correct:1439893200981721140> Online Status Updated' }, { type: 14 }, { type: 10, content: `Bot visibility set to: **${newStatus === 'dnd' ? 'Do Not Disturb' : newStatus.charAt(0).toUpperCase() + newStatus.slice(1)}**` }] }] }], flags: 32768 | MessageFlags.Ephemeral });
             }
 
             // Config: Activity Type dropdown
@@ -765,7 +765,7 @@ client.on(Events.InteractionCreate, async interaction => {
                 data.status.type = newType;
                 fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
                 applyBotStatus();
-                return interaction.reply({ content: ' ', components: [{ type: 1, components: [{ type: 17, components: [{ type: 10, content: '## <:1_yes_correct:1439893200981721140> Activity Type Updated' }, { type: 14 }, { type: 10, content: `Activity type set to: **${newType}**` }] }], flags: 32768 | MessageFlags.Ephemeral });
+                return interaction.reply({ content: ' ', components: [{ type: 1, components: [{ type: 17, components: [{ type: 10, content: '## <:1_yes_correct:1439893200981721140> Activity Type Updated' }, { type: 14 }, { type: 10, content: `Activity type set to: **${newType}**` }] }] }], flags: 32768 | MessageFlags.Ephemeral });
             }
         }
 
