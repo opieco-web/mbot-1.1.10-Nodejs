@@ -787,7 +787,7 @@ client.on(Events.InteractionCreate, async interaction => {
                 data.status.presence = newStatus;
                 fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
                 applyBotStatus();
-                return v2Reply(interaction, { content: '', components: [{{ type: 10, content: '## <:1_yes_correct:1439893200981721140> Online Status Updated' }, { type: 14 }, { type: 10, content: `Bot visibility set to: **${newStatus === 'dnd' ? 'Do Not Disturb' : newStatus.charAt(0).toUpperCase() + newStatus.slice(1)}**` }] }], flags: 64 });
+                return v2Reply(interaction, { content: '', components: [{ type: 10, content: '## <:1_yes_correct:1439893200981721140> Online Status Updated' }, { type: 14 }, { type: 10, content: `Bot visibility set to: **${newStatus === 'dnd' ? 'Do Not Disturb' : newStatus.charAt(0).toUpperCase() + newStatus.slice(1)}**` }], flags: 64 });
             }
 
             // Config: Activity Type dropdown
@@ -797,7 +797,7 @@ client.on(Events.InteractionCreate, async interaction => {
                 data.status.type = newType;
                 fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
                 applyBotStatus();
-                return v2Reply(interaction, { content: '', components: [{{ type: 10, content: '## <:1_yes_correct:1439893200981721140> Activity Type Updated' }, { type: 14 }, { type: 10, content: `Activity type set to: **${newType}**` }] }], flags: 64 });
+                return v2Reply(interaction, { content: '', components: [{ type: 10, content: '## <:1_yes_correct:1439893200981721140> Activity Type Updated' }, { type: 14 }, { type: 10, content: `Activity type set to: **${newType}**` }], flags: 64 });
             }
         }
 
@@ -880,7 +880,7 @@ client.on(Events.InteractionCreate, async interaction => {
             fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
             applyBotStatus();
 
-            return v2Reply(interaction, { content: '', components: [{{ type: 10, content: '## <:1_yes_correct:1439893200981721140> Status Cleared' }, { type: 14 }, { type: 10, content: 'Bot status reset to online.' }] }], flags: 64 });
+            return v2Reply(interaction, { content: '', components: [{ type: 10, content: '## <:1_yes_correct:1439893200981721140> Status Cleared' }, { type: 14 }, { type: 10, content: 'Bot status reset to online.' }], flags: 64 });
         }
 
         // Config: Page Navigation buttons
