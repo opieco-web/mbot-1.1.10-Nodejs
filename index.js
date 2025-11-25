@@ -1094,7 +1094,16 @@ client.on(Events.InteractionCreate, async interaction => {
 
     // PLAY - Music command
     if (commandName === 'play') {
-        if (!member.voice.channel) {
+        let voiceMember = member;
+        try {
+            voiceMember = await interaction.guild.members.fetch(user.id);
+        } catch (e) {
+            console.error('Failed to fetch member:', e);
+        }
+        
+        console.log(`[PLAY] User voice channel: ${voiceMember?.voice?.channel?.id || 'None'}`);
+        
+        if (!voiceMember?.voice?.channel) {
             return interaction.reply({ 
                 content: ' ', 
                 components: [{ 
@@ -1112,7 +1121,8 @@ client.on(Events.InteractionCreate, async interaction => {
         const queue = interaction.options.getString('queue');
         
         try {
-            await member.voice.channel.join();
+            await voiceMember.voice.channel.join();
+            console.log(`[PLAY] Bot joined voice channel`);
         } catch (e) {
             console.error('Failed to join voice channel:', e);
             return interaction.reply({ 
