@@ -84,7 +84,24 @@ const client = new Client({
 const player = new Player(client, {
     leaveOnEmpty: true,
     leaveOnEnd: false,
-    leaveOnStop: true
+    leaveOnStop: true,
+    connectionTimeout: 30000,
+    skipFFmpeg: false
+});
+
+// Add error handlers for player events
+player.events.on('error', (queue, error) => {
+    console.error('[PLAYER ERROR]', error);
+});
+
+player.events.on('playerError', (queue, error) => {
+    console.error('[STREAM ERROR]', error);
+});
+
+player.events.on('debug', (message) => {
+    if (message.includes('error') || message.includes('Error')) {
+        console.log('[DEBUG]', message);
+    }
 });
 
 client.commands = new Collection();
@@ -1157,7 +1174,15 @@ client.on(Events.InteractionCreate, async interaction => {
             }
 
             result.tracks.forEach(track => queue.addTrack(track));
-            if (!queue.isPlaying()) await queue.node.play();
+            if (!queue.isPlaying()) {
+                try {
+                    await queue.node.play();
+                    console.log('[PLAY] Started playing:', result.tracks[0].title);
+                } catch (playError) {
+                    console.error('[PLAY] Failed to start playback:', playError);
+                    throw playError;
+                }
+            }
 
             const track = result.tracks[0];
             const mockTrack = {
@@ -2347,7 +2372,15 @@ client.on(Events.MessageCreate, async msg => {
                 }
 
                 result.tracks.forEach(track => queue.addTrack(track));
-                if (!queue.isPlaying()) await queue.node.play();
+                if (!queue.isPlaying()) {
+                    try {
+                        await queue.node.play();
+                        console.log('[PLAY] Started playing:', result.tracks[0].title);
+                    } catch (playError) {
+                        console.error('[PLAY] Failed to start playback:', playError);
+                        throw playError;
+                    }
+                }
 
                 const track = result.tracks[0];
                 const mockTrack = {
