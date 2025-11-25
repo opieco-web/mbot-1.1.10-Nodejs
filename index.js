@@ -85,74 +85,15 @@ const client = new Client({
 // Music state
 const musicState = new Map();
 
-// Get Spotify credentials from Replit connector
-async function getSpotifyCredentials() {
-    try {
-        const hostname = process.env.REPLIT_CONNECTORS_HOSTNAME;
-        const xReplitToken = process.env.REPL_IDENTITY 
-            ? 'repl ' + process.env.REPL_IDENTITY 
-            : process.env.WEB_REPL_RENEWAL 
-            ? 'depl ' + process.env.WEB_REPL_RENEWAL 
-            : null;
-
-        if (!xReplitToken) {
-            console.warn('[SPOTIFY] No Replit token found');
-            return null;
-        }
-
-        const response = await fetch(
-            'https://' + hostname + '/api/v2/connection?include_secrets=true&connector_names=spotify',
-            {
-                headers: {
-                    'Accept': 'application/json',
-                    'X_REPLIT_TOKEN': xReplitToken
-                }
-            }
-        );
-        
-        const data = await response.json();
-        const connectionSettings = data.items?.[0];
-        
-        if (!connectionSettings) {
-            console.warn('[SPOTIFY] No connection settings found');
-            return null;
-        }
-
-        const clientId = connectionSettings?.settings?.oauth?.credentials?.client_id;
-        const clientSecret = connectionSettings?.settings?.oauth?.credentials?.client_secret;
-        
-        if (clientId && clientSecret) {
-            console.log('[SPOTIFY] ✅ Credentials loaded');
-            return { clientId, clientSecret };
-        }
-        
-        return null;
-    } catch (error) {
-        console.error('[SPOTIFY] Credential error:', error.message);
-        return null;
-    }
-}
 
 async function playYouTubeTrack(guild, member, query, user) {
     try {
-        console.log('[PLAY] Searching Spotify for:', query);
+        console.log('[PLAY] Searching YouTube for:', query);
         
-        // Authenticate play-dl with Spotify credentials
-        const spotifyAuth = await getSpotifyCredentials();
-        if (spotifyAuth) {
-            await play.setToken({
-                spotify: {
-                    client_id: spotifyAuth.clientId,
-                    client_secret: spotifyAuth.clientSecret,
-                    market: 'US'
-                }
-            });
-        }
-        
-        // Use play-dl to search Spotify
+        // Use play-dl to search YouTube
         const results = await play.search(query, { 
             limit: 1,
-            source: { spotify: true }
+            source: { youtube: true }
         });
         
         if (!results || results.length === 0) {
@@ -1413,7 +1354,7 @@ client.on(Events.InteractionCreate, async interaction => {
             const mockTrack = {
                 name: track.title,
                 url: track.url,
-                artist: track.info?.author?.name || 'Spotify',
+                artist: track.info?.author?.name || 'YouTube',
                 length: track.duration ? `${Math.floor(track.duration / 60)}:${String(track.duration % 60).padStart(2, '0')}` : '0:00',
                 thumbnail: track.thumbnail
             };
@@ -2577,7 +2518,7 @@ client.on(Events.MessageCreate, async msg => {
                 const mockTrack = {
                     name: track.title,
                     url: track.url,
-                    artist: track.info?.author?.name || 'Spotify',
+                    artist: track.info?.author?.name || 'YouTube',
                     length: track.duration ? `${Math.floor(track.duration / 60)}:${String(track.duration % 60).padStart(2, '0')}` : '0:00',
                     thumbnail: track.thumbnail
                 };
