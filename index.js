@@ -1323,36 +1323,20 @@ client.on(Events.InteractionCreate, async interaction => {
         return interaction.reply(response);
     }
 
-    // PLAY - Slash command with attachment
+    // PLAY - Simple slash command with attachment
     if (commandName === 'play') {
         if (!member.voice.channel) {
-            return interaction.reply({ 
-                content: '❌ You must be in a voice channel to play music.',
-                flags: MessageFlags.Ephemeral 
-            });
+            return interaction.reply({ content: '❌ You must be in a voice channel.', flags: MessageFlags.Ephemeral });
         }
 
         const attachment = interaction.options.getAttachment('file');
         await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
         try {
-            const validExtensions = ['.mp3', '.wav', '.flac', '.ogg', '.m4a'];
-            const isValidFile = validExtensions.some(ext => attachment.name.toLowerCase().endsWith(ext));
-
-            if (!isValidFile) {
-                throw new Error(`Invalid file format. Supported: ${validExtensions.join(', ')}`);
-            }
-
-            console.log('[PLAY] Playing attachment:', attachment.name);
-            
-            // Fetch audio from Discord attachment URL directly
             const stream = await new Promise((resolve, reject) => {
                 https.get(attachment.url, (res) => {
-                    if (res.statusCode !== 200) {
-                        reject(new Error(`Failed to fetch audio: ${res.statusCode}`));
-                        return;
-                    }
-                    resolve(res);
+                    if (res.statusCode !== 200) reject(new Error(`Failed: ${res.statusCode}`));
+                    else resolve(res);
                 }).on('error', reject);
             });
             
@@ -1365,30 +1349,13 @@ client.on(Events.InteractionCreate, async interaction => {
             });
 
             const player = createAudioPlayer();
-            const resource = createAudioResource(stream, { 
-                inlineVolume: true,
-                inputType: 'arbitrary'
-            });
+            const resource = createAudioResource(stream, { inputType: 'arbitrary' });
             player.play(resource);
             connection.subscribe(player);
 
-            player.on('error', (error) => {
-                console.error('[PLAY] Player error:', error);
-                connection.destroy();
-            });
-
-            const panel = createMusicControlPanel({
-                name: attachment.name,
-                url: attachment.url,
-                artist: 'Uploaded File',
-                length: '0:00',
-                thumbnail: ''
-            }, user, 100, '▶️ Now Playing');
-
-            await interaction.editReply(panel);
+            await interaction.editReply(`▶️ Now playing: **${attachment.name}**`);
         } catch (error) {
-            console.error('[PLAY] Error:', error.message);
-            await interaction.editReply({ content: '❌ ' + error.message, components: [] });
+            await interaction.editReply(`❌ Error: ${error.message}`);
         }
     }
 
@@ -2455,75 +2422,6 @@ client.on(Events.MessageCreate, async msg => {
         const args = msg.content.slice(prefix.length).trim().split(/ +/);
         const cmd = args.shift().toLowerCase();
 
-        // PLAY - Music from attachment
-        if (cmd === 'p') {
-            if (!msg.member.voice.channel) {
-                return msg.reply('❌ You must be in a voice channel to play music.');
-            }
-
-            if (msg.attachments.size === 0) {
-                return msg.reply('❌ Please attach an audio file (.mp3, .wav, .flac, .ogg, .m4a)');
-            }
-
-            const attachment = msg.attachments.first();
-            const validExtensions = ['.mp3', '.wav', '.flac', '.ogg', '.m4a'];
-            const isValidFile = validExtensions.some(ext => attachment.name.toLowerCase().endsWith(ext));
-
-            if (!isValidFile) {
-                return msg.reply(`❌ Invalid file format. Supported: ${validExtensions.join(', ')}`);
-            }
-
-            try {
-                console.log('[PLAY] Playing attachment:', attachment.name);
-                
-                // Fetch audio from Discord attachment URL directly
-                const stream = await new Promise((resolve, reject) => {
-                    https.get(attachment.url, (res) => {
-                        if (res.statusCode !== 200) {
-                            reject(new Error(`Failed to fetch audio: ${res.statusCode}`));
-                            return;
-                        }
-                        resolve(res);
-                    }).on('error', reject);
-                });
-                
-                const connection = joinVoiceChannel({
-                    channelId: msg.member.voice.channel.id,
-                    guildId: msg.guild.id,
-                    adapterCreator: msg.guild.voiceAdapterCreator,
-                    selfDeaf: true,
-                    selfMute: false
-                });
-
-                const player = createAudioPlayer();
-                const resource = createAudioResource(stream, { 
-                    inlineVolume: true,
-                    inputType: 'arbitrary'
-                });
-                player.play(resource);
-                connection.subscribe(player);
-
-                player.on('error', (error) => {
-                    console.error('[PLAY] Player error:', error);
-                    connection.destroy();
-                    msg.reply('❌ Error playing audio.').catch(() => {});
-                });
-
-                const panel = createMusicControlPanel({
-                    name: attachment.name,
-                    url: attachment.url,
-                    artist: 'Uploaded File',
-                    length: '0:00',
-                    thumbnail: ''
-                }, msg.author, 100, '▶️ Now Playing');
-
-                msg.reply(panel).catch(() => {});
-            } catch (error) {
-                console.error('[PLAY] Error:', error.message);
-                msg.reply(`❌ ${error.message}`).catch(() => {});
-            }
-            return;
-        }
 
         // AFK
         if (cmd === 'afk') {
