@@ -905,10 +905,10 @@ client.on(Events.InteractionCreate, async interaction => {
                 pageComponents = [{
                     type: 17,
                     components: [
-                        { type: 10, content: `## <:1_yes_correct:1439893200981721140> Bot Configuration` },
-                        { type: 10, content: '**📄 Page 1/3 - Prefix & Settings**' },
+                        { type: 10, content: '## ⚙️ Bot Configuration' },
+                        { type: 10, content: '**Page 1/3 - Prefix & Settings**' },
                         { type: 14, spacing: 1 },
-                        { type: 10, content: `**Current Prefix:** \`${prefix}\`\n**Nickname Mode:** ${data.nickname.mode ? `<:Correct:1440296238305116223> ${data.nickname.mode}` : `<:2_no_wrong:1439893245130838047> Not Set`}\n**Server:** ${interaction.guild.name}` },
+                        { type: 10, content: `**Current Prefix:** \`${prefix}\`\n**Nickname Mode:** ${data.nickname.mode || '❌ Not Set'}\n**Server:** ${interaction.guild.name}` },
                         { type: 14, spacing: 1 },
                         { type: 1, components: [
                             { type: 2, style: 1, label: 'Set Prefix', custom_id: 'config_set_prefix' }
@@ -927,10 +927,10 @@ client.on(Events.InteractionCreate, async interaction => {
                 pageComponents = [{
                     type: 17,
                     components: [
-                        { type: 10, content: `## <a:cherry:1441782972486516946> Bot Status (Fully Customizable)` },
-                        { type: 10, content: '**📄 Page 2/3 - Activity & Presence**' },
+                        { type: 10, content: '## 🎮 Bot Status (Fully Customizable)' },
+                        { type: 10, content: '**Page 2/3 - Activity & Presence**' },
                         { type: 14, spacing: 1 },
-                        { type: 10, content: `**Current Activity:** ${statusData.type ? `<:Correct:1440296238305116223> ${statusData.type}` : `<:2_no_wrong:1439893245130838047> Not Set`}\n**Activity Text:** ${statusData.text || '(none)'}\n**Emoji:** ${statusData.emoji || '(none)'}\n**Presence:** ${statusData.presence || 'online'}` },
+                        { type: 10, content: `**Current Activity:** ${statusData.type || '❌ Not Set'}\n**Activity Text:** ${statusData.text || '(none)'}\n**Emoji:** ${statusData.emoji || '(none)'}\n**Presence:** ${statusData.presence || 'online'}` },
                         { type: 14, spacing: 1 },
                         { type: 1, components: [
                             { type: 3, custom_id: 'config_activity_type', placeholder: 'Choose activity type', options: activityTypes.map(t => ({ label: t, value: t })) }
@@ -939,8 +939,8 @@ client.on(Events.InteractionCreate, async interaction => {
                             { type: 3, custom_id: 'config_online_status', placeholder: 'Choose presence', options: presenceOptions.map(p => ({ label: p === 'dnd' ? 'Do Not Disturb' : p.charAt(0).toUpperCase() + p.slice(1), value: p })) }
                         ] },
                         { type: 1, components: [
-                            { type: 2, style: 1, label: '<:Correct:1440296238305116223> Customize', custom_id: 'config_status_set' },
-                            { type: 2, style: 4, label: '<:warning:1441531830607151195> Reset', custom_id: 'config_status_reset' }
+                            { type: 2, style: 1, label: '✏️ Customize', custom_id: 'config_status_set' },
+                            { type: 2, style: 4, label: '🔄 Reset', custom_id: 'config_status_reset' }
                         ] },
                         { type: 1, components: [
                             { type: 2, style: 2, label: '← Settings', custom_id: 'config_prev' },
@@ -953,10 +953,10 @@ client.on(Events.InteractionCreate, async interaction => {
                 pageComponents = [{
                     type: 17,
                     components: [
-                        { type: 10, content: `## <a:croissant:1441783019139502112> Server Profile & Welcome` },
-                        { type: 10, content: '**📄 Page 3/3 - Welcome System**' },
+                        { type: 10, content: '## 🎨 Server Profile & Welcome' },
+                        { type: 10, content: '**Page 3/3 - Welcome System**' },
                         { type: 14, spacing: 1 },
-                        { type: 10, content: `**Welcome:** ${data.welcome[guildId]?.enabled ? `<:Correct:1440296238305116223> Enabled` : `<:2_no_wrong:1439893245130838047> Disabled`}\n**Channel:** ${data.welcome[guildId]?.channelId ? `<#${data.welcome[guildId].channelId}>` : 'Not set'}\n**Delay:** ${data.welcome[guildId]?.delay ? Math.round(data.welcome[guildId].delay / 1000) + 's' : '120s'}` },
+                        { type: 10, content: `**Welcome:** ${data.welcome[guildId]?.enabled ? '✅ Enabled' : '❌ Disabled'}\n**Channel:** ${data.welcome[guildId]?.channelId ? `<#${data.welcome[guildId].channelId}>` : 'Not set'}\n**Delay:** ${data.welcome[guildId]?.delay ? Math.round(data.welcome[guildId].delay / 1000) + 's' : '120s'}` },
                         { type: 14, spacing: 1 },
                         { type: 1, components: [
                             { type: 2, style: 1, label: '📧 Setup Welcome', custom_id: 'config_welcome_setup' }
