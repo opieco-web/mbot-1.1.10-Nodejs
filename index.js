@@ -2836,25 +2836,40 @@ client.on(Events.MessageCreate, async msg => {
 // ------------------------
 client.on(Events.GuildMemberAdd, async member => {
     const guildId = member.guild.id;
+    console.log(`[WELCOME] New member joined: ${member.user.tag} in guild ${guildId}`);
     
     const welcomeConfig = data.welcome[guildId];
-    if (!welcomeConfig || !welcomeConfig.enabled || !welcomeConfig.channelId) {
+    if (!welcomeConfig) {
+        console.log(`[WELCOME] No welcome config for guild ${guildId}`);
+        return;
+    }
+    if (!welcomeConfig.enabled) {
+        console.log(`[WELCOME] Welcome disabled for guild ${guildId}`);
+        return;
+    }
+    if (!welcomeConfig.channelId) {
+        console.log(`[WELCOME] No channel ID set for guild ${guildId}`);
         return;
     }
 
     const delay = (typeof welcomeConfig.delay === 'number') ? welcomeConfig.delay : 120000;
+    console.log(`[WELCOME] Will send welcome message after ${delay}ms delay`);
 
     setTimeout(async () => {
         try {
             const channel = await member.guild.channels.fetch(welcomeConfig.channelId);
-            if (!channel) return;
+            if (!channel) {
+                console.error(`[WELCOME] Channel ${welcomeConfig.channelId} not found`);
+                return;
+            }
 
             const randomMessage = welcomeMessages[Math.floor(Math.random() * welcomeMessages.length)];
             const welcomeText = randomMessage.replace('{user}', `<@${member.id}>`);
 
             await channel.send(welcomeText);
+            console.log(`[WELCOME] Welcome message sent to ${channel.name}`);
         } catch (error) {
-            console.error('Welcome message error:', error);
+            console.error('[WELCOME] Error sending welcome message:', error.message);
         }
     }, delay);
 });
