@@ -1308,7 +1308,7 @@ client.on(Events.InteractionCreate, async interaction => {
                 queue.connect(member.voice.channel);
             }
 
-            const result = await player.search(query, { requestedBy: user });
+            const result = await player.search(query, { requestedBy: user, searchEngine: 'youtube' });
             if (!result || !result.tracks.length) {
                 return interaction.reply({ 
                     content: ' ', 
@@ -1336,19 +1336,17 @@ client.on(Events.InteractionCreate, async interaction => {
             const panel = createMusicControlPanel(mockTrack, user, 100, '▶️ Now Playing');
             await interaction.reply(panel);
 
-            result.tracks.forEach(track => queue.addTrack(track));
+            queue.addTrack(track);
             if (!queue.isPlaying()) {
                 try {
-                    console.log('[PLAY] Queue connection status:', queue.connection ? 'Connected' : 'Not connected');
-                    console.log('[PLAY] Current track:', result.tracks[0].title);
-                    console.log('[PLAY] Track extractor:', result.tracks[0].extractor?.name || 'Unknown');
+                    console.log('[PLAY] Starting playback for:', track.title);
                     await queue.node.play();
                     console.log('[PLAY] ✅ Successfully started playing');
                 } catch (playError) {
                     console.error('[PLAY] ❌ Failed to start playback:', playError.message);
                 }
             } else {
-                console.log('[PLAY] Queue already playing, track added to queue');
+                console.log('[PLAY] Queue already playing, track added');
             }
         } catch (error) {
             console.error('[PLAY] Error:', error);
@@ -2521,7 +2519,7 @@ client.on(Events.MessageCreate, async msg => {
                     queue.connect(msg.member.voice.channel);
                 }
 
-                const result = await player.search(query, { requestedBy: msg.author });
+                const result = await player.search(query, { requestedBy: msg.author, searchEngine: 'youtube' });
                 if (!result || !result.tracks.length) {
                     return msg.reply('❌ No songs found for: ' + query);
                 }
@@ -2538,19 +2536,17 @@ client.on(Events.MessageCreate, async msg => {
                 const panel = createMusicControlPanel(mockTrack, msg.author, 100, '▶️ Now Playing');
                 await msg.reply(panel);
 
-                result.tracks.forEach(track => queue.addTrack(track));
+                queue.addTrack(track);
                 if (!queue.isPlaying()) {
                     try {
-                        console.log('[PLAY] Queue connection status:', queue.connection ? 'Connected' : 'Not connected');
-                        console.log('[PLAY] Current track:', result.tracks[0].title);
-                        console.log('[PLAY] Track extractor:', result.tracks[0].extractor?.name || 'Unknown');
+                        console.log('[PLAY] Starting playback for:', track.title);
                         await queue.node.play();
                         console.log('[PLAY] ✅ Successfully started playing');
                     } catch (playError) {
                         console.error('[PLAY] ❌ Failed to start playback:', playError.message);
                     }
                 } else {
-                    console.log('[PLAY] Queue already playing, track added to queue');
+                    console.log('[PLAY] Queue already playing, track added');
                 }
             } catch (error) {
                 console.error('[PLAY] Error:', error);
