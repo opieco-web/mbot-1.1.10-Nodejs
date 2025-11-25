@@ -2,12 +2,13 @@ import { Client, GatewayIntentBits, Partials, Collection, ButtonStyle, ActionRow
 import fs from 'fs';
 import { createCanvas } from 'canvas';
 import { allCommands } from './src/commands/index.js';
+import versionData from './versionData.js';
 
 const TOKEN = process.env.DISCORD_BOT_TOKEN;
 const CLIENT_ID = process.env.DISCORD_CLIENT_ID;
 const packageJson = JSON.parse(fs.readFileSync('./package.json', 'utf8'));
 const BOT_NAME = packageJson.name;
-const BOT_VERSION = packageJson.version;
+const BOT_VERSION = versionData.version;
 
 const dataFile = './data.json';
 let data = JSON.parse(fs.readFileSync(dataFile, 'utf8'));
