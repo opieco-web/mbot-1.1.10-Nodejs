@@ -1,8 +1,8 @@
 export default {
-    version: "1.0.22",
-    releaseDate: "Nov 25, 2025 3:02 PM",
-    releaseDateTimestamp: 1764063773,
-    changesSummary: "Version bump with system sync",
+    version: "1.0.23",
+    releaseDate: "Nov 25, 2025 3:03 PM",
+    releaseDateTimestamp: 1764064024,
+    changesSummary: "afklist displays member count",
 
     versionGuide: `
 📌 Versioning Guide

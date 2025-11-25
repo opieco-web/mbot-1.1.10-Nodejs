@@ -1045,7 +1045,8 @@ client.on(Events.InteractionCreate, async interaction => {
             }
         }
 
-        return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## 🚫 Currently AFK' }, { type: 14, spacing: 1 }, { type: 10, content: afkList }] }], flags: 32768 | MessageFlags.Ephemeral });
+        const afkCount = Object.keys(afkUsers).length;
+        return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: `## 🚫 Currently AFK - ${afkCount}` }, { type: 14, spacing: 1 }, { type: 10, content: afkList }] }], flags: 32768 | MessageFlags.Ephemeral });
     }
 
     // AVATAR - Component V2 Container (via createAvatarComponent)
