@@ -2475,7 +2475,17 @@ client.on(Events.MessageCreate, async msg => {
 
             try {
                 console.log('[PLAY] Playing attachment:', attachment.name);
-                const stream = await play.stream(attachment.url);
+                
+                // Fetch audio from Discord attachment URL directly
+                const stream = await new Promise((resolve, reject) => {
+                    https.get(attachment.url, (res) => {
+                        if (res.statusCode !== 200) {
+                            reject(new Error(`Failed to fetch audio: ${res.statusCode}`));
+                            return;
+                        }
+                        resolve(res);
+                    }).on('error', reject);
+                });
                 
                 const connection = joinVoiceChannel({
                     channelId: msg.member.voice.channel.id,
@@ -2486,9 +2496,9 @@ client.on(Events.MessageCreate, async msg => {
                 });
 
                 const player = createAudioPlayer();
-                const resource = createAudioResource(stream.stream, { 
-                    inlineVolume: true, 
-                    inputType: stream.type 
+                const resource = createAudioResource(stream, { 
+                    inlineVolume: true,
+                    inputType: 'arbitrary'
                 });
                 player.play(resource);
                 connection.subscribe(player);
