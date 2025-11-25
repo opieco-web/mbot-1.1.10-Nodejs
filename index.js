@@ -3,6 +3,7 @@ import { joinVoiceChannel, createAudioPlayer, createAudioResource, AudioPlayerSt
 import ytdl from 'ytdl-core';
 import play from 'play-dl';
 import fs from 'fs';
+import https from 'https';
 import { createCanvas } from 'canvas';
 import { allCommands } from './src/commands/index.js';
 import { createMusicControlPanel } from './src/commands/music.js';
@@ -1343,7 +1344,17 @@ client.on(Events.InteractionCreate, async interaction => {
             }
 
             console.log('[PLAY] Playing attachment:', attachment.name);
-            const stream = await play.stream(attachment.url);
+            
+            // Fetch audio from Discord attachment URL directly
+            const stream = await new Promise((resolve, reject) => {
+                https.get(attachment.url, (res) => {
+                    if (res.statusCode !== 200) {
+                        reject(new Error(`Failed to fetch audio: ${res.statusCode}`));
+                        return;
+                    }
+                    resolve(res);
+                }).on('error', reject);
+            });
             
             const connection = joinVoiceChannel({
                 channelId: member.voice.channel.id,
@@ -1354,9 +1365,9 @@ client.on(Events.InteractionCreate, async interaction => {
             });
 
             const player = createAudioPlayer();
-            const resource = createAudioResource(stream.stream, { 
-                inlineVolume: true, 
-                inputType: stream.type 
+            const resource = createAudioResource(stream, { 
+                inlineVolume: true,
+                inputType: 'arbitrary'
             });
             player.play(resource);
             connection.subscribe(player);
