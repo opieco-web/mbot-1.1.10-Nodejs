@@ -162,6 +162,53 @@ Preferred communication style: Simple, everyday language.
 - `DISCORD_BOT_TOKEN`: Bot authentication
 - `DISCORD_CLIENT_ID`: Application/client ID
 
+# Version Management System
+
+## Versioning Format: Semantic Versioning (MAJOR.MINOR.PATCH)
+- **MAJOR (1.x.x)**: Breaking changes, major redesigns (1.0.0 → 2.0.0)
+- **MINOR (x.1.x)**: New features added (1.0.0 → 1.1.0)
+- **PATCH (x.x.1)**: Bug fixes, small improvements (1.0.0 → 1.0.1)
+
+## Three Files to Update When Making Changes:
+1. **`versionData.js`** - Update version number and add changelog entry
+2. **`package.json`** - Update version number (auto-synced from versionData.js)
+3. **Bot displays version everywhere**: `/botinfo`, `/config` page 3, and all version references
+
+## How to Update Version:
+
+### Step 1: Identify Change Type
+- **MAJOR**: Restructuring, breaking changes (e.g., modular refactoring)
+- **MINOR**: New commands/features (e.g., new avatar system)
+- **PATCH**: Bug fixes, improvements (e.g., fixed nickname display)
+
+### Step 2: Update versionData.js
+```javascript
+// Change version number
+version: "1.0.11",  // Example: increased from 1.0.10
+
+// Add entry at TOP of changelog
+changelog: `
+# Changelog
+
+## 1.0.11 — (DATE)
+- Brief description of change 1
+- Brief description of change 2
+
+## 1.0.10 — (2025-11-25)
+...rest of changelog
+```
+
+### Step 3: Auto-Updates (Automatic)
+- `package.json` automatically reads from `versionData.js` when bot starts
+- Bot info command (`/botinfo`) displays version from `versionData.js`
+- Config page 3 (`/config`) displays version from `versionData.js`
+- All version references throughout bot auto-update
+
+## Current Version
+- **Version**: 1.0.10
+- **Last Updated**: Nov 25, 2025
+- **Status**: Fully modularized, version system implemented
+
 # Recent Changes (Nov 25, 2025)
 - **COMPLETED: Full Modularization**
   - ✅ Extracted 14+ commands into 5 category-grouped files (instead of monolithic)
@@ -170,6 +217,13 @@ Preferred communication style: Simple, everyday language.
   - ✅ Updated index.js to import all commands from modular files
   - ✅ Reduced main index.js from 3,089 to ~550 lines (with all handlers intact)
   - ✅ Bot remains 100% functional with all commands working
+
+- **COMPLETED: Version Management System**
+  - ✅ Created `versionData.js` with version tracking and changelog
+  - ✅ Synced `package.json` version to match `versionData.js`
+  - ✅ Added changelog display to `/config` page 3
+  - ✅ Version auto-updates everywhere (botinfo, config, etc.)
+  - ✅ Documented versioning process in replit.md
 
 - **Previous (Nov 24, 2025)**
   - Removed `/setprefix` and `/prefix` commands (functionality moved to `/config`)
