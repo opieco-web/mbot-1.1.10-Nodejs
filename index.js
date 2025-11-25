@@ -1,12 +1,7 @@
 import { Client, GatewayIntentBits, Partials, Collection, ButtonStyle, ActionRowBuilder, ButtonBuilder, Events, PermissionsBitField, REST, Routes, SlashCommandBuilder, EmbedBuilder, MessageFlags, ActivityType, ContainerBuilder, TextDisplayBuilder, MediaGalleryBuilder, MediaGalleryItemBuilder } from 'discord.js';
-import { joinVoiceChannel, createAudioPlayer, createAudioResource, AudioPlayerStatus } from '@discordjs/voice';
-import ytdl from 'ytdl-core';
-import play from 'play-dl';
 import fs from 'fs';
-import https from 'https';
 import { createCanvas } from 'canvas';
 import { allCommands } from './src/commands/index.js';
-import { createMusicControlPanel } from './src/commands/music.js';
 import versionData from './versionData.js';
 
 const TOKEN = process.env.DISCORD_BOT_TOKEN;
@@ -1323,47 +1318,6 @@ client.on(Events.InteractionCreate, async interaction => {
         return interaction.reply(response);
     }
 
-    // PLAY - Simple slash command with attachment
-    if (commandName === 'play') {
-        if (!member.voice.channel) {
-            return interaction.reply({ content: '❌ You must be in a voice channel.', flags: MessageFlags.Ephemeral });
-        }
-
-        const attachment = interaction.options.getAttachment('file');
-        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
-
-        try {
-            const stream = await new Promise((resolve, reject) => {
-                https.get(attachment.url, (res) => {
-                    if (res.statusCode !== 200) reject(new Error(`Failed: ${res.statusCode}`));
-                    else resolve(res);
-                }).on('error', reject);
-            });
-            
-            const connection = joinVoiceChannel({
-                channelId: member.voice.channel.id,
-                guildId: interaction.guild.id,
-                adapterCreator: interaction.guild.voiceAdapterCreator,
-                selfDeaf: true,
-                selfMute: false
-            });
-
-            const player = createAudioPlayer();
-            const resource = createAudioResource(stream, { 
-                inputType: 'arbitrary',
-                inlineVolume: true
-            });
-            player.play(resource);
-            connection.subscribe(player);
-
-            player.on('error', e => console.error('[AUDIO ERROR]', e));
-            connection.on('stateChange', state => console.log('[CONNECTION]', state.status));
-
-            await interaction.editReply(`▶️ Now playing: **${attachment.name}**`);
-        } catch (error) {
-            await interaction.editReply(`❌ Error: ${error.message}`);
-        }
-    }
 
     // ------------------------
     // FUN COMMAND: Truth or Dare
