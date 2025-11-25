@@ -1603,9 +1603,16 @@ client.on(Events.InteractionCreate, async interaction => {
             // Add Changelog Section
             pageComponents.push({ type: 14, spacing: 1 });
             pageComponents.push({ type: 10, content: '### 📜 Bot Changelog' });
-            pageComponents.push({ type: 10, content: `**Version:** v${versionData.version}` });
+            pageComponents.push({ type: 10, content: `**Current Version:** v${versionData.version}` });
             pageComponents.push({ type: 14, spacing: 1 });
-            pageComponents.push({ type: 10, content: versionData.changelog });
+            
+            // Extract only the latest version entry for display
+            const changelogLines = versionData.changelog.split('\n');
+            const latestVersionIndex = changelogLines.findIndex(line => line.includes('##'));
+            const nextVersionIndex = changelogLines.findIndex((line, i) => i > latestVersionIndex && line.includes('##'));
+            const latestEntry = changelogLines.slice(latestVersionIndex, nextVersionIndex > 0 ? nextVersionIndex : changelogLines.length).join('\n').substring(0, 1000);
+            
+            pageComponents.push({ type: 10, content: latestEntry || 'Changelog loading...' });
         }
         
         // Add pagination buttons
