@@ -1796,16 +1796,34 @@ ${prefix}afk [reason] - Set AFK
             ];
         } else if (pageNum === 2) {
             // Page 2: Bot Status
+            // Visibility emoji mapping
+            const visibilityEmojis = {
+                'online': '<:online:1442982229688189153>',
+                'idle': '<:idle:1442982232083005634>',
+                'dnd': '<:dnd:1442982235379859486>',
+                'invisible': '<:invisible:1442982240588926996>'
+            };
+            const visibilityLabels = {
+                'online': 'online',
+                'idle': 'idle',
+                'dnd': 'dnd',
+                'invisible': 'invisible'
+            };
+            
             let statusText = '';
+            const currentPresence = data.status?.presence || 'online';
+            const currentVisibilityEmoji = visibilityEmojis[currentPresence] || visibilityEmojis['online'];
+            const currentVisibilityLabel = visibilityLabels[currentPresence] || 'online';
+            
             if (!data.status?.text || !data.status?.type) {
-                statusText = '🟢 Bot is online with no custom activity.';
+                statusText = `${currentVisibilityEmoji}│${currentVisibilityLabel} - No custom activity set.`;
             } else {
                 const displayName = data.status.emoji ? `${data.status.emoji} ${data.status.text}` : data.status.text;
                 statusText = `**Activity:** ${data.status.type} ${displayName}\n`;
                 if (data.status.type === 'Streaming' && data.status.streamUrl) {
                     statusText += `**Stream:** ${data.status.streamUrl}\n`;
                 }
-                statusText += `**Visibility:** <:online:1442982229688189153>, <:idle:1442982232083005634>, <:dnd:1442982235379859486>, <:invisible:1442982240588926996>│online, idle, dnd, invisible`;
+                statusText += `**Visibility:** ${currentVisibilityEmoji}│${currentVisibilityLabel}`;
             }
             
             pageComponents = [
