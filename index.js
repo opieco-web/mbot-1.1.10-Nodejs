@@ -283,24 +283,32 @@ async function processPendingNicknameRequests() {
             
             // Check if THIS SPECIFIC message already has a bot reply to it
             let msgHasBotReply = false;
+            console.log(`[PENDING NICKNAMES] Checking message from ${msg.author.tag}: "${content}" (ID: ${msg.id})`);
             try {
                 // Fetch all messages to check if any bot message replies to this message
                 const allMsgs = await channel.messages.fetch({ limit: 200 });
+                console.log(`[PENDING NICKNAMES] Fetched ${allMsgs.size} messages to check for replies`);
+                
                 for (const checkMsg of allMsgs.values()) {
-                    if (checkMsg.author.bot && checkMsg.reference && checkMsg.reference.messageId === msg.id) {
-                        msgHasBotReply = true;
-                        break;
+                    if (checkMsg.author.bot) {
+                        console.log(`[DEBUG] Bot message: ref=${checkMsg.reference?.messageId || 'none'}, checking against ${msg.id}`);
+                        if (checkMsg.reference && checkMsg.reference.messageId === msg.id) {
+                            console.log(`[DEBUG] FOUND REPLY! Bot replied to this message`);
+                            msgHasBotReply = true;
+                            break;
+                        }
                     }
                 }
             } catch (e) {
-                // Ignore errors
+                console.error(`[PENDING NICKNAMES] Error checking replies:`, e.message);
             }
             
             // Skip this message if it already has a bot reply
             if (msgHasBotReply) {
-                console.log(`[PENDING NICKNAMES] Skipping message from ${msg.author.tag} - already has bot reply`);
+                console.log(`[PENDING NICKNAMES] ✓ Skipping message from ${msg.author.tag} - already has bot reply`);
                 continue;
             }
+            console.log(`[PENDING NICKNAMES] ✓ Processing message from ${msg.author.tag}`);
             
             try {
                 const member = await channel.guild.members.fetch(msg.author.id);
