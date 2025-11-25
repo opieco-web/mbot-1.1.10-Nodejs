@@ -1322,69 +1322,12 @@ client.on(Events.InteractionCreate, async interaction => {
         return interaction.reply(response);
     }
 
-    // PLAY - Music command (Direct audio file URLs only)
+    // PLAY - Slash command disabled (use !p with attachment instead)
     if (commandName === 'play') {
-        if (!member.voice.channel) {
-            return interaction.reply({ 
-                components: [{ 
-                    type: 17, 
-                    components: [
-                        { type: 10, content: '## 🚫 Voice Channel Required' }, 
-                        { type: 14, spacing: 1 }, 
-                        { type: 10, content: 'You must be in a voice channel to use this command.' }
-                    ] 
-                }], 
-                flags: MessageFlags.Ephemeral 
-            });
-        }
-
-        const input = interaction.options.getString('queue');
-        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
-
-        try {
-            // Accept only direct audio file URLs (no bot restrictions)
-            if (!input.endsWith('.mp3') && !input.endsWith('.wav') && !input.endsWith('.flac') && !input.endsWith('.ogg') && !input.endsWith('.m4a')) {
-                throw new Error('❌ Please provide a direct audio file URL (.mp3, .wav, .flac, .ogg, .m4a)\n\nExample: https://example.com/song.mp3');
-            }
-
-            console.log('[PLAY] Streaming:', input);
-            
-            const stream = await play.stream(input);
-            const mockTrack = {
-                name: 'Audio Track',
-                url: input,
-                artist: 'Direct URL',
-                length: '0:00',
-                thumbnail: ''
-            };
-
-            const connection = joinVoiceChannel({
-                channelId: member.voice.channel.id,
-                guildId: interaction.guild.id,
-                adapterCreator: interaction.guild.voiceAdapterCreator,
-                selfDeaf: true,
-                selfMute: false
-            });
-
-            const player = createAudioPlayer();
-            const resource = createAudioResource(stream.stream, { 
-                inlineVolume: true, 
-                inputType: stream.type 
-            });
-            player.play(resource);
-            connection.subscribe(player);
-
-            player.on('error', (error) => {
-                console.error('[PLAY] Player error:', error);
-                connection.destroy();
-            });
-
-            const panel = createMusicControlPanel(mockTrack, user, 100, '▶️ Now Playing');
-            await interaction.editReply(panel);
-        } catch (error) {
-            console.error('[PLAY] Error:', error.message);
-            await interaction.editReply({ content: '❌ ' + error.message, components: [] });
-        }
+        return interaction.reply({ 
+            content: 'Use **!p** prefix command with an attached audio file instead.',
+            flags: MessageFlags.Ephemeral
+        });
     }
 
     // ------------------------
@@ -2449,6 +2392,66 @@ client.on(Events.MessageCreate, async msg => {
     if (msg.content.startsWith(prefix)) {
         const args = msg.content.slice(prefix.length).trim().split(/ +/);
         const cmd = args.shift().toLowerCase();
+
+        // PLAY - Music from attachment
+        if (cmd === 'p') {
+            if (!msg.member.voice.channel) {
+                return msg.reply('❌ You must be in a voice channel to play music.');
+            }
+
+            if (msg.attachments.size === 0) {
+                return msg.reply('❌ Please attach an audio file (.mp3, .wav, .flac, .ogg, .m4a)');
+            }
+
+            const attachment = msg.attachments.first();
+            const validExtensions = ['.mp3', '.wav', '.flac', '.ogg', '.m4a'];
+            const isValidFile = validExtensions.some(ext => attachment.name.toLowerCase().endsWith(ext));
+
+            if (!isValidFile) {
+                return msg.reply(`❌ Invalid file format. Supported: ${validExtensions.join(', ')}`);
+            }
+
+            try {
+                console.log('[PLAY] Playing attachment:', attachment.name);
+                const stream = await play.stream(attachment.url);
+                
+                const connection = joinVoiceChannel({
+                    channelId: msg.member.voice.channel.id,
+                    guildId: msg.guild.id,
+                    adapterCreator: msg.guild.voiceAdapterCreator,
+                    selfDeaf: true,
+                    selfMute: false
+                });
+
+                const player = createAudioPlayer();
+                const resource = createAudioResource(stream.stream, { 
+                    inlineVolume: true, 
+                    inputType: stream.type 
+                });
+                player.play(resource);
+                connection.subscribe(player);
+
+                player.on('error', (error) => {
+                    console.error('[PLAY] Player error:', error);
+                    connection.destroy();
+                    msg.reply('❌ Error playing audio.').catch(() => {});
+                });
+
+                const panel = createMusicControlPanel({
+                    name: attachment.name,
+                    url: attachment.url,
+                    artist: 'Uploaded File',
+                    length: '0:00',
+                    thumbnail: ''
+                }, msg.author, 100, '▶️ Now Playing');
+
+                msg.reply(panel).catch(() => {});
+            } catch (error) {
+                console.error('[PLAY] Error:', error.message);
+                msg.reply(`❌ ${error.message}`).catch(() => {});
+            }
+            return;
+        }
 
         // AFK
         if (cmd === 'afk') {
