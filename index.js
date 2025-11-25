@@ -280,9 +280,7 @@ function applyBotStatus() {
 // ------------------------
 client.once(Events.ClientReady, async () => {
     console.log(`${client.user.tag} is online!`);
-    
-    // Extractors pre-loaded on startup
-    console.log('✅ Bot ready - Extractors active');
+    console.log(`${BOT_NAME}│v${BOT_VERSION}`);
     
     // Initialize topics
     await initializeTopics();
@@ -295,17 +293,15 @@ client.once(Events.ClientReady, async () => {
         afkUsers = { ...data.afk };
     }
     
-    // Update bot role name in all guilds with version number
+    // Update bot role name in all guilds with version number (silent)
     const botRoleName = `${BOT_NAME}│v${BOT_VERSION}`;
     try {
         for (const guild of client.guilds.cache.values()) {
             try {
                 const botRole = guild.roles.cache.find(role => role.name === `${BOT_NAME}` || role.name.includes(BOT_NAME));
                 if (botRole && botRole.managed) {
-                    // Only update if role name is different
                     if (botRole.name !== botRoleName) {
                         await botRole.setName(botRoleName).catch(() => {});
-                        console.log(`✅ Updated bot role in ${guild.name} to: ${botRoleName}`);
                     }
                 }
             } catch (guildError) {
@@ -313,7 +309,7 @@ client.once(Events.ClientReady, async () => {
             }
         }
     } catch (error) {
-        console.error('Error updating bot role names:', error);
+        // Silent fail
     }
 });
 
