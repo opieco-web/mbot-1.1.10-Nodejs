@@ -2,6 +2,7 @@ import { Client, GatewayIntentBits, Partials, Collection, ButtonStyle, ActionRow
 import fs from 'fs';
 import { createCanvas } from 'canvas';
 import { allCommands } from './src/commands/index.js';
+import { createMusicControlPanel } from './src/commands/music.js';
 import versionData from './versionData.js';
 
 const TOKEN = process.env.DISCORD_BOT_TOKEN;

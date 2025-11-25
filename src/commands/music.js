@@ -1,5 +1,15 @@
 import { SlashCommandBuilder } from 'discord.js';
-import { createMusicControlPanel } from './music.js';
+
+export const musicCommands = [
+    new SlashCommandBuilder()
+        .setName('play')
+        .setDescription('Play a song or add it to queue')
+        .addStringOption(option => 
+            option.setName('queue')
+                .setDescription('Song name, URL, or playlist')
+                .setRequired(true)
+        )
+];
 
 export function createMusicControlPanel(track, user, volume = 100, status = "Playing") {
     return {
@@ -55,14 +65,3 @@ export function createMusicControlPanel(track, user, volume = 100, status = "Pla
         flags: 32768
     };
 }
-
-export const playCommand = new SlashCommandBuilder()
-    .setName('play')
-    .setDescription('Play a song or add it to queue')
-    .addStringOption(option => 
-        option.setName('queue')
-            .setDescription('Song name, URL, or playlist')
-            .setRequired(true)
-    );
-
-export const musicCommands = [playCommand];
