@@ -1,8 +1,8 @@
 export default {
-    version: "1.0.27",
-    releaseDate: "Nov 25, 2025 3:12 PM",
-    releaseDateTimestamp: 1764064340,
-    changesSummary: "Anti-spam: Only processes latest nickname request per user, ignores duplicates",
+    version: "1.0.28",
+    releaseDate: "Nov 25, 2025 3:13 PM",
+    releaseDateTimestamp: 1764064400,
+    changesSummary: "Fixed: Reset command now works when bot comes online",
 
     versionGuide: `
 📌 Versioning Guide

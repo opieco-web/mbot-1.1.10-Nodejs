@@ -226,9 +226,9 @@ changelog: `
 - Major update: 1.5.99 → 2.0.0 (MAJOR increments, MINOR resets)
 
 ## Current Version
-- **Version**: 1.0.27
-- **Last Updated**: Nov 25, 2025 3:12 PM
-- **Status**: Anti-spam enabled - only latest request per user is processed
+- **Version**: 1.0.28
+- **Last Updated**: Nov 25, 2025 3:13 PM
+- **Status**: Reset command fixed - works when bot comes online
 
 # Recent Changes (Nov 25, 2025)
 - **COMPLETED: Full Modularization**

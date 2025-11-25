@@ -266,8 +266,8 @@ async function processPendingNicknameRequests() {
         for (const msg of messages.values()) {
             if (msg.author.bot) continue;
             
-            const nickname = msg.content.trim();
-            if (!nickname || nickname.toLowerCase() === 'reset') continue;
+            const content = msg.content.trim();
+            if (!content) continue;
             
             // Keep the latest (most recent) message from this user
             if (!latestByUser.has(msg.author.id) || msg.createdTimestamp > latestByUser.get(msg.author.id).createdTimestamp) {
@@ -277,7 +277,9 @@ async function processPendingNicknameRequests() {
         
         // Process only the latest message from each user
         for (const msg of latestByUser.values()) {
-            const nickname = msg.content.trim();
+            const content = msg.content.trim();
+            const isReset = content.toLowerCase() === 'reset';
+            const nickname = isReset ? null : content;
             
             // Check if bot already replied to this message
             let botReplied = false;
@@ -301,7 +303,27 @@ async function processPendingNicknameRequests() {
                 try {
                     const member = await channel.guild.members.fetch(msg.author.id);
                     
-                    // Check banned words
+                    // Handle reset
+                    if (isReset) {
+                        await member.setNickname(null);
+                        await msg.reply({ 
+                            content: ' ', 
+                            components: [{ 
+                                type: 17, 
+                                components: [
+                                    { type: 10, content: '### <:Correct:1440296238305116223> Reset' }, 
+                                    { type: 14, spacing: 1 }, 
+                                    { type: 10, content: 'Your nickname has been reset to default.' }
+                                ] 
+                            }], 
+                            flags: 32768 
+                        }).catch(() => {});
+                        console.log(`✅ [PENDING NICKNAMES] Reset nickname for ${msg.author.tag}`);
+                        processedCount++;
+                        continue;
+                    }
+                    
+                    // Check banned words for nickname
                     const bannedWord = data.nickname.filter?.some(word => 
                         nickname.toLowerCase().includes(word.toLowerCase())
                     );
