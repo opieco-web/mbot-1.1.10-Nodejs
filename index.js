@@ -261,12 +261,23 @@ async function processPendingNicknameRequests() {
         const messages = await channel.messages.fetch({ limit: 100 });
         let processedCount = 0;
         
+        // Group messages by user and keep only the latest from each user
+        const latestByUser = new Map();
         for (const msg of messages.values()) {
-            // Skip bot messages and very old messages
             if (msg.author.bot) continue;
             
             const nickname = msg.content.trim();
             if (!nickname || nickname.toLowerCase() === 'reset') continue;
+            
+            // Keep the latest (most recent) message from this user
+            if (!latestByUser.has(msg.author.id) || msg.createdTimestamp > latestByUser.get(msg.author.id).createdTimestamp) {
+                latestByUser.set(msg.author.id, msg);
+            }
+        }
+        
+        // Process only the latest message from each user
+        for (const msg of latestByUser.values()) {
+            const nickname = msg.content.trim();
             
             // Check if bot already replied to this message
             let botReplied = false;
