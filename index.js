@@ -201,6 +201,9 @@ client.once(Events.ClientReady, async () => {
         afkUsers = { ...data.afk };
     }
     
+    // Process pending nickname requests
+    await processPendingNicknameRequests();
+    
     // Update bot role name in all guilds with version number
     const botRoleName = `${BOT_NAME}│v${BOT_VERSION}`;
     try {
@@ -236,6 +239,40 @@ data.welcome = data.welcome || {}; // { guildId: { channelId, delay, enabled } }
 data.afk = data.afk || {}; // { userId: { reason: string, timestamp: number } }
 data.nickname.filter = data.nickname.filter || []; // [ word, word, ... ]
 data.autoresponse = data.autoresponse || {}; // { guildId: [{ id, title, content, created }, ...] }
+data.pendingNicknameRequests = data.pendingNicknameRequests || {}; // { userId: { guildId, nickname, timestamp } }
+
+// HELPER: Process pending nickname requests when bot comes online
+async function processPendingNicknameRequests() {
+    if (!data.pendingNicknameRequests || Object.keys(data.pendingNicknameRequests).length === 0) {
+        console.log('[PENDING NICKNAMES] No pending requests to process');
+        return;
+    }
+    
+    console.log(`[PENDING NICKNAMES] Processing ${Object.keys(data.pendingNicknameRequests).length} pending requests...`);
+    
+    for (const userId in data.pendingNicknameRequests) {
+        const request = data.pendingNicknameRequests[userId];
+        const { guildId, nickname } = request;
+        
+        try {
+            const guild = client.guilds.cache.get(guildId);
+            if (!guild) {
+                console.log(`[PENDING NICKNAMES] Guild ${guildId} not found, skipping user ${userId}`);
+                continue;
+            }
+            
+            const member = await guild.members.fetch(userId);
+            await member.setNickname(nickname);
+            console.log(`✅ [PENDING NICKNAMES] Applied nickname "${nickname}" to ${member.user.tag}`);
+            delete data.pendingNicknameRequests[userId];
+        } catch (err) {
+            console.error(`❌ [PENDING NICKNAMES] Failed to apply nickname for user ${userId}:`, err.message);
+        }
+    }
+    
+    // Save updated data
+    fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
+}
 
 // HELPER: Check cooldown and warn user
 function checkAndWarnCooldown(userId, commandName, cooldownMs = 5000) {
@@ -2782,7 +2819,14 @@ client.on(Events.MessageCreate, async msg => {
             await msg.member.setNickname(nickname);
             await msg.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: `### <:Correct:1440296238305116223> Changed To ${nickname}` }, { type: 14, spacing: 1 }, { type: 10, content: `Your previous nickname was **${before}**` }] }], flags: 32768 }).catch(() => {});
         } catch {
-            await msg.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '### <:warning:1441531830607151195> Failed' }, { type: 14, spacing: 1 }, { type: 10, content: 'Couldn\'t change your nickname. Try again or contact a moderator.' }] }], flags: 32768 }).catch(() => {});
+            // Queue the pending request for when bot comes back online
+            data.pendingNicknameRequests[msg.author.id] = {
+                guildId: msg.guildId,
+                nickname: nickname,
+                timestamp: Date.now()
+            };
+            fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
+            await msg.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '### ⏳ Queued For Later' }, { type: 14, spacing: 1 }, { type: 10, content: `Your nickname request for "**${nickname}**" has been queued. It will be applied as soon as the bot is fully ready.` }] }], flags: 32768 }).catch(() => {});
         }
     } else if (data.nickname.mode === 'approval') {
         const bannedWord = containsBannedWord(nickname);

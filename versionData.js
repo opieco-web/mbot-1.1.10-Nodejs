@@ -1,8 +1,8 @@
 export default {
-    version: "1.0.23",
-    releaseDate: "Nov 25, 2025 3:03 PM",
-    releaseDateTimestamp: 1764064024,
-    changesSummary: "afklist displays member count",
+    version: "1.0.24",
+    releaseDate: "Nov 25, 2025 3:08 PM",
+    releaseDateTimestamp: 1764064117,
+    changesSummary: "Pending nickname queue system - applies offline requests when bot comes online",
 
     versionGuide: `
 📌 Versioning Guide
