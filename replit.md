@@ -226,9 +226,9 @@ changelog: `
 - Major update: 1.5.99 → 2.0.0 (MAJOR increments, MINOR resets)
 
 ## Current Version
-- **Version**: 1.0.31
-- **Last Updated**: Nov 25, 2025 3:16 PM
-- **Status**: Fixed: Now correctly detects bot replies TO messages - prevents duplicate processing
+- **Version**: 1.0.32
+- **Last Updated**: Nov 25, 2025 3:17 PM
+- **Status**: Fixed: API limit corrected, now properly detects and skips processed messages
 
 # Recent Changes (Nov 25, 2025)
 - **COMPLETED: Full Modularization**

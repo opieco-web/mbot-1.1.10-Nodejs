@@ -1,8 +1,8 @@
 export default {
-    version: "1.0.31",
-    releaseDate: "Nov 25, 2025 3:16 PM",
-    releaseDateTimestamp: 1764064580,
-    changesSummary: "FIXED: Check for bot replies TO messages (not FROM messages) - detects when message has been processed",
+    version: "1.0.32",
+    releaseDate: "Nov 25, 2025 3:17 PM",
+    releaseDateTimestamp: 1764064640,
+    changesSummary: "Fixed: Corrected API limit to 100, now properly skips messages with bot replies",
 
     versionGuide: `
 📌 Versioning Guide
