@@ -1,8 +1,8 @@
 export default {
-    version: "1.0.30",
-    releaseDate: "Nov 25, 2025 3:15 PM",
-    releaseDateTimestamp: 1764064520,
-    changesSummary: "Fixed: Skip only messages with replies, not entire user - allows reprocessing after deletion",
+    version: "1.0.31",
+    releaseDate: "Nov 25, 2025 3:16 PM",
+    releaseDateTimestamp: 1764064580,
+    changesSummary: "FIXED: Check for bot replies TO messages (not FROM messages) - detects when message has been processed",
 
     versionGuide: `
 📌 Versioning Guide

@@ -226,9 +226,9 @@ changelog: `
 - Major update: 1.5.99 → 2.0.0 (MAJOR increments, MINOR resets)
 
 ## Current Version
-- **Version**: 1.0.30
-- **Last Updated**: Nov 25, 2025 3:15 PM
-- **Status**: Per-message reply detection - allows reprocessing after bot reply deletion
+- **Version**: 1.0.31
+- **Last Updated**: Nov 25, 2025 3:16 PM
+- **Status**: Fixed: Now correctly detects bot replies TO messages - prevents duplicate processing
 
 # Recent Changes (Nov 25, 2025)
 - **COMPLETED: Full Modularization**

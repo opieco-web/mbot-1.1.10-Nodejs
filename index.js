@@ -281,21 +281,19 @@ async function processPendingNicknameRequests() {
             const isReset = content.toLowerCase() === 'reset';
             const nickname = isReset ? null : content;
             
-            // Check if THIS SPECIFIC message already has a bot reply
+            // Check if THIS SPECIFIC message already has a bot reply to it
             let msgHasBotReply = false;
             try {
-                const replies = await msg.fetchReferences().catch(() => []);
-                msgHasBotReply = Array.isArray(replies) && replies.some(m => m.author.bot);
-            } catch (e) {
-                // Try checking thread
-                if (msg.hasThread) {
-                    try {
-                        const threadMsgs = await msg.thread.messages.fetch().catch(() => []);
-                        msgHasBotReply = Array.from(threadMsgs.values()).some(m => m.author.bot);
-                    } catch (e2) {
-                        // Ignore
+                // Fetch all messages to check if any bot message replies to this message
+                const allMsgs = await channel.messages.fetch({ limit: 200 });
+                for (const checkMsg of allMsgs.values()) {
+                    if (checkMsg.author.bot && checkMsg.reference && checkMsg.reference.messageId === msg.id) {
+                        msgHasBotReply = true;
+                        break;
                     }
                 }
+            } catch (e) {
+                // Ignore errors
             }
             
             // Skip this message if it already has a bot reply
