@@ -1,5 +1,6 @@
 import { Client, GatewayIntentBits, Partials, Collection, ButtonStyle, ActionRowBuilder, ButtonBuilder, Events, PermissionsBitField, REST, Routes, SlashCommandBuilder, EmbedBuilder, MessageFlags, ActivityType, ContainerBuilder, TextDisplayBuilder, MediaGalleryBuilder, MediaGalleryItemBuilder } from 'discord.js';
 import { Player } from 'discord-player';
+import { DefaultExtractors } from '@discord-player/extractor';
 import fs from 'fs';
 import { createCanvas } from 'canvas';
 import { allCommands } from './src/commands/index.js';
@@ -198,6 +199,14 @@ function applyBotStatus() {
 // ------------------------
 client.once(Events.ClientReady, async () => {
     console.log(`${client.user.tag} is online!`);
+    
+    // Load extractors for music playback (YouTube, Spotify, etc.)
+    try {
+        await player.extractors.loadMulti(DefaultExtractors);
+        console.log('✅ Music extractors loaded (YouTube, Spotify, etc.)');
+    } catch (error) {
+        console.error('⚠️ Failed to load extractors:', error.message);
+    }
     
     // Initialize topics
     await initializeTopics();

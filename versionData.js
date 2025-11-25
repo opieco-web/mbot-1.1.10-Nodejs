@@ -1,5 +1,5 @@
 export default {
-    version: "1.0.26",
+    version: "1.0.27",
     releaseDate: "Nov 25, 2025 2:20 PM",
     releaseDateTimestamp: 1764060153,
     changesSummary: "Config pagination fixed • Modular restructuring • Avatar display fixed • Version system implemented",
