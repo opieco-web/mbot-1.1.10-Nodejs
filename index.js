@@ -1092,6 +1092,55 @@ client.on(Events.InteractionCreate, async interaction => {
         return interaction.reply(response);
     }
 
+    // PLAY - Music command
+    if (commandName === 'play') {
+        if (!member.voice.channel) {
+            return interaction.reply({ 
+                content: ' ', 
+                components: [{ 
+                    type: 17, 
+                    components: [
+                        { type: 10, content: '## 🚫 Voice Channel Required' }, 
+                        { type: 14, spacing: 1 }, 
+                        { type: 10, content: 'You must be in a voice channel to use this command.' }
+                    ] 
+                }], 
+                flags: 32768 | MessageFlags.Ephemeral 
+            });
+        }
+
+        const queue = interaction.options.getString('queue');
+        
+        try {
+            await member.voice.channel.join();
+        } catch (e) {
+            console.error('Failed to join voice channel:', e);
+            return interaction.reply({ 
+                content: ' ', 
+                components: [{ 
+                    type: 17, 
+                    components: [
+                        { type: 10, content: '## ❌ Failed to Join' }, 
+                        { type: 14, spacing: 1 }, 
+                        { type: 10, content: 'Could not join your voice channel.' }
+                    ] 
+                }], 
+                flags: 32768 | MessageFlags.Ephemeral 
+            });
+        }
+
+        const mockTrack = {
+            name: queue,
+            url: '#',
+            artist: 'Artist',
+            length: '0:00',
+            thumbnail: 'https://via.placeholder.com/200'
+        };
+
+        const panel = createMusicControlPanel(mockTrack, user, 100, '▶️ Now Playing');
+        return interaction.reply(panel);
+    }
+
     // ------------------------
     // FUN COMMAND: Truth or Dare
     // ------------------------
@@ -2221,6 +2270,36 @@ client.on(Events.MessageCreate, async msg => {
             
             const response = createAvatarComponent(displayName, defaultAvatar, guildAvatar, mode);
             return msg.reply(response);
+        }
+
+        // Play/Music - Prefix commands !p and !play
+        if (cmd === 'p' || cmd === 'play') {
+            if (!msg.member.voice.channel) {
+                return msg.reply('🚫 You must be in a voice channel to use this command.');
+            }
+
+            const queue = args.join(' ');
+            if (!queue) {
+                return msg.reply('❌ Usage: `!play <song name or URL>`');
+            }
+
+            try {
+                await msg.member.voice.channel.join();
+            } catch (e) {
+                console.error('Failed to join voice channel:', e);
+                return msg.reply('❌ Could not join your voice channel.');
+            }
+
+            const mockTrack = {
+                name: queue,
+                url: '#',
+                artist: 'Artist',
+                length: '0:00',
+                thumbnail: 'https://via.placeholder.com/200'
+            };
+
+            const panel = createMusicControlPanel(mockTrack, msg.author, 100, '▶️ Now Playing');
+            return msg.reply(panel);
         }
 
         // Prefix Meme - Component V2 Container
