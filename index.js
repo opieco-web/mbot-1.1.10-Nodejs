@@ -896,55 +896,73 @@ client.on(Events.InteractionCreate, async interaction => {
         // Helper function to build config pages
         function buildConfigPage(pageNum, guildId) {
             const prefix = getPrefix(guildId);
-            const serverConfig = data.config?.[guildId] || {};
+            const statusData = data.status || {};
             
             let pageComponents = [];
             
             if (pageNum === 1) {
-                // Page 1: Prefix & Nickname settings
+                // Page 1: Prefix & Basic Settings
                 pageComponents = [{
                     type: 17,
                     components: [
-                        { type: 10, content: '## ⚙️ Config - Page 1/3' },
+                        { type: 10, content: '## ⚙️ Bot Configuration' },
+                        { type: 10, content: '**Page 1/3 - Prefix & Settings**' },
                         { type: 14, spacing: 1 },
-                        { type: 10, content: `**Current Prefix:** \`${prefix}\`` },
-                        { type: 10, content: `**Nickname Mode:** ${data.nickname.mode || 'Not Set'}` },
+                        { type: 10, content: `**Current Prefix:** \`${prefix}\`\n**Nickname Mode:** ${data.nickname.mode || '❌ Not Set'}\n**Server:** ${interaction.guild.name}` },
                         { type: 14, spacing: 1 },
                         { type: 1, components: [
-                            { type: 2, style: 1, label: 'Set Prefix', custom_id: 'config_set_prefix' },
-                            { type: 2, style: 1, label: 'Next Page', custom_id: 'config_next' }
+                            { type: 2, style: 1, label: 'Set Prefix', custom_id: 'config_set_prefix' }
+                        ] },
+                        { type: 1, components: [
+                            { type: 2, style: 2, label: '← Previous', custom_id: 'config_prev' },
+                            { type: 2, style: 1, label: 'Bot Status →', custom_id: 'config_next' }
                         ] }
                     ]
                 }];
             } else if (pageNum === 2) {
-                // Page 2: Welcome & AFK settings
+                // Page 2: FULLY CUSTOMIZABLE BOT STATUS
+                const activityTypes = ['Playing', 'Listening', 'Watching', 'Competing', 'Streaming'];
+                const presenceOptions = ['online', 'idle', 'dnd', 'invisible'];
+                
                 pageComponents = [{
                     type: 17,
                     components: [
-                        { type: 10, content: '## ⚙️ Config - Page 2/3' },
+                        { type: 10, content: '## 🎮 Bot Status (Fully Customizable)' },
+                        { type: 10, content: '**Page 2/3 - Activity & Presence**' },
                         { type: 14, spacing: 1 },
-                        { type: 10, content: `**Welcome:** ${data.welcome[guildId]?.enabled ? 'Enabled' : 'Disabled'}` },
-                        { type: 10, content: `**AFK Users:** ${Object.keys(data.afk || {}).length}` },
+                        { type: 10, content: `**Current Activity:** ${statusData.type || '❌ Not Set'}\n**Activity Text:** ${statusData.text || '(none)'}\n**Emoji:** ${statusData.emoji || '(none)'}\n**Presence:** ${statusData.presence || 'online'}` },
                         { type: 14, spacing: 1 },
                         { type: 1, components: [
-                            { type: 2, style: 1, label: 'Previous Page', custom_id: 'config_prev' },
-                            { type: 2, style: 1, label: 'Next Page', custom_id: 'config_next' }
+                            { type: 3, custom_id: 'config_activity_type', placeholder: 'Choose activity type', options: activityTypes.map(t => ({ label: t, value: t })) }
+                        ] },
+                        { type: 1, components: [
+                            { type: 3, custom_id: 'config_online_status', placeholder: 'Choose presence', options: presenceOptions.map(p => ({ label: p === 'dnd' ? 'Do Not Disturb' : p.charAt(0).toUpperCase() + p.slice(1), value: p })) }
+                        ] },
+                        { type: 1, components: [
+                            { type: 2, style: 1, label: '✏️ Customize', custom_id: 'config_status_set' },
+                            { type: 2, style: 4, label: '🔄 Reset', custom_id: 'config_status_reset' }
+                        ] },
+                        { type: 1, components: [
+                            { type: 2, style: 2, label: '← Settings', custom_id: 'config_prev' },
+                            { type: 2, style: 1, label: 'More →', custom_id: 'config_next' }
                         ] }
                     ]
                 }];
             } else if (pageNum === 3) {
-                // Page 3: Status settings
+                // Page 3: Server Profile & Welcome
                 pageComponents = [{
                     type: 17,
                     components: [
-                        { type: 10, content: '## ⚙️ Config - Page 3/3' },
+                        { type: 10, content: '## 🎨 Server Profile & Welcome' },
+                        { type: 10, content: '**Page 3/3 - Welcome System**' },
                         { type: 14, spacing: 1 },
-                        { type: 10, content: `**Bot Status:** ${data.status?.presence || 'online'}` },
+                        { type: 10, content: `**Welcome:** ${data.welcome[guildId]?.enabled ? '✅ Enabled' : '❌ Disabled'}\n**Channel:** ${data.welcome[guildId]?.channelId ? `<#${data.welcome[guildId].channelId}>` : 'Not set'}\n**Delay:** ${data.welcome[guildId]?.delay ? Math.round(data.welcome[guildId].delay / 1000) + 's' : '120s'}` },
                         { type: 14, spacing: 1 },
                         { type: 1, components: [
-                            { type: 2, style: 1, label: 'Set Status', custom_id: 'config_status_set' },
-                            { type: 2, style: 1, label: 'Reset Status', custom_id: 'config_status_reset' },
-                            { type: 2, style: 1, label: 'Previous Page', custom_id: 'config_prev' }
+                            { type: 2, style: 1, label: '📧 Setup Welcome', custom_id: 'config_welcome_setup' }
+                        ] },
+                        { type: 1, components: [
+                            { type: 2, style: 2, label: '← Status', custom_id: 'config_prev' }
                         ] }
                     ]
                 }];
