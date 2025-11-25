@@ -1338,13 +1338,19 @@ client.on(Events.InteractionCreate, async interaction => {
             });
         }
 
-        const input = interaction.options.getString('queue');
+        let input = interaction.options.getString('queue');
         await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
         try {
             // Accept Bandcamp URLs or direct audio file URLs
             if (!input.includes('bandcamp') && !input.endsWith('.mp3') && !input.endsWith('.wav') && !input.endsWith('.flac') && !input.includes('http')) {
                 throw new Error('❌ Please provide a Bandcamp URL or direct audio file URL (.mp3, .wav, .flac)');
+            }
+
+            // Clean up URL - remove query parameters for Bandcamp
+            if (input.includes('bandcamp')) {
+                const urlObj = new URL(input);
+                input = urlObj.origin + urlObj.pathname;
             }
 
             console.log('[PLAY] Streaming:', input);
