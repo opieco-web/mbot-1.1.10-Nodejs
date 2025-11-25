@@ -1014,7 +1014,7 @@ client.on(Events.InteractionCreate, async interaction => {
     if (commandName === 'afk') {
         const reason = interaction.options.getString('note') || 'I am currently AFK.';
         const originalNickname = member.nickname || user.displayName;
-        const newNickname = `AFK - [${originalNickname}]`;
+        const newNickname = `AFK - ${originalNickname}`;
         
         afkUsers[user.id] = { reason, timestamp: Date.now(), originalNickname };
         data.afk[user.id] = afkUsers[user.id];
@@ -2174,7 +2174,7 @@ client.on(Events.MessageCreate, async msg => {
         if (cmd === 'afk') {
             const reason = args.join(' ') || 'I am currently AFK.';
             const originalNickname = msg.member.nickname || msg.author.displayName;
-            const newNickname = `AFK - [${originalNickname}]`;
+            const newNickname = `AFK - ${originalNickname}`;
             
             afkUsers[msg.author.id] = { reason, timestamp: Date.now(), originalNickname };
             data.afk[msg.author.id] = afkUsers[msg.author.id];
