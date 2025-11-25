@@ -261,39 +261,10 @@ async function processPendingNicknameRequests() {
         const messages = await channel.messages.fetch({ limit: 100 });
         let processedCount = 0;
         
-        // Find which users have already been replied to by bot
-        const usersWithBotReply = new Set();
-        for (const msg of messages.values()) {
-            if (msg.author.bot) continue;
-            
-            // Check if this message has a bot reply
-            try {
-                const replies = await msg.fetchReferences().catch(() => []);
-                if (Array.isArray(replies) && replies.some(m => m.author.bot)) {
-                    usersWithBotReply.add(msg.author.id);
-                }
-            } catch (e) {
-                // Try checking thread
-                if (msg.hasThread) {
-                    try {
-                        const threadMsgs = await msg.thread.messages.fetch().catch(() => []);
-                        if (Array.from(threadMsgs.values()).some(m => m.author.bot)) {
-                            usersWithBotReply.add(msg.author.id);
-                        }
-                    } catch (e2) {
-                        // Ignore
-                    }
-                }
-            }
-        }
-        
-        // Group messages by user and keep only the latest from each user (excluding those already replied)
+        // Group messages by user and keep only the latest from each user
         const latestByUser = new Map();
         for (const msg of messages.values()) {
             if (msg.author.bot) continue;
-            
-            // Skip users who already have bot replies
-            if (usersWithBotReply.has(msg.author.id)) continue;
             
             const content = msg.content.trim();
             if (!content) continue;
@@ -304,11 +275,34 @@ async function processPendingNicknameRequests() {
             }
         }
         
-        // Process only the latest message from each user (who don't have existing replies)
+        // Process only the latest message from each user
         for (const msg of latestByUser.values()) {
             const content = msg.content.trim();
             const isReset = content.toLowerCase() === 'reset';
             const nickname = isReset ? null : content;
+            
+            // Check if THIS SPECIFIC message already has a bot reply
+            let msgHasBotReply = false;
+            try {
+                const replies = await msg.fetchReferences().catch(() => []);
+                msgHasBotReply = Array.isArray(replies) && replies.some(m => m.author.bot);
+            } catch (e) {
+                // Try checking thread
+                if (msg.hasThread) {
+                    try {
+                        const threadMsgs = await msg.thread.messages.fetch().catch(() => []);
+                        msgHasBotReply = Array.from(threadMsgs.values()).some(m => m.author.bot);
+                    } catch (e2) {
+                        // Ignore
+                    }
+                }
+            }
+            
+            // Skip this message if it already has a bot reply
+            if (msgHasBotReply) {
+                console.log(`[PENDING NICKNAMES] Skipping message from ${msg.author.tag} - already has bot reply`);
+                continue;
+            }
             
             try {
                 const member = await channel.guild.members.fetch(msg.author.id);

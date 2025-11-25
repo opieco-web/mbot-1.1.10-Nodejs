@@ -1,8 +1,8 @@
 export default {
-    version: "1.0.29",
-    releaseDate: "Nov 25, 2025 3:14 PM",
-    releaseDateTimestamp: 1764064460,
-    changesSummary: "Skip users who already have bot replies - no duplicate processing",
+    version: "1.0.30",
+    releaseDate: "Nov 25, 2025 3:15 PM",
+    releaseDateTimestamp: 1764064520,
+    changesSummary: "Fixed: Skip only messages with replies, not entire user - allows reprocessing after deletion",
 
     versionGuide: `
 📌 Versioning Guide

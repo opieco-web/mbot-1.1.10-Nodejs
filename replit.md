@@ -226,9 +226,9 @@ changelog: `
 - Major update: 1.5.99 → 2.0.0 (MAJOR increments, MINOR resets)
 
 ## Current Version
-- **Version**: 1.0.29
-- **Last Updated**: Nov 25, 2025 3:14 PM
-- **Status**: Skip users with existing replies - prevents duplicate processing
+- **Version**: 1.0.30
+- **Last Updated**: Nov 25, 2025 3:15 PM
+- **Status**: Per-message reply detection - allows reprocessing after bot reply deletion
 
 # Recent Changes (Nov 25, 2025)
 - **COMPLETED: Full Modularization**
