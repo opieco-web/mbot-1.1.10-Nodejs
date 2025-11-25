@@ -1603,7 +1603,7 @@ client.on(Events.InteractionCreate, async interaction => {
                 { type: 14, spacing: 1 },
                 { type: 10, content: '### 📜 Bot Version & Changes' },
                 { type: 10, content: `**Version:** v${versionData.version}` },
-                { type: 10, content: `**Released:** ${versionData.releaseDate}` },
+                { type: 10, content: `**Released:** <t:${versionData.releaseDateTimestamp}:f>` },
                 { type: 14, spacing: 1 },
                 { type: 10, content: `**Latest Updates:**` },
                 { type: 10, content: versionData.changesSummary }
