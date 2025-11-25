@@ -1,6 +1,7 @@
 import { Client, GatewayIntentBits, Partials, Collection, ButtonStyle, ActionRowBuilder, ButtonBuilder, Events, PermissionsBitField, REST, Routes, SlashCommandBuilder, EmbedBuilder, MessageFlags, ActivityType, ContainerBuilder, TextDisplayBuilder, MediaGalleryBuilder, MediaGalleryItemBuilder } from 'discord.js';
 import { joinVoiceChannel, createAudioPlayer, createAudioResource, AudioPlayerStatus } from '@discordjs/voice';
 import ytdl from 'ytdl-core';
+import play from 'play-dl';
 import fs from 'fs';
 import { createCanvas } from 'canvas';
 import { allCommands } from './src/commands/index.js';
@@ -88,34 +89,24 @@ async function playYouTubeTrack(guild, member, query, user) {
     try {
         console.log('[PLAY] Searching YouTube for:', query);
         
-        // Search for video
-        const videos = await ytdl.getBasicInfo(`https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`);
-        if (!videos) throw new Error('No results found');
+        // Use play-dl to search YouTube
+        const results = await play.search(query, { limit: 1 });
         
-        // Alternative: search directly for video ID
-        const searchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`;
-        const info = await ytdl.getInfo(searchUrl).catch(async () => {
-            // Try fetching with direct video search
-            const videoId = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}&type=video&key=AIzaSyDyWJaIehesFbqKx8KhA0J7-PQqV8v4E_k`)
-                .then(r => r.json())
-                .then(d => d.items?.[0]?.id?.videoId || null)
-                .catch(() => null);
-            
-            if (!videoId) throw new Error('Could not find video');
-            return await ytdl.getInfo(`https://www.youtube.com/watch?v=${videoId}`);
-        });
-
-        const title = info.videoDetails.title;
-        const url = `https://www.youtube.com/watch?v=${info.videoDetails.videoId}`;
-        const thumbnail = info.videoDetails.thumbnail.thumbnails[0].url;
-        const duration = parseInt(info.videoDetails.lengthSeconds);
+        if (!results || results.length === 0) {
+            throw new Error(`No videos found for: ${query}`);
+        }
+        
+        const video = results[0];
+        const url = video.url;
+        
+        console.log('[PLAY] Found video:', video.title);
         
         return {
-            title,
-            url,
-            thumbnail,
-            duration,
-            info
+            title: video.title,
+            url: url,
+            thumbnail: video.thumbnail?.url || '',
+            duration: video.durationInSec || 0,
+            info: video
         };
     } catch (error) {
         console.error('[PLAY] Search error:', error.message);
@@ -137,16 +128,16 @@ async function streamToVoice(guild, member, trackInfo) {
 
         const player = createAudioPlayer();
         
-        // Get audio stream
+        // Get audio stream using play-dl
         console.log('[PLAY] Getting audio stream from:', trackInfo.url);
-        const stream = ytdl(trackInfo.url, { 
-            quality: 'highestaudio',
-            filter: 'audioonly'
+        const stream = await play.stream(trackInfo.url);
+
+        const resource = createAudioResource(stream.stream, { 
+            inlineVolume: true,
+            inputType: stream.type
         });
-
-        const resource = createAudioResource(stream, { inlineVolume: true });
+        
         player.play(resource);
-
         connection.subscribe(player);
 
         return new Promise((resolve, reject) => {
@@ -161,7 +152,7 @@ async function streamToVoice(guild, member, trackInfo) {
                 reject(error);
             });
 
-            stream.on('error', (error) => {
+            stream.stream.on('error', (error) => {
                 console.error('[PLAY] ❌ Stream error:', error);
                 connection.destroy();
                 reject(error);
