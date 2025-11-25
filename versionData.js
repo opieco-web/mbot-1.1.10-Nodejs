@@ -1,8 +1,8 @@
 export default {
-    version: "1.0.35",
-    releaseDate: "Nov 25, 2025 3:20 PM",
-    releaseDateTimestamp: 1764064820,
-    changesSummary: "FIXED: Moved button handlers before slash command early return - buttons now work!",
+    version: "1.0.36",
+    releaseDate: "Nov 26, 2025 12:32 AM",
+    releaseDateTimestamp: 1764112378,
+    changesSummary: "Updated /config pages with custom emojis, dynamic visibility status display",
 
     versionGuide: `
 📌 Versioning Guide
