@@ -139,5 +139,6 @@
       "headerAttachment": "https://cdn.discordapp.com/attachments/1429390306670805142/1442243184217428040/Screenshot_2025_1120_234854.png?ex=6924b922&is=692367a2&hm=cbed03b856ba661f2d7d7dc9252dd5fe7789d7eaac85b0a7cc980f80ddf3da45&",
       "bgAttachment": "https://cdn.discordapp.com/attachments/1429390306670805142/1442243258796478604/5f6b67489ef05a8c8c7e2bdd5e09a1ee.jpg?ex=6924b934&is=692367b4&hm=c58aeeffd162581da503e344cdc4111c1aeb61002b9651c48565fb93c196fc5a&"
     }
-  }
+  },
+  "pendingNicknameRequests": {}
 }
