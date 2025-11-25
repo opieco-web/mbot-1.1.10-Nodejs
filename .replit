@@ -28,7 +28,7 @@ outputType = "console"
 
 [nix]
 channel = "stable-25_05"
-packages = ["cairo", "libpng", "libuuid", "pixman"]
+packages = ["cairo", "libpng", "libuuid", "pixman", "ffmpeg"]
 
 [deployment]
 deploymentTarget = "vm"
