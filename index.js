@@ -90,59 +90,22 @@ async function playYouTubeTrack(guild, member, query, user) {
     try {
         console.log('[PLAY] Searching for:', query);
         
-        // Search YouTube - try multiple videos to find one that works
-        const searchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`;
-        const fetch_url = await fetch(searchUrl);
-        const html = await fetch_url.text();
+        // Use play-dl YouTube search (more reliable than manual parsing)
+        const results = await play.search(query, { limit: 1 });
         
-        // Extract all video IDs from search results
-        const videoMatches = html.match(/(?:\/watch\?v=|\")([a-zA-Z0-9_-]{11})/g);
-        if (!videoMatches || videoMatches.length === 0) {
-            throw new Error('No videos found');
+        if (!results || results.length === 0) {
+            throw new Error(`No tracks found for: ${query}`);
         }
         
-        // Extract unique video IDs
-        const videoIds = [...new Set(videoMatches.map(m => m.match(/([a-zA-Z0-9_-]{11})/)[1]))].slice(0, 5);
-        
-        let videoInfo;
-        let lastError;
-        
-        // Try each video until one works
-        for (const videoId of videoIds) {
-            try {
-                const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
-                console.log('[PLAY] Trying video:', videoId);
-                videoInfo = await ytdl.getInfo(videoUrl);
-                
-                // Check if video is available
-                if (videoInfo.videoDetails && videoInfo.videoDetails.videoId) {
-                    console.log('[PLAY] ✅ Found playable video:', videoInfo.videoDetails.title);
-                    break;
-                }
-            } catch (e) {
-                lastError = e;
-                console.log('[PLAY] Video unavailable:', videoId, '-', e.message);
-                continue;
-            }
-        }
-        
-        if (!videoInfo) {
-            throw lastError || new Error('Could not find a playable video');
-        }
-        
-        const title = videoInfo.videoDetails.title;
-        const url = `https://www.youtube.com/watch?v=${videoInfo.videoDetails.videoId}`;
-        const thumbnail = videoInfo.videoDetails.thumbnail?.thumbnails?.[0]?.url || '';
-        const duration = parseInt(videoInfo.videoDetails.lengthSeconds);
-        
-        console.log('[PLAY] Found track:', title);
+        const track = results[0];
+        console.log('[PLAY] Found track:', track.title);
         
         return {
-            title,
-            url,
-            thumbnail,
-            duration,
-            info: videoInfo
+            title: track.title,
+            url: track.url,
+            thumbnail: track.thumbnail?.url || '',
+            duration: track.durationInSec || 0,
+            info: track
         };
     } catch (error) {
         console.error('[PLAY] Search error:', error.message);
@@ -164,15 +127,13 @@ async function streamToVoice(guild, member, trackInfo) {
 
         const player = createAudioPlayer();
         
-        // Get audio stream using ytdl
+        // Get audio stream using play-dl
         console.log('[PLAY] Getting audio stream from:', trackInfo.url);
-        const stream = ytdl(trackInfo.url, {
-            quality: 'highestaudio',
-            filter: 'audioonly'
-        });
+        const stream = await play.stream(trackInfo.url);
 
-        const resource = createAudioResource(stream, { 
-            inlineVolume: true
+        const resource = createAudioResource(stream.stream, { 
+            inlineVolume: true,
+            inputType: stream.type
         });
         
         player.play(resource);
@@ -190,7 +151,7 @@ async function streamToVoice(guild, member, trackInfo) {
                 reject(error);
             });
 
-            stream.on('error', (error) => {
+            stream.stream.on('error', (error) => {
                 console.error('[PLAY] ❌ Stream error:', error);
                 connection.destroy();
                 reject(error);
