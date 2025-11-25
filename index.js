@@ -1,7 +1,6 @@
 import { Client, GatewayIntentBits, Partials, Collection, ButtonStyle, ActionRowBuilder, ButtonBuilder, Events, PermissionsBitField, REST, Routes, SlashCommandBuilder, EmbedBuilder, MessageFlags, ActivityType, ContainerBuilder, TextDisplayBuilder, MediaGalleryBuilder, MediaGalleryItemBuilder } from 'discord.js';
 import fs from 'fs';
 import { createCanvas } from 'canvas';
-import { allCommands } from './src/commands/index.js';
 
 const TOKEN = process.env.DISCORD_BOT_TOKEN;
 const CLIENT_ID = process.env.DISCORD_CLIENT_ID;
@@ -64,7 +63,9 @@ function tryParseAndSendComponent(msg, responseText) {
     }
 }
 
+// ------------------------
 // Initialize client
+// ------------------------
 const client = new Client({
     intents: [
         GatewayIntentBits.Guilds,
@@ -155,15 +156,255 @@ client.on('warn', (info) => {
     console.warn('⚠️ Discord warning:', info);
 });
 
-// ========================
-// IMPORT MODULAR COMMANDS
-// ========================
-const commands = allCommands.map(cmd => cmd.toJSON());
+// ------------------------
+// COMMAND REGISTRATION
+// ------------------------
+const commands = [
+    // Nickname commands
+    new SlashCommandBuilder()
+        .setName('nickname')
+        .setDescription('Request or reset nickname (mod only)')
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName('setup')
+                .setDescription('Set channel and mode: Auto (instant) or Approved (manual)')
+                .addChannelOption(option => option.setName('channel').setDescription('Nickname request channel').setRequired(true))
+                .addStringOption(option =>
+                    option
+                        .setName('mode')
+                        .setDescription('Auto = instant approval, Approved = manual approval via buttons')
+                        .setRequired(true)
+                        .addChoices(
+                            { name: 'Auto', value: 'auto' },
+                            { name: 'Approved', value: 'approval' }
+                        )))
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName('reset')
+                .setDescription('Reset your nickname back to your username')),
+
+    new SlashCommandBuilder()
+        .setName('nicknamefilter')
+        .setDescription('Manage banned nickname words (mod only)')
+        .addStringOption(option =>
+            option
+                .setName('action')
+                .setDescription('add = ban a word, remove = unban a word, list = show all banned words')
+                .setRequired(true)
+                .addChoices(
+                    { name: 'add', value: 'add' },
+                    { name: 'remove', value: 'remove' },
+                    { name: 'list', value: 'list' }
+                ))
+        .addStringOption(option =>
+            option
+                .setName('word')
+                .setDescription('Word to ban or unban (not needed for list action)')
+                .setRequired(false))
+        .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageNicknames),
+
+    // Prefix / AFK / Avatar commands
+    new SlashCommandBuilder()
+        .setName('setprefix')
+        .setDescription('Change server prefix (admin only)')
+        .addStringOption(option => option.setName('prefix').setDescription('New prefix character(s)').setRequired(true))
+        .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageGuild),
+
+    new SlashCommandBuilder()
+        .setName('prefix')
+        .setDescription('Show the current server prefix for prefix commands'),
+
+    new SlashCommandBuilder()
+        .setName('afk')
+        .setDescription('Set AFK status with optional reason')
+        .addStringOption(option => option.setName('note').setDescription('Reason for being AFK (optional)').setRequired(false)),
+
+    new SlashCommandBuilder()
+        .setName('afklist')
+        .setDescription('View all AFK users (mod only)')
+        .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageGuild),
+
+    new SlashCommandBuilder()
+        .setName('avatar')
+        .setDescription('View user avatar')
+        .addUserOption(option => option.setName('user').setDescription('User to show avatar for (optional)').setRequired(false))
+        .addBooleanOption(option => option.setName('server').setDescription('Show server avatar only (true/false)').setRequired(false)),
+
+    // Fun commands
+    new SlashCommandBuilder()
+        .setName('truthordare')
+        .setDescription('Play Truth or Dare: get a random truth question or dare challenge'),
+
+    // Moderation: Auto response
+    new SlashCommandBuilder()
+        .setName('autoresponse')
+        .setDescription('Auto-respond to triggers: add/remove/list (mod only)')
+        .addStringOption(option =>
+            option
+                .setName('action')
+                .setDescription('add = create trigger, remove = delete trigger, list = show all triggers')
+                .setRequired(true)
+                .addChoices(
+                    { name: 'add', value: 'add' },
+                    { name: 'remove', value: 'remove' },
+                    { name: 'list', value: 'list' }
+                ))
+        .addStringOption(option =>
+            option
+                .setName('trigger')
+                .setDescription('Trigger word (required for add/remove, e.g., "hello")')
+                .setRequired(false))
+        .addStringOption(option =>
+            option
+                .setName('type')
+                .setDescription('Response type: text = custom message, emoji = react with emoji (required for add)')
+                .setRequired(false)
+                .addChoices(
+                    { name: 'text', value: 'text' },
+                    { name: 'emoji', value: 'emoji' }
+                ))
+        .addStringOption(option =>
+            option
+                .setName('response')
+                .setDescription('For text: write custom response | For emoji: reaction emoji')
+                .setRequired(false))
+        .addStringOption(option =>
+            option
+                .setName('select_from_backup')
+                .setDescription('For text type: select a saved custom message instead of typing')
+                .setRequired(false)
+                .setAutocomplete(true))
+        .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageMessages),
+
+    // Fun: Coin Flip
+    new SlashCommandBuilder()
+        .setName('coinflip')
+        .setDescription('Flip a coin: get random Heads or Tails result'),
+
+    // Welcome System
+    new SlashCommandBuilder()
+        .setName('welcome')
+        .setDescription('Manage welcome messages (mod only)')
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName('enable')
+                .setDescription('Enable welcomes: set channel, delay (5s/1m/1h), view messages')
+                .addChannelOption(option =>
+                    option.setName('setchannel')
+                        .setDescription('Channel where welcome messages are sent to new members')
+                        .setRequired(true))
+                .addStringOption(option =>
+                    option.setName('delaytime')
+                        .setDescription('Delay before sending welcome (e.g., 5s, 10s, 1m, 1h) - default is 120s')
+                        .setRequired(false))
+                .addBooleanOption(option =>
+                    option.setName('list')
+                        .setDescription('Show sample of welcome messages available (yes/no)')
+                        .setRequired(false)))
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName('disable')
+                .setDescription('Disable welcome messages - new members won\'t receive greetings'))
+        .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageGuild),
+
+    // Bot Info command
+    new SlashCommandBuilder()
+        .setName('botinfo')
+        .setDescription('View comprehensive bot information, stats, and configuration')
+        .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageGuild),
+
+    // Choose command
+    new SlashCommandBuilder()
+        .setName('choose')
+        .setDescription('Let the bot randomly choose between options')
+        .addStringOption(option =>
+            option
+                .setName('a')
+                .setDescription('Subject A')
+                .setRequired(true))
+        .addStringOption(option =>
+            option
+                .setName('b')
+                .setDescription('Subject B')
+                .setRequired(true))
+        .addStringOption(option =>
+            option
+                .setName('c')
+                .setDescription('Subject C (optional)')
+                .setRequired(false)),
+
+    // Send message command
+    new SlashCommandBuilder()
+        .setName('send')
+        .setDescription('Send a formatted message using Component V2 container')
+        .addStringOption(option =>
+            option
+                .setName('title')
+                .setDescription('Title for the message (shown as heading)')
+                .setRequired(true))
+        .addStringOption(option =>
+            option
+                .setName('content')
+                .setDescription('Message content (optional)')
+                .setRequired(false))
+        .addAttachmentOption(option =>
+            option
+                .setName('thumbnail')
+                .setDescription('Select media file for thumbnail (optional)')
+                .setRequired(false))
+        .addChannelOption(option =>
+            option
+                .setName('channel')
+                .setDescription('Target channel to send message to (optional, defaults to current channel)')
+                .setRequired(false)),
+
+    // Search command
+    new SlashCommandBuilder()
+        .setName('search')
+        .setDescription('Search the web with DuckDuckGo or search local bot data')
+        .addStringOption(option =>
+            option
+                .setName('query')
+                .setDescription('What do you want to search for?')
+                .setRequired(true))
+        .addBooleanOption(option =>
+            option
+                .setName('local')
+                .setDescription('Search local bot data instead of DuckDuckGo? (default: false)')
+                .setRequired(false)),
+
+    // Meme generator command
+    new SlashCommandBuilder()
+        .setName('meme')
+        .setDescription('Generate a meme with custom text')
+        .addStringOption(option =>
+            option
+                .setName('top_text')
+                .setDescription('Text for top of meme')
+                .setRequired(true))
+        .addStringOption(option =>
+            option
+                .setName('bottom_text')
+                .setDescription('Text for bottom of meme (optional)')
+                .setRequired(false))
+        .addAttachmentOption(option =>
+            option
+                .setName('image')
+                .setDescription('Upload an image to use as meme template (optional)')
+                .setRequired(false)),
+
+    // Config command - Component V2 configuration panel
+    new SlashCommandBuilder()
+        .setName('config')
+        .setDescription('View and manage bot configuration settings')
+].map(cmd => cmd.toJSON());
 
 const rest = new REST({ version: '10' }).setToken(TOKEN);
 await rest.put(Routes.applicationCommands(CLIENT_ID), { body: commands });
 
-// Helper: Apply saved status
+// ------------------------
+// HELPER: Apply saved status
+// ------------------------
 function applyBotStatus() {
     const statusData = data.status || {};
     const presenceData = {
@@ -200,7 +441,9 @@ function applyBotStatus() {
     client.user.setPresence(presenceData);
 }
 
+// ------------------------
 // BOT READY
+// ------------------------
 client.once(Events.ClientReady, () => {
     console.log(`${client.user.tag} is online!`);
     applyBotStatus();
@@ -211,9 +454,9 @@ client.once(Events.ClientReady, () => {
     }
 });
 
-// ========================
-// DATA & GLOBAL VARIABLES
-// ========================
+// ------------------------
+// DATA / PREFIX / AFK / AUTORESPONSE
+// ------------------------
 const defaultPrefix = '!';
 let afkUsers = {}; // { userId: { reason: string, timestamp: number } }
 const commandCooldowns = new Map(); // { userId: { commandName: timestamp } }
@@ -246,11 +489,13 @@ function checkAndWarnCooldown(userId, commandName, cooldownMs = 5000) {
 }
 
 // HELPER: Create Component V2 format for avatar display
+// mode: 'both' (default), 'server_only', 'default_only'
 function createAvatarComponent(username, defaultAvatarUrl, serverAvatarUrl = null, mode = 'both') {
     const items = [];
     let title = '';
     
     if (mode === 'server_only') {
+        // If no server avatar, fall back to default
         const avatarUrl = serverAvatarUrl || defaultAvatarUrl;
         const description = serverAvatarUrl ? `${username}'s Server Avatar` : `${username}'s Discord Avatar`;
         items.push(
@@ -267,6 +512,7 @@ function createAvatarComponent(username, defaultAvatarUrl, serverAvatarUrl = nul
         );
         title = `${username}'s Discord Avatar`;
     } else {
+        // Show both (or just default if no server avatar)
         if (serverAvatarUrl) {
             items.push(
                 new MediaGalleryItemBuilder()
@@ -303,7 +549,7 @@ function createModeratorEmbed(title, description, color = 0x2F3136) {
         .setColor(color);
 }
 
-// HELPER: Calculate AFK duration with smart format
+// HELPER: Calculate AFK duration with smart format (shows only relevant units)
 function calculateDuration(time) {
     const now = Date.now();
     const diffMs = now - time;
@@ -334,7 +580,9 @@ function formatUptime(time) {
     return `${days}d ${hours}h ${mins}m`;
 }
 
-// HELPER: Get prefix per guild
+// ------------------------
+// HELPER: get prefix per guild
+// ------------------------
 function getPrefix(guildId) {
     return data.prefix[guildId] || defaultPrefix;
 }
@@ -368,9 +616,9 @@ function parseDelayString(delayStr) {
     }
 }
 
-// ========================
-// WELCOME MESSAGES (60+)
-// ========================
+// ------------------------
+// WELCOME MESSAGES
+// ------------------------
 const welcomeMessages = [
     "Hey {user}! Welcome to the squad! 🎉",
     "Yo {user}! Glad you're here, let's vibe! ✨",
@@ -462,15 +710,25 @@ const welcomeMessages = [
     "Welcome {user}! Hope your time here is enjoyable.",
     "Nice to see you {user}! Take it easy and relax.",
     "Welcome {user}! Feel free to express yourself here.",
-    "Hey {user}! Glad you joined us — have fun!"
+    "Hey {user}! Glad you joined us — have fun!",
+    "স্বাগতম {user}! চাইলে সবাইকে হাই বলতে পারো।",
+    "Welcome {user}! Hope you meet great people here.",
+    "Happy to see you {user}! Enjoy the space.",
+    "Welcome {user}! Always open for conversation.",
+    "Hey {user}! Good to have you with us.",
+    "Glad you're here {user}! Let's make it a good experience.",
+    "Welcome {user}! You're always welcome to join the flow.",
+    "স্বাগতম {user}! সার্ভারটা explore করে দেখো।",
+    "Welcome {user}! Feel free to settle in.",
+    "Nice to have you {user} — hope you enjoy your time."
 ];
 
 // Initialize status data
 if (!data.status) data.status = { presence: 'online' };
 
-// ========================
-// ALL EVENT HANDLERS START
-// ========================
+// ------------------------
+// HANDLE SLASH COMMANDS & BUTTONS
+// ------------------------
 client.on(Events.InteractionCreate, async interaction => {
     const { guildId } = interaction;
 
@@ -596,236 +854,1751 @@ client.on(Events.InteractionCreate, async interaction => {
                             const match = inner.content.match(/Page (\d+)\/3/);
                             if (match) {
                                 currentPage = parseInt(match[1]);
+                                break;
                             }
                         }
                     }
                 }
             }
-
+            
             let nextPage = currentPage;
-            if (customId === 'config_next' && currentPage < 3) {
-                nextPage = currentPage + 1;
-            } else if (customId === 'config_prev' && currentPage > 1) {
-                nextPage = currentPage - 1;
-            }
-
+            if (customId === 'config_next' && currentPage < 3) nextPage = currentPage + 1;
+            if (customId === 'config_prev' && currentPage > 1) nextPage = currentPage - 1;
+            
             const pageComponents = buildConfigPage(nextPage, guildId);
+            
             return interaction.update({
                 content: ' ',
-                components: pageComponents,
-                flags: 32768
+                components: [{
+                    type: 17,
+                    components: pageComponents
+                }]
             });
         }
 
-        // Config: Approve Nickname button
-        if (customId.startsWith('approve_')) {
-            const userId = customId.replace('approve_', '');
-            const user = await interaction.guild.members.fetch(userId);
-            
-            // Placeholder response - actual logic varies per command
-            return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:1_yes_correct:1439893200981721140> Approved' }] }], flags: 32768 | MessageFlags.Ephemeral });
-        }
+        // Config: Header Attachment button
+        if (customId === 'config_header_attach') {
+            await interaction.reply({
+                content: ' ',
+                components: [{
+                    type: 17,
+                    components: [
+                        { type: 10, content: '### 📎 Header Attachment' },
+                        { type: 14, spacing: 1 },
+                        { type: 10, content: '**Upload a header image for your server profile**\n\nRecommended size: **1920x480px**\n\n⏳ Waiting for file... (60 seconds)' }
+                    ]
+                }],
+                flags: 32768 | MessageFlags.Ephemeral
+            });
 
-        // Config: Reject Nickname button
-        if (customId.startsWith('reject_')) {
-            return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:Error:1440296241090265088> Rejected' }] }], flags: 32768 | MessageFlags.Ephemeral });
-        }
-        }
+            // Create a message collector for file uploads
+            const filter = msg => msg.author.id === interaction.user.id && msg.attachments.size > 0;
+            const collector = interaction.channel.createMessageCollector({ filter, time: 60000, max: 1 });
 
-        // ===== HANDLE MODAL SUBMISSIONS =====
-        if (interaction.isModalSubmit()) {
-            const customId = interaction.customId;
+            collector.on('collect', async msg => {
+                const attachment = msg.attachments.first();
+                if (attachment) {
+                    try {
+                        // Fetch and set bot avatar for this server
+                        const response = await fetch(attachment.url);
+                        const arrayBuffer = await response.arrayBuffer();
+                        const buffer = Buffer.from(arrayBuffer);
+                        await client.user.setAvatar(buffer);
 
-            if (customId === 'modal_set_prefix') {
-                const prefixInput = interaction.fields.getTextInputValue('prefix_input');
-                if (prefixInput) {
-                    data.prefix = data.prefix || {};
-                    data.prefix[guildId] = prefixInput;
-                    fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
-                    return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:1_yes_correct:1439893200981721140> Prefix Updated' }, { type: 14 }, { type: 10, content: `New prefix: \`${prefixInput}\`` }] }], flags: 32768 | MessageFlags.Ephemeral });
+                        // Save server-specific header to data.json
+                        data.config = data.config || {};
+                        data.config[guildId] = data.config[guildId] || {};
+                        data.config[guildId].headerAttachment = attachment.url;
+                        fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
+
+                        await msg.reply({
+                            content: ' ',
+                            components: [{
+                                type: 17,
+                                components: [
+                                    { type: 10, content: '## <:Correct:1440296238305116223> Bot Avatar Updated (This Server)' },
+                                    { type: 14, spacing: 1 },
+                                    { type: 10, content: `✅ Bot avatar changed for this server!\n\n[View Image](${attachment.url})` }
+                                ]
+                            }],
+                            flags: 32768
+                        });
+                    } catch (error) {
+                        await msg.reply({
+                            content: ' ',
+                            components: [{
+                                type: 17,
+                                components: [
+                                    { type: 10, content: '## <:Error:1440296241090265088> Failed' },
+                                    { type: 14, spacing: 1 },
+                                    { type: 10, content: `❌ Error updating avatar: ${error.message}` }
+                                ]
+                            }],
+                            flags: 32768
+                        });
+                    }
                 }
-            }
+            });
 
-            if (customId === 'modal_status_set') {
+            collector.on('end', (collected) => {
+                if (collected.size === 0) {
+                    interaction.followUp({
+                        content: '⏰ Upload timeout - no file received.',
+                        flags: MessageFlags.Ephemeral
+                    });
+                }
+            });
+        }
+
+        // Config: BG Attachment button
+        if (customId === 'config_banner_attach') {
+            await interaction.reply({
+                content: ' ',
+                components: [{
+                    type: 17,
+                    components: [
+                        { type: 10, content: '### 🎨 BG Attachment' },
+                        { type: 14, spacing: 1 },
+                        { type: 10, content: '**Upload a background image for your server**\n\nRecommended size: **1200x300px**\n\n⏳ Waiting for file... (60 seconds)' }
+                    ]
+                }],
+                flags: 32768 | MessageFlags.Ephemeral
+            });
+
+            // Create a message collector for file uploads
+            const filter = msg => msg.author.id === interaction.user.id && msg.attachments.size > 0;
+            const collector = interaction.channel.createMessageCollector({ filter, time: 60000, max: 1 });
+
+            collector.on('collect', async msg => {
+                const attachment = msg.attachments.first();
+                if (attachment) {
+                    try {
+                        // Fetch and set server banner
+                        const response = await fetch(attachment.url);
+                        const arrayBuffer = await response.arrayBuffer();
+                        const buffer = Buffer.from(arrayBuffer);
+                        await interaction.guild.setBanner(buffer);
+
+                        // Save server-specific background to data.json
+                        data.config = data.config || {};
+                        data.config[guildId] = data.config[guildId] || {};
+                        data.config[guildId].bgAttachment = attachment.url;
+                        fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
+
+                        await msg.reply({
+                            content: ' ',
+                            components: [{
+                                type: 17,
+                                components: [
+                                    { type: 10, content: '## <:Correct:1440296238305116223> Server Banner Updated' },
+                                    { type: 14, spacing: 1 },
+                                    { type: 10, content: `✅ Server banner changed!\n\n[View Image](${attachment.url})` }
+                                ]
+                            }],
+                            flags: 32768
+                        });
+                    } catch (error) {
+                        await msg.reply({
+                            content: ' ',
+                            components: [{
+                                type: 17,
+                                components: [
+                                    { type: 10, content: '## <:Error:1440296241090265088> Failed' },
+                                    { type: 14, spacing: 1 },
+                                    { type: 10, content: `❌ Error updating banner: ${error.message}` }
+                                ]
+                            }],
+                            flags: 32768
+                        });
+                    }
+                }
+            });
+
+            collector.on('end', (collected) => {
+                if (collected.size === 0) {
+                    interaction.followUp({
+                        content: '⏰ Upload timeout - no file received.',
+                        flags: MessageFlags.Ephemeral
+                    });
+                }
+            });
+        }
+        }
+    } catch (error) {
+        console.error('Error handling interaction:', error);
+    }
+
+    // ===== HANDLE MODAL SUBMISSIONS =====
+    if (interaction.isModalSubmit()) {
+        if (interaction.customId === 'modal_set_prefix') {
+            const newPrefix = interaction.fields.getTextInputValue('prefix_input');
+            data.prefix[guildId] = newPrefix;
+            fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
+
+            return interaction.reply({
+                content: ' ',
+                components: [{
+                    type: 17,
+                    components: [
+                        { type: 10, content: '## <:Correct:1440296238305116223> Prefix Updated' },
+                        { type: 14, spacing: 1 },
+                        { type: 10, content: `New prefix: \`${newPrefix}\`` }
+                    ]
+                }],
+                flags: 32768 | MessageFlags.Ephemeral
+            });
+        }
+
+        if (interaction.customId === 'modal_status_set') {
+            try {
                 const activityText = interaction.fields.getTextInputValue('status_activity_text');
                 const streamUrl = interaction.fields.getTextInputValue('status_stream_url');
-                const emoji = interaction.fields.getTextInputValue('status_emoji');
+                const emoji = interaction.fields.getTextInputValue('status_emoji') || null;
 
-                if (activityText || streamUrl || emoji) {
-                    data.status = data.status || {};
-                    if (activityText) data.status.text = activityText;
-                    if (streamUrl) data.status.streamUrl = streamUrl;
-                    if (emoji) data.status.emoji = emoji;
-                    
-                    fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
-                    applyBotStatus();
-                    return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:1_yes_correct:1439893200981721140> Status Updated' }, { type: 14 }, { type: 10, content: 'Bot status has been configured.' }] }], flags: 32768 | MessageFiles.Ephemeral });
+                data.status = data.status || { presence: 'online' };
+                if (activityText) {
+                    data.status.text = activityText;
+                }
+                if (streamUrl) {
+                    data.status.streamUrl = streamUrl;
+                }
+                if (emoji) {
+                    data.status.emoji = emoji;
+                }
+                data.status.lastUpdatedBy = interaction.user.id;
+                data.status.lastUpdatedAt = new Date().toISOString();
+                fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
+                applyBotStatus();
+
+                let msg = 'Status info updated: ';
+                if (activityText) msg += `Activity: ${activityText} `;
+                if (emoji) msg += `Emoji: ${emoji} `;
+                if (streamUrl) msg += `Stream: ${streamUrl}`;
+                return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:1_yes_correct:1439893200981721140> Status Updated' }, { type: 14 }, { type: 10, content: msg || 'No changes made.' }] }], flags: 32768 | MessageFlags.Ephemeral });
+            } catch (err) {
+                console.error('Modal status set error:', err);
+                return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:Error:1440296241090265088> Error' }, { type: 14 }, { type: 10, content: `Error updating status: ${err.message}` }] }], flags: 32768 | MessageFlags.Ephemeral });
+            }
+        }
+    }
+
+    // ===== HANDLE SLASH COMMANDS =====
+    if (!interaction.isChatInputCommand()) return;
+
+    const { commandName, member, user } = interaction;
+
+    // NICKNAME SYSTEM - Component V2 Container
+    // type 17 = Container | type 10 = TextDisplay | type 14 = Separator
+    if (commandName === 'nickname') {
+        const subcommand = interaction.options.getSubcommand();
+
+        if (subcommand === 'setup') {
+            if (!member.permissions.has(PermissionsBitField.Flags.ManageNicknames))
+                return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> You cannot use this command.', flags: MessageFlags.Ephemeral });
+
+            const channel = interaction.options.getChannel('channel');
+            const mode = interaction.options.getString('mode').toLowerCase();
+
+            if (!['auto', 'approval'].includes(mode))
+                return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> Mode must be auto or approval', flags: MessageFlags.Ephemeral });
+
+            data.nickname.channelId = channel.id;
+            data.nickname.mode = mode;
+            fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
+
+            return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## ✅ Setup Complete' }, { type: 14, spacing: 1 }, { type: 10, content: `Channel: ${channel}\nMode: **${mode}**` }] }], flags: 32768 | MessageFlags.Ephemeral });
+        }
+
+        if (subcommand === 'reset') {
+            try {
+                await member.setNickname(null);
+                return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## Reset' }, { type: 14, spacing: 1 }, { type: 10, content: 'Nickname reset to default.' }] }], flags: 32768 | MessageFlags.Ephemeral });
+            } catch {
+                return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## Failed' }, { type: 14, spacing: 1 }, { type: 10, content: 'Couldn\'t reset nickname.' }] }], flags: 32768 | MessageFlags.Ephemeral });
+            }
+        }
+    }
+
+    // NICKNAME FILTER - Component V2 Container
+    // type 17 = Container | type 10 = TextDisplay | type 14 = Separator
+    if (commandName === 'nicknamefilter') {
+        const action = interaction.options.getString('action');
+        const word = interaction.options.getString('word')?.toLowerCase();
+
+        if (action === 'add') {
+            if (!word)
+                return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:Error:1440296241090265088> Error' }, { type: 14, spacing: 1 }, { type: 10, content: 'Please provide a word to ban.' }] }], flags: 32768 | MessageFlags.Ephemeral });
+
+            if (data.nickname.filter.includes(word))
+                return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:Error:1440296241090265088> Error' }, { type: 14, spacing: 1 }, { type: 10, content: `Word "**${word}**" is already banned.` }] }], flags: 32768 | MessageFlags.Ephemeral });
+
+            data.nickname.filter.push(word);
+            fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
+            return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:Bin:1441777857205637254> Word Added' }, { type: 14, spacing: 1 }, { type: 10, content: `"**${word}**" added to ban list.` }] }], flags: 32768 | MessageFlags.Ephemeral });
+        }
+
+        if (action === 'remove') {
+            if (!word)
+                return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:Error:1440296241090265088> Error' }, { type: 14, spacing: 1 }, { type: 10, content: 'Please provide a word to unban.' }] }], flags: 32768 | MessageFlags.Ephemeral });
+
+            const index = data.nickname.filter.indexOf(word);
+            if (index === -1)
+                return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:Error:1440296241090265088> Error' }, { type: 14, spacing: 1 }, { type: 10, content: `No ban found for "**${word}**".` }] }], flags: 32768 | MessageFlags.Ephemeral });
+
+            data.nickname.filter.splice(index, 1);
+            fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
+            return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:Correct:1440296238305116223> Word Removed' }, { type: 14, spacing: 1 }, { type: 10, content: `"**${word}**" removed from ban list.` }] }], flags: 32768 | MessageFlags.Ephemeral });
+        }
+
+        if (action === 'list') {
+            if (data.nickname.filter.length === 0)
+                return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## 📋 Banned Words' }, { type: 14, spacing: 1 }, { type: 10, content: 'No words configured yet.' }] }], flags: 32768 | MessageFlags.Ephemeral });
+
+            const list = data.nickname.filter.map((w, i) => `${i+1}. **${w}**`).join('\n');
+            return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## 🚫 Banned Words' }, { type: 14, spacing: 1 }, { type: 10, content: list }] }], flags: 32768 | MessageFlags.Ephemeral });
+        }
+    }
+
+    // SETPREFIX - Component V2 Container
+    // type 17 = Container | type 10 = TextDisplay | type 14 = Separator
+    if (commandName === 'setprefix') {
+        const newPrefix = interaction.options.getString('prefix');
+        data.prefix[guildId] = newPrefix;
+        fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
+        return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:1_yes_correct:1439893200981721140> Prefix Updated' }, { type: 14 }, { type: 10, content: `New prefix: **${newPrefix}**` }] }], flags: 32768 | MessageFlags.Ephemeral });
+    }
+
+    // PREFIX - Component V2 Container
+    // type 17 = Container | type 10 = TextDisplay | type 14 = Separator
+    if (commandName === 'prefix') {
+        const prefix = getPrefix(guildId);
+        return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:mg_question:1439893408041930894> Current Prefix' }, { type: 14 }, { type: 10, content: `\`${prefix}\`` }] }], flags: 32768 | MessageFlags.Ephemeral });
+    }
+
+    // BOTINFO - Component V2 Container
+    // type 17 = Container | type 10 = TextDisplay | type 14 = Separator | type 9 = Content Accessory
+    if (commandName === 'botinfo') {
+        const botName = client.user.username;
+        const prefix = getPrefix(guildId);
+        const wsLatency = client.ws.ping;
+        const responseTime = Date.now() - interaction.createdTimestamp;
+        const uptime = formatUptime(startTime);
+        const botAvatar = client.user.displayAvatarURL({ dynamic: true, size: 1024 });
+        
+        const infoText = `**${packageJson.description}**\n\n**Prefix:** \`${prefix}\`\n**Ping:** ${wsLatency}ms\n**Response Time:** ${responseTime}ms\n**Uptime:** ${uptime}\n**Total Commands:** 15+`;
+        
+        const payload = {
+            content: ' ',
+            components: [
+                {
+                    type: 17,
+                    components: [
+                        {
+                            type: 10,
+                            content: `## ${BOT_NAME}│v${BOT_VERSION}`
+                        },
+                        {
+                            type: 14
+                        },
+                        {
+                            type: 9,
+                            components: [
+                                {
+                                    type: 10,
+                                    content: infoText
+                                }
+                            ],
+                            accessory: {
+                                type: 11,
+                                media: {
+                                    url: botAvatar
+                                }
+                            }
+                        }
+                    ]
+                }
+            ],
+            flags: 32768 | MessageFlags.Ephemeral
+        };
+        
+        return interaction.reply(payload);
+    }
+
+    // AFK - Component V2 Container
+    // type 17 = Container | type 10 = TextDisplay | type 14 = Separator
+    if (commandName === 'afk') {
+        const reason = interaction.options.getString('note') || 'I am currently AFK.';
+        afkUsers[user.id] = { reason, timestamp: Date.now() };
+        data.afk[user.id] = afkUsers[user.id];
+        fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
+        const { resource: replyMsg } = await interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:mg_alert:1439893442065862698> AFK Set' }, { type: 14 }, { type: 10, content: reason }] }], flags: 32768 | MessageFlags.Ephemeral, withResponse: true });
+
+        setTimeout(() => replyMsg.delete().catch(() => {}), 30000);
+    }
+
+    // AFKLIST - Component V2 Container
+    // type 17 = Container | type 10 = TextDisplay | type 14 = Separator
+    if (commandName === 'afklist') {
+        if (!member.permissions.has(PermissionsBitField.Flags.ManageGuild) && !member.permissions.has(PermissionsBitField.Flags.Administrator)) {
+            return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## 🚫 Permission Denied' }, { type: 14, spacing: 1 }, { type: 10, content: 'You need ManageGuild permission.' }] }], flags: 32768 | MessageFlags.Ephemeral });
+        }
+
+        if (Object.keys(afkUsers).length === 0) {
+            return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## ⏱️ AFK Status' }, { type: 14, spacing: 1 }, { type: 10, content: 'No users are currently AFK.' }] }], flags: 32768 | MessageFlags.Ephemeral });
+        }
+
+        let afkList = '';
+        for (const userId in afkUsers) {
+            const afkData = afkUsers[userId];
+            const duration = calculateDuration(afkData.timestamp);
+            
+            try {
+                const member = await interaction.guild.members.fetch(userId);
+                const displayName = member.nickname || member.displayName;
+                afkList += `**${displayName}** — ${afkData.reason} (${duration})\n`;
+            } catch (e) {
+                try {
+                    const user = await client.users.fetch(userId);
+                    afkList += `**${user.displayName}** — ${afkData.reason} (${duration})\n`;
+                } catch (e2) {
+                    afkList += `**Unknown User** — ${afkData.reason} (${duration})\n`;
                 }
             }
         }
 
-        // ===== HANDLE SLASH COMMANDS =====
-        if (!interaction.isChatInputCommand()) return;
+        return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## 🚫 Currently AFK' }, { type: 14, spacing: 1 }, { type: 10, content: afkList }] }], flags: 32768 | MessageFlags.Ephemeral });
+    }
 
-        const { commandName, options } = interaction;
+    // AVATAR - Component V2 Container (via createAvatarComponent)
+    // type 17 = Container | type 10 = TextDisplay | type 12 = MediaGallery | type 14 = Separator
+    if (commandName === 'avatar') {
+        const target = interaction.options.getUser('user') || user;
+        const showServerOnly = interaction.options.getBoolean('server');
+        let guildAvatar = null;
+        let displayName = target.displayName;
+        
+        try {
+            const member = await interaction.guild.members.fetch(target.id);
+            // Get server nickname if available, otherwise use display name
+            displayName = member.nickname || member.displayName || target.displayName;
+            // Check for server-specific avatar - use member's avatar method
+            if (member.avatar) {
+                guildAvatar = member.avatarURL({ dynamic: true, size: 1024 });
+            }
+        } catch (e) {
+            // User not in guild or error fetching member
+            displayName = target.displayName;
+        }
+        
+        // Get default avatar from user object
+        const defaultAvatar = target.displayAvatarURL({ dynamic: true, size: 1024 });
+        
+        let response;
+        if (showServerOnly === true) {
+            // Show server avatar only
+            if (guildAvatar) {
+                response = createAvatarComponent(displayName, defaultAvatar, guildAvatar, 'server_only');
+            } else {
+                response = { content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:2_no_wrong:1439893245130838047> No Server Avatar' }, { type: 14 }, { type: 10, content: 'This user has no server-specific avatar set.' }] }], flags: 32768 | MessageFlags.Ephemeral };
+            }
+        } else if (showServerOnly === false) {
+            // Show default avatar only
+            response = createAvatarComponent(displayName, defaultAvatar, null, 'default_only');
+        } else {
+            // Show both (server if available, default always)
+            response = createAvatarComponent(displayName, defaultAvatar, guildAvatar, 'both');
+        }
+        
+        return interaction.reply(response);
+    }
 
-        // /afk command
-        if (commandName === 'afk') {
-            const note = options.getString('note') || 'AFK';
-            afkUsers[interaction.user.id] = {
-                reason: note,
-                timestamp: Date.now()
+    // ------------------------
+    // FUN COMMAND: Truth or Dare
+    // ------------------------
+    if (commandName === 'truthordare') {
+        const cooldownRemaining = checkAndWarnCooldown(user.id, 'truthordare', 5000);
+        if (cooldownRemaining > 0) {
+            return interaction.reply({ content: `⏳ Slow down! You can use this command again in **${cooldownRemaining}s**.`, flags: MessageFlags.Ephemeral });
+        }
+
+        const truths = [
+            "If you could master any skill instantly, what would it be?",
+            "What's the most interesting conspiracy theory you've heard?",
+            "If money wasn't a concern, what would you do with your time?",
+            "What's the weirdest fact you know that most people don't?",
+            "If you could have dinner with any historical figure, who would it be?",
+            "What's a topic you could talk about for hours?",
+            "What's the most underrated movie or show you've watched?",
+            "If you could live in any fictional universe, which one?",
+            "What's something you've changed your mind about?",
+            "What's the best piece of advice you've given someone?",
+            "If you could solve one world problem, what would it be?",
+            "What's a skill you wish more people had?",
+            "What's the most valuable thing you've learned from a game?",
+            "If you could pick any career for a day, what would it be?",
+            "What's the most thought-provoking question you've heard?",
+            "If you could visit any time period, when would it be?",
+            "What's something you find beautiful that others might not?",
+            "What's the most interesting story you know?",
+            "If you could have any job in the world, what would it be?",
+            "What's something you're passionate about explaining to others?",
+            "If AI could do one thing better, what should it be?",
+            "What's the most mind-bending concept you understand?",
+            "If you could create a new holiday, what would it celebrate?",
+            "What's the best decision you've made?",
+            "If you had to teach something to others, what would you pick?",
+            "What's a genre you didn't expect to enjoy but do?",
+            "If you could redesign one system in the world, what would it be?",
+            "What's the most interesting conversation you've had?",
+            "If you could understand any language instantly, which one?",
+            "What's something you'd love to do but haven't yet?",
+            "If you could write a book about anything, what's the topic?",
+            "What's the most useful thing you've learned from the internet?",
+            "If you had to debate any topic, which would you choose?",
+            "What's something you realized was more complex than you thought?",
+            "If you could attend any lecture or talk, what would it be?",
+            "What's the most interesting pattern you've noticed?",
+            "If you could master one video game completely, which one?",
+            "What's something you think is overrated?",
+            "If you could solve a mystery, what would it be?",
+            "What's the most fascinating culture or tradition you know about?",
+            "If you could have a superpower for one day, what would you pick?",
+            "What's something you believe that most people don't?",
+            "If you could ask the internet one question, what would it be?",
+            "What's the most interesting piece of trivia you know?",
+            "If you could design your perfect day, what would it look like?",
+            "What's something you've learned that changed your perspective?",
+            "If you could be an expert in something, what would it be?",
+            "What's the most innovative idea you've heard?",
+            "If you could unlock one secret of the universe, what would it be?",
+            "What's something you think deserves more attention?",
+            "If you could explore any field deeply, what would it be?",
+            "What's your favorite type of story to hear or read?",
+            "What invention would make the world better?",
+            "What's the best plot twist you've experienced?",
+            "If you could only eat food from one cuisine, which would it be?",
+            "What's something everyone should know about?",
+            "What type of problem do you enjoy solving?",
+            "If you could have written any book, which would it be?",
+            "What's the coolest technology you've learned about?",
+            "What's something you think is underrated?",
+            "If you could change the ending of any story, would you?",
+            "What's the most random skill you have?",
+            "What do you think makes a good leader?",
+            "If you could live in any country, where would it be?",
+            "What's your take on the most debated topic in your hobby?",
+            "What's something you thought was boring but turned out cool?",
+            "If you could have any view from your window, what would it be?",
+            "What's the best advice you've received?",
+            "What's something people often misunderstand about your interests?",
+            "If you could master one language, which would it be?",
+            "What's the most hilarious misunderstanding you've had?",
+            "If you could design a perfect society, what would it look like?",
+            "What's something you admire in other people?",
+            "If you could bring back any trend, what would it be?",
+            "What's the most useful lesson life taught you?",
+            "If you could only listen to one artist forever, who?",
+            "What's the best decision you've made recently?",
+            "What's something that surprised you about yourself?",
+            "If you could witness any historical moment, which one?",
+            "What's your take on a heated internet debate?",
+            "What do you think we'll look back on and find weird in 20 years?",
+            "What's the most interesting fact about your favorite hobby?",
+            "If you could have a conversation with any character, who?",
+            "What's something you're proud of that nobody knows about?",
+            "What do you think is the most underrated form of entertainment?",
+            "If you could live in any era, when would you pick?",
+            "What's the best piece of media you've ever experienced?",
+            "What's something you disagree with most people about?",
+            "If you could solve any puzzle, what would it be?",
+            "What's your hot take on a popular franchise?",
+            "What's the most thought-provoking book/game/show you know?",
+            "Which anime character personality do you relate to most?",
+            "What's your favorite anime genre and why?",
+            "If you could live in any anime world, which would it be?",
+            "What anime plot twist shocked you the most?",
+            "Which anime has the best soundtrack in your opinion?",
+            "What's your take on anime adaptations of manga?",
+            "Which anime ending did you think was perfect?",
+            "What anime taught you something meaningful?",
+            "If you could have any anime superpower, what would it be?",
+            "What's the most underrated anime you've watched?",
+            "Which anime character would you want as a friend?",
+            "What's your favorite anime moment that made you emotional?",
+            "If you could recommend one anime to everyone, which?",
+            "What anime trope do you love or hate?",
+            "Which anime has the best character development?",
+            "What's your unpopular opinion about a popular anime?",
+            "If you could meet any anime creator, who?",
+            "What would be your ideal job or life path in real life?",
+            "What's the best advice you've gotten from someone you respect?",
+            "If you could change one thing about school or work, what?",
+            "What's your favorite childhood memory from real life?",
+            "What hobby did you discover by accident in real life?",
+            "If you could have any job without worrying about money, what?",
+            "What's the most embarrassing thing that happened to you?",
+            "What goal are you working toward in your life right now?",
+            "What's the kindest thing someone did for you?",
+            "If you could go back in time, what would you tell yourself?",
+            "What person in your life has influenced you the most?",
+            "What's something you're learning right now?",
+            "What challenge are you currently facing?",
+            "What makes you feel proud of yourself?",
+            "If you could spend a day with anyone, who would it be?",
+            "What's the best compliment you've ever received?",
+            "What's your biggest dream for the future?",
+            "What habit would you like to start or break?",
+            "What skill do you want to learn?",
+            "What's something you wish more people understood?",
+            "What does Pohela Boishakh mean to you?",
+            "What's your favorite Bengali food?",
+            "Do you speak Bengali or Banglish? Tell us about it.",
+            "What's your favorite Bangladeshi celebration or festival?",
+            "What aspect of Bengali culture do you love most?",
+            "If you could visit any place in Bangladesh, where?",
+            "What's something unique about Bengali traditions?",
+            "What's a Bengali phrase or word that makes you laugh?",
+            "What do you love about Bengali cinema or music?",
+            "If you could learn more about Bangladeshi history, what period?",
+            "What traditional Bengali dish do you wish everyone tried?",
+            "What's your take on Bengali art and literature?",
+            "Do you celebrate any Bengali festivals? Tell us about them.",
+            "What's something uniquely Bengali that you're proud of?",
+            "What would you tell someone who wants to learn about Bengali culture?",
+            "What's your favorite memory related to Bengali culture?",
+            "If you could bring back any Bengali tradition, what would it be?",
+            "What do you think makes Bengali people special?",
+            "What's the most interesting Bengali story you know?",
+            "How important is your cultural heritage to you?",
+            "What's your take on mixing different cultures together?",
+            "What would you want your friends to know about your culture?",
+            "If you could blend anime culture with your real life, how?",
+            "What's your favorite anime that relates to school life?",
+            "Which anime character's life lesson stuck with you?",
+            "What anime made you think differently about something?",
+            "If you could create your own anime, what would it be about?",
+            "What's the best anime opening or ending theme ever?",
+            "What anime romance do you root for the most?",
+            "Which anime friendship goals do you want in real life?",
+            "What anime rivalry was the most intense?",
+            "If you could experience any anime arc, which one?",
+            "What's your favorite anime school setting?",
+            "Which anime battle was the most epic?",
+            "What anime made you laugh the most?",
+            "If you had to choose a favorite anime studio, which?",
+            "What's your take on anime pacing and storytelling?",
+            "Which anime deserves a second season?",
+            "What anime theme resonates with you personally?",
+            "If anime was real, how would your life change?",
+            "What's the best anime cliffhanger you've experienced?",
+            "Which anime world-building impressed you most?",
+            "What anime inspired you to pursue an interest?",
+            "What's your take on anime vs manga differences?",
+            "If you could rewatch any anime for the first time, which?",
+            "What anime crossover would you want to see?",
+            "What anime character personality type matches yours?",
+            "Which anime setting do you wish you lived in?"
+        ];
+        const dares = [
+            "Describe your favorite movie without using the title.",
+            "Tell us about a conspiracy theory you find interesting.",
+            "Recommend a song and explain why you love it.",
+            "Explain a video game mechanic like you're teaching a kid.",
+            "Share your take on a trending topic right now.",
+            "Tell us about an interesting historical event.",
+            "Recommend a book, show, or movie in 30 seconds.",
+            "Explain your favorite meme's origin story.",
+            "Describe your dream vacation in detail.",
+            "Tell us what you'd do with a million dollars.",
+            "Explain why your favorite hobby is actually cool.",
+            "Share an unpopular opinion you actually believe.",
+            "Tell us about the most interesting thing you learned this month.",
+            "Explain a scientific concept in simple terms.",
+            "Describe an alternate ending to your favorite show.",
+            "Tell us why your favorite game is underrated.",
+            "Share your theory about something mysterious.",
+            "Explain what makes a perfect day for you.",
+            "Tell us about the weirdest internet rabbit hole you've fallen down.",
+            "Describe your ideal world in 5 sentences.",
+            "Recommend something niche nobody's heard of.",
+            "Tell us your take on AI and the future.",
+            "Explain why you think something popular is overrated.",
+            "Share an interesting fact that blew your mind.",
+            "Describe the most interesting person you know (without revealing identity).",
+            "Tell us about a skill you wish you had.",
+            "Explain your philosophy on friendship.",
+            "Share your best advice about something.",
+            "Tell us what you'd change about the world.",
+            "Describe what makes you laugh the hardest.",
+            "Explain your dream career and why.",
+            "Tell us about a book/game/show that changed your perspective.",
+            "Share your take on a complicated topic.",
+            "Describe your perfect creative project.",
+            "Tell us what you'd want to be remembered for.",
+            "Explain why your favorite genre deserves respect.",
+            "Share the most interesting thing about your interests.",
+            "Tell us your theory on why humans are weird.",
+            "Describe what you think the future will look like.",
+            "Explain the appeal of your favorite hobby.",
+            "Tell us your hottest take on a popular franchise.",
+            "Share what fascinates you most about science.",
+            "Describe your ideal learning experience.",
+            "Tell us what makes a good story.",
+            "Explain why you'd survive in any fictional world.",
+            "Share your thoughts on what makes someone interesting.",
+            "Tell us about the coolest concept you've learned.",
+            "Describe your personal theory about something weird.",
+            "Explain what you think is underrated in your interests.",
+            "Tell us what you'd want to explore endlessly.",
+            "Recommend your favorite underrated creator.",
+            "Explain your favorite running joke or meme.",
+            "Tell us about the best community you're part of.",
+            "Describe what your ideal weekend looks like.",
+            "Explain a hobby you're passionate about.",
+            "Share the most random knowledge you have.",
+            "Tell us your take on a common misconception.",
+            "Describe a skill you'd love to learn.",
+            "Explain why a movie/show everyone loves doesn't appeal to you.",
+            "Share your theory on why a famous thing became famous.",
+            "Tell us about the weirdest subreddit or forum you know.",
+            "Describe your perfect collaboration with someone.",
+            "Explain what you'd teach in your ideal class.",
+            "Share an unpopular opinion about a popular series.",
+            "Tell us what makes content viral in your opinion.",
+            "Describe your personal philosophy about life.",
+            "Explain the appeal of something you didn't expect to like.",
+            "Share what you think the internet got right.",
+            "Tell us what you'd change about social media.",
+            "Describe the most interesting documentary you've watched.",
+            "Explain your favorite form of art or entertainment.",
+            "Share what you think makes a great character.",
+            "Tell us about your take on a heated fandom debate.",
+            "Describe your ideal creative process.",
+            "Explain why you think a certain style is underrated.",
+            "Share what you'd want your legacy to be.",
+            "Tell us about your hot take on technology.",
+            "Describe what you think makes good writing.",
+            "Explain your thoughts on a controversial topic.",
+            "Share what fascinates you about how things work.",
+            "Tell us your theory on internet trends.",
+            "Describe what you think defines success.",
+            "Explain why your interests are cool and valid.",
+            "Share what you think the next big thing will be.",
+            "Tell us what makes you feel connected to others.",
+            "Describe your personal take on authenticity.",
+            "Explain what you value most in people.",
+            "Share your thoughts on creativity and innovation.",
+            "Tell us what you'd do to make the world better.",
+            "Describe what you think is beautiful about human nature.",
+            "Describe your favorite anime in 3 sentences.",
+            "Recommend an anime based on someone's mood.",
+            "Explain why a specific anime character is iconic.",
+            "Tell us your unpopular anime opinion confidently.",
+            "Describe an anime plot if it was real life.",
+            "Recommend an anime nobody's heard of.",
+            "Explain an anime trope that always appears.",
+            "Tell us about your favorite anime moment.",
+            "Describe how you discovered your favorite anime.",
+            "Explain what makes a good anime opening.",
+            "Tell us your anime guilty pleasure.",
+            "Recommend an anime for someone who doesn't watch anime.",
+            "Explain your favorite anime character's backstory.",
+            "Tell us about the anime that made you cry.",
+            "Describe your ideal anime adaptation.",
+            "Explain why you think anime is underrated.",
+            "Tell us about an anime that changed your perspective.",
+            "Share something funny from your real life.",
+            "Tell us about a goal you're trying to achieve.",
+            "Describe your perfect day in real life.",
+            "Recommend something you love in real life.",
+            "Explain why you love a certain hobby.",
+            "Tell us about someone who inspires you.",
+            "Describe what you want to improve about yourself.",
+            "Share advice you'd give to younger people.",
+            "Tell us about a challenge you overcame.",
+            "Describe what friendship means to you.",
+            "Explain what success looks like to you.",
+            "Tell us about your favorite memory with friends.",
+            "Describe how you spend your free time.",
+            "Share what makes you happy in daily life.",
+            "Tell us about a skill you're proud of.",
+            "Explain what you value most in people.",
+            "Describe your ideal weekend.",
+            "Tell us about something you're currently learning.",
+            "Share your thoughts on work-life balance.",
+            "Describe what you want for your future.",
+            "Tell us about Pohela Boishakh traditions.",
+            "Describe your favorite Bengali dish and why.",
+            "Recommend a Bengali movie or song.",
+            "Tell us about a Bengali festival you celebrate.",
+            "Explain what Bengali culture means to you.",
+            "Share a Bengali word or phrase you love.",
+            "Describe a traditional Bengali celebration.",
+            "Tell us about Bangladeshi art or craft.",
+            "Recommend a Bengali artist or creator.",
+            "Explain the beauty of the Bengali language.",
+            "Tell us about Bengali literature you know.",
+            "Describe what makes Bengali music special.",
+            "Share your connection to Bengali heritage.",
+            "Explain Bengali hospitality traditions.",
+            "Tell us about your favorite Bangladeshi memory.",
+            "Describe how you celebrate your cultural identity.",
+            "Share what you love about being Bengali.",
+            "Explain a traditional Bengali custom you follow.",
+            "Tell us about your favorite Bengali recipe.",
+            "Recommend a Bengali book or story.",
+            "Describe Bengali fashion or traditional wear.",
+            "Share your thoughts on preserving culture.",
+            "Tell us about Bangladeshi history you admire.",
+            "Explain why your culture matters to you.",
+            "Describe how your culture influences your life.",
+            "Recommend your culture to someone curious.",
+            "Tell us about anime + real life moments you've had.",
+            "Explain how anime inspired you in real life.",
+            "Share what connects you to anime culture.",
+            "Describe anime references you use in everyday life.",
+            "Tell us about blending your interests together.",
+            "Explain your dream lifestyle inspired by anime.",
+            "Share how anime taught you life lessons.",
+            "Recommend an anime that matches your real life.",
+            "Describe your anime merchandise if you have any.",
+            "Tell us about your anime journey so far.",
+            "Explain what anime community means to you.",
+            "Share your thoughts on anime fandom culture.",
+            "Describe how your interests shape your identity.",
+            "Tell us what makes your interests unique.",
+            "Explain why you're passionate about what you love.",
+            "Share how you connect with people over shared interests.",
+            "Describe your ideal group of friends.",
+            "Tell us what brings people together in your view.",
+            "Explain what makes a good community.",
+            "Share your vision for a perfect world.",
+            "Describe what you'd create if you could.",
+            "Tell us about your creative inspirations."
+        ];
+        const tdEmojis = ['<a:cherry:1441782972486516946>', '<a:croissant:1441783019139502112>', '<a:balloonpikachu:1441834282816377103>', '<a:mymelody:1441834292400623646>', '<a:orangeblossom:1441834288193605856>', '<a:snowmanhellokitty:1441834296804638800>'];
+        const pick = Math.random() < 0.5 ? 'Truth' : 'Dare';
+        const question = pick === 'Truth' ? truths[Math.floor(Math.random()*truths.length)] : dares[Math.floor(Math.random()*dares.length)];
+        const emoji = tdEmojis[Math.floor(Math.random() * tdEmojis.length)];
+        
+        return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: `### ${emoji} ${pick}` }, { type: 14, spacing: 1 }, { type: 10, content: question }] }], flags: 32768 });
+    }
+
+    // CHOOSE - Component V2 Container
+    // type 17 = Container | type 10 = TextDisplay | type 14 = Separator
+    if (commandName === 'choose') {
+        const subjectA = interaction.options.getString('a');
+        const subjectB = interaction.options.getString('b');
+        const subjectC = interaction.options.getString('c');
+        
+        const subjects = [subjectA, subjectB];
+        if (subjectC) subjects.push(subjectC);
+        
+        const styles = ['I choose…', 'I picked…', "I'll go for…", 'My decision is…', "I'm choosing…"];
+        const style = styles[Math.floor(Math.random() * styles.length)];
+        const emoji = Math.random() < 0.5 ? '<a:croissant:1441783019139502112>' : '<a:cherry:1441782972486516946>';
+        const choice = subjects[Math.floor(Math.random() * subjects.length)];
+        
+        return interaction.reply({
+            content: ' ',
+            components: [{
+                type: 17,
+                components: [
+                    { type: 10, content: `### ${emoji} ${style}` },
+                    { type: 14, spacing: 1 },
+                    { type: 10, content: `**${choice}**` }
+                ]
+            }],
+            flags: 32768
+        });
+    }
+
+    // Helper function to build config pages
+    function buildConfigPage(pageNum, guildId) {
+        const prefix = getPrefix(guildId);
+        const serverConfig = data.config?.[guildId] || {};
+        const headerUrl = serverConfig.headerAttachment;
+        const bgUrl = serverConfig.bgAttachment;
+        
+        let pageComponents = [];
+        
+        // Page indicator at the top (stored in content for tracking, but not used in Components V2 display)
+        let pageIndicator = `Page ${pageNum}/3`;
+        
+        if (pageNum === 1) {
+            // Page 1: Prefix Settings
+            pageComponents = [
+                { type: 10, content: `## 🎛️ ${BOT_NAME} Configuration` },
+                { type: 10, content: `**📄 Page 1/3**` },
+                { type: 14, spacing: 1 },
+                { type: 10, content: '### 📌 Prefix Settings' },
+                { type: 10, content: `**Current Prefix:** \`${prefix}\`` },
+                {
+                    type: 1,
+                    components: [
+                        { type: 2, style: 1, label: 'Set Prefix', custom_id: 'config_set_prefix' }
+                    ]
+                }
+            ];
+        } else if (pageNum === 2) {
+            // Page 2: Bot Status
+            let statusText = '';
+            if (!data.status?.text || !data.status?.type) {
+                statusText = '🟢 Bot is online with no custom activity.';
+            } else {
+                const displayName = data.status.emoji ? `${data.status.emoji} ${data.status.text}` : data.status.text;
+                statusText = `**Activity:** ${data.status.type} ${displayName}\n`;
+                if (data.status.type === 'Streaming' && data.status.streamUrl) {
+                    statusText += `**Stream:** ${data.status.streamUrl}\n`;
+                }
+                statusText += `**Visibility:** ${data.status.presence || 'online'}`;
+            }
+            
+            pageComponents = [
+                { type: 10, content: `## 🎛️ ${BOT_NAME} Configuration` },
+                { type: 10, content: `**📄 Page 2/3**` },
+                { type: 14, spacing: 1 },
+                { type: 10, content: '### 🤖 Bot Status' },
+                { type: 10, content: statusText },
+                { type: 14, spacing: 1 },
+                { type: 10, content: '**📝 Set Status Section**' },
+                {
+                    type: 1,
+                    components: [
+                        { type: 2, style: 1, label: 'Add Status Info', custom_id: 'config_status_set' }
+                    ]
+                },
+                {
+                    type: 1,
+                    components: [
+                        {
+                            type: 3,
+                            custom_id: 'config_online_status',
+                            placeholder: 'Select Online Status',
+                            options: [
+                                { label: 'Online', value: 'online', default: (data.status?.presence || 'online') === 'online' },
+                                { label: 'Idle', value: 'idle', default: data.status?.presence === 'idle' },
+                                { label: 'Do Not Disturb', value: 'dnd', default: data.status?.presence === 'dnd' },
+                                { label: 'Invisible', value: 'invisible', default: data.status?.presence === 'invisible' }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    type: 1,
+                    components: [
+                        {
+                            type: 3,
+                            custom_id: 'config_activity_type',
+                            placeholder: 'Select Activity Type',
+                            options: [
+                                { label: 'Playing', value: 'Playing', default: data.status?.type === 'Playing' },
+                                { label: 'Watching', value: 'Watching', default: data.status?.type === 'Watching' },
+                                { label: 'Listening', value: 'Listening', default: data.status?.type === 'Listening' },
+                                { label: 'Competing', value: 'Competing', default: data.status?.type === 'Competing' },
+                                { label: 'Streaming', value: 'Streaming', default: data.status?.type === 'Streaming' }
+                            ]
+                        }
+                    ]
+                },
+                { type: 14, spacing: 1 },
+                { type: 10, content: '**🔄 Reset Status Section**' },
+                {
+                    type: 1,
+                    components: [
+                        { type: 2, style: 4, label: 'Reset Status', custom_id: 'config_status_reset' }
+                    ]
+                }
+            ];
+        } else if (pageNum === 3) {
+            // Page 3: Server Custom Profile
+            pageComponents = [
+                { type: 10, content: `## 🎛️ ${BOT_NAME} Configuration` },
+                { type: 10, content: `**📄 Page 3/3**` },
+                { type: 14, spacing: 1 },
+                { type: 10, content: '### 👤 Server Custom Profile' },
+                { type: 10, content: 'Upload custom icon and banner for this server only' },
+                {
+                    type: 1,
+                    components: [
+                        { type: 2, style: 1, label: 'Bot Icon', custom_id: 'config_header_attach' },
+                        { type: 2, style: 1, label: 'Bot Banner', custom_id: 'config_banner_attach' }
+                    ]
+                }
+            ];
+            
+            if (headerUrl || bgUrl) {
+                pageComponents.push({ type: 14, spacing: 1 });
+                pageComponents.push({ type: 10, content: '### 📸 Current Custom Profile' });
+                const mediaItems = [];
+                if (headerUrl) mediaItems.push({ type: 1, media: { url: headerUrl }, description: 'Bot Icon' });
+                if (bgUrl) mediaItems.push({ type: 1, media: { url: bgUrl }, description: 'Bot Banner' });
+                pageComponents.push({ type: 12, items: mediaItems });
+            }
+        }
+        
+        // Add pagination buttons
+        pageComponents.push({ type: 14, spacing: 1 });
+        pageComponents.push({
+            type: 1,
+            components: [
+                { type: 2, style: 2, label: '◀ Previous', custom_id: 'config_prev', disabled: pageNum === 1 },
+                { type: 2, style: 2, label: 'Next ▶', custom_id: 'config_next', disabled: pageNum === 3 }
+            ]
+        });
+        
+        return pageComponents;
+    }
+
+    // CONFIG COMMAND - Component V2 Configuration Panel with Pagination
+    // type 17 = Container | type 10 = TextDisplay | type 14 = Separator | type 1 = Row | type 2 = Button | type 12 = MediaGallery
+    if (commandName === 'config') {
+        const pageComponents = buildConfigPage(1, guildId);
+        
+        const configPanel = {
+            content: ' ',
+            components: [{
+                type: 17,
+                components: pageComponents
+            }],
+            flags: 32768 | MessageFlags.Ephemeral
+        };
+
+        return interaction.reply(configPanel);
+    }
+
+    // SEARCH - Component V2 Container
+    // type 17 = Container | type 10 = TextDisplay | type 14 = Separator | type 9 = Content Accessory
+    if (commandName === 'search') {
+        await interaction.deferReply();
+        const query = interaction.options.getString('query');
+        const searchLocal = interaction.options.getBoolean('local') || false;
+        const botAvatar = client.user.displayAvatarURL({ dynamic: true, size: 1024 });
+
+        try {
+            let resultText = '';
+            let mediaUrl = null;
+            let pageTitle = null;
+
+            if (searchLocal) {
+                // Local search - lookup stored topics with cached content
+                const searchResults = [];
+                const queryLower = query.toLowerCase();
+                
+                // Check if query matches a topic
+                let foundTopic = null;
+                let matchedTopicName = '';
+                if (data.topics) {
+                    for (const [topicName, topicData] of Object.entries(data.topics)) {
+                        if (topicName.toLowerCase().includes(queryLower) || queryLower.includes(topicName.toLowerCase())) {
+                            foundTopic = topicData;
+                            matchedTopicName = topicName;
+                            break;
+                        }
+                    }
+                }
+                
+                if (foundTopic && typeof foundTopic === 'object') {
+                    if (foundTopic.content) {
+                        // Display summary with link to full message
+                        const link = foundTopic.link || `https://discord.com/channels/${guildId}/${foundTopic.channelId}/${foundTopic.messageId}`;
+                        resultText = `**${matchedTopicName}**\n\n${foundTopic.content}\n\n<:question:1441531934332424314> [**Read Full Message**](${link})`;
+                    } else {
+                        resultText = `Topic "${query}" not found.`;
+                    }
+                } else {
+                    // Search in autoresponses
+                    if (data.autoresponse[guildId]) {
+                        data.autoresponse[guildId].forEach(ar => {
+                            if (ar.trigger.toLowerCase().includes(queryLower) || ar.response.toLowerCase().includes(queryLower)) {
+                                searchResults.push(`**${ar.trigger}** → ${ar.response}`);
+                            }
+                        });
+                    }
+                    
+                    if (searchResults.length > 0) {
+                        resultText = searchResults.slice(0, 5).join('\n');
+                    } else {
+                        const availableTopics = Object.keys(data.topics || {}).join(', ');
+                        resultText = `No topic or auto-response found for "${query}".\n\nAvailable topics: ${availableTopics}`;
+                    }
+                }
+            } else {
+                // Wikipedia API search (free, popular, reliable)
+                try {
+                    const searchResponse = await fetch(`https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&format=json&origin=*`);
+                    const searchData = await searchResponse.json();
+                    
+                    let results = [];
+
+                    if (searchData.query && searchData.query.search && searchData.query.search.length > 0) {
+                        pageTitle = searchData.query.search[0].title;
+                        results.push(searchData.query.search[0].snippet.replace(/<[^>]*>/g, '').substring(0, 500));
+
+                        const pageResponse = await fetch(`https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(pageTitle)}&prop=extracts|pageimages&exintro&piprop=original&format=json&origin=*`);
+                        const pageData = await pageResponse.json();
+                        const pages = pageData.query.pages;
+                        const firstPage = pages[Object.keys(pages)[0]];
+                        
+                        if (firstPage && firstPage.extract) {
+                            const cleanText = firstPage.extract.replace(/<[^>]*>/g, '').substring(0, 1000);
+                            if (cleanText) results.push(cleanText);
+                        }
+                        
+                        if (firstPage && firstPage.original && firstPage.original.source) {
+                            mediaUrl = firstPage.original.source;
+                        }
+                    }
+
+                    if (results.length > 0) {
+                        resultText = results.join('\n');
+                    } else {
+                        resultText = 'No detailed results found on Wikipedia. Try a different search query.';
+                    }
+                } catch (wikiError) {
+                    resultText = 'Wikipedia search unavailable. Try again later.';
+                }
+            }
+
+            // Limit line breaks to max 3 for compact display
+            const limitedText = resultText.replace(/\n{4,}/g, '\n\n\n').substring(0, 2000);
+            
+            // Add clickable Wikipedia link if we have a page title
+            let displayText = limitedText;
+            if (pageTitle && !searchLocal) {
+                const wikiUrl = `https://en.wikipedia.org/wiki/${encodeURIComponent(pageTitle.replace(/ /g, '_'))}`;
+                displayText = `${limitedText}\n\n<:question:1441531934332424314> [**Read Full Article:**](${wikiUrl})`;
+            }
+
+            const containerComponents = [
+                {
+                    type: 9,
+                    components: [
+                        {
+                            type: 10,
+                            content: `**@${interaction.user.username}** searched\n## 🔍 ${query}`
+                        }
+                    ],
+                    accessory: {
+                        type: 11,
+                        media: {
+                            url: botAvatar
+                        }
+                    }
+                },
+                {
+                    type: 14
+                },
+                {
+                    type: 10,
+                    content: displayText
+                }
+            ];
+
+            const payload = {
+                content: ' ',
+                components: [
+                    {
+                        type: 17,
+                        components: containerComponents
+                    }
+                ],
+                flags: 32768
             };
-            data.afk[interaction.user.id] = afkUsers[interaction.user.id];
+
+            return interaction.editReply(payload);
+        } catch (error) {
+            return interaction.editReply({
+                content: `<:Error:1440296241090265088> Search failed: ${error.message}`,
+                flags: MessageFlags.Ephemeral
+            });
+        }
+    }
+
+    // MEME GENERATOR - Component V2 Container
+    // type 17 = Container (main wrapper for Component V2)
+    // type 10 = TextDisplay (for title/text)
+    // type 12 = MediaGallery (for image display)
+    // type 14 = Separator (visual line)
+    if (commandName === 'meme') {
+        await interaction.deferReply();
+        const topText = interaction.options.getString('top_text') || '';
+        const bottomText = interaction.options.getString('bottom_text') || '';
+        const imageAttachment = interaction.options.getAttachment('image');
+        
+        try {
+            let imageUrl = imageAttachment?.url || data.meme?.templates?.[Math.floor(Math.random() * data.meme.templates.length)]?.url;
+            if (!imageUrl) return interaction.editReply('❌ No image found');
+            
+            const buffer = await (await fetch(imageUrl)).arrayBuffer();
+            const img = new (await import('canvas')).Image();
+            img.src = Buffer.from(buffer);
+            
+            const cv = createCanvas(img.width, img.height);
+            const ctx = cv.getContext('2d');
+            ctx.drawImage(img, 0, 0);
+            
+            const fontSize = Math.min(img.width / 8, 60);
+            ctx.font = `bold ${fontSize}px Impact`;
+            ctx.fillStyle = 'white';
+            ctx.strokeStyle = 'black';
+            ctx.lineWidth = Math.max(2, fontSize / 20);
+            ctx.textAlign = 'center';
+            
+            const drawText = (text, isTop) => {
+                const lines = text.match(/(.{1,30})/g) || [];
+                lines.forEach((line, i) => {
+                    const y = isTop ? fontSize * (i + 1.5) : img.height - (fontSize * (lines.length - i - 0.5));
+                    ctx.strokeText(line, img.width / 2, y);
+                    ctx.fillText(line, img.width / 2, y);
+                });
+            };
+            
+            if (topText) drawText(topText, true);
+            if (bottomText) drawText(bottomText, false);
+            
+            const memeBuffer = cv.toBuffer('image/png');
+            const responses = ['🎉 Your meme is ready!', '😂 LOL!', 'Nice meme!', '🔥 Fire!', 'Hilarious!'];
+            const msg = responses[Math.floor(Math.random() * responses.length)];
+            
+            const payload = {
+                content: ' ',
+                components: [
+                    {
+                        type: 17,
+                        components: [
+                            { type: 10, content: `### ${msg}` },
+                            { type: 14 },
+                            { type: 12, items: [{ type: 1, media: { url: `attachment://meme.png` } }] }
+                        ]
+                    }
+                ],
+                files: [{ attachment: memeBuffer, name: 'meme.png' }],
+                flags: 32768
+            };
+            
+            return interaction.editReply(payload);
+        } catch (error) {
+            return interaction.editReply(`❌ Failed: ${error.message}`);
+        }
+    }
+
+    // SEND - Component V2 Container
+    // type 17 = Container | type 10 = TextDisplay | type 14 = Separator | type 9 = Content Accessory
+    if (commandName === 'send') {
+        const title = interaction.options.getString('title');
+        const content = interaction.options.getString('content');
+        const thumbnailAttachment = interaction.options.getAttachment('thumbnail');
+        const targetChannel = interaction.options.getChannel('channel') || interaction.channel;
+
+        try {
+            // Build Component V2 structure - Common builder format
+            const components = [];
+
+            // 1. Add title
+            components.push({
+                type: 10,
+                content: title
+            });
+
+            // 2. Add separator
+            components.push({
+                type: 14
+            });
+
+            // 3. Add content with thumbnail accessory (default to bot avatar)
+            const thumbnailUrl = thumbnailAttachment 
+                ? thumbnailAttachment.url 
+                : client.user.displayAvatarURL({ dynamic: true, size: 1024 });
+
+            const contentComponent = {
+                type: 9,
+                components: [
+                    {
+                        type: 10,
+                        content: content || ''
+                    }
+                ],
+                accessory: {
+                    type: 11,
+                    media: {
+                        url: thumbnailUrl
+                    }
+                }
+            };
+
+            components.push(contentComponent);
+
+            const payload = {
+                content: ' ',
+                components: [
+                    {
+                        type: 17,
+                        components: components
+                    }
+                ],
+                flags: 32768
+            };
+
+            await targetChannel.send(payload);
+            return interaction.reply({
+                content: `<:Correct:1440296238305116223> Message sent to ${targetChannel}`,
+                flags: MessageFlags.Ephemeral
+            });
+        } catch (error) {
+            return interaction.reply({
+                content: `<:Error:1440296241090265088> Failed to send message: ${error.message}`,
+                flags: MessageFlags.Ephemeral
+            });
+        }
+    }
+
+    // COINFLIP - Component V2 Container
+    // type 17 = Container | type 10 = TextDisplay | type 14 = Separator
+    if (commandName === 'coinflip') {
+        const cooldownRemaining = checkAndWarnCooldown(user.id, 'coinflip', 5000);
+        if (cooldownRemaining > 0) {
+            return interaction.reply({ content: `⏳ Slow down! You can use this command again in **${cooldownRemaining}s**.`, flags: MessageFlags.Ephemeral });
+        }
+
+        const result = Math.random() < 0.5 ? 'Heads' : 'Tails';
+        
+        return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '### <:Tails:1441153955412312134> Coin Flip' }, { type: 14, spacing: 1 }, { type: 10, content: `The coin landed on: **${result}**!` }] }], flags: 32768 });
+    }
+
+    // AUTORESPONSE - Component V2 Container
+    // type 17 = Container | type 10 = TextDisplay | type 14 = Separator
+    if (commandName === 'autoresponse') {
+        const action = interaction.options.getString('action');
+        const trigger = interaction.options.getString('trigger');
+        const type = interaction.options.getString('type');
+        const response = interaction.options.getString('response');
+        const selectFromBackup = interaction.options.getString('select_from_backup');
+
+        if (action === 'add') {
+            if (!trigger)
+                return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:Error:1440296241090265088> Error' }, { type: 14 }, { type: 10, content: 'Trigger is required.' }] }], flags: 32768 | MessageFlags.Ephemeral });
+            if (!type)
+                return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:Error:1440296241090265088> Error' }, { type: 14 }, { type: 10, content: 'Response type is required.' }] }], flags: 32768 | MessageFlags.Ephemeral });
+
+            let finalResponse = null;
+            let isFromBackup = false;
+
+            if (type === 'text') {
+                if (selectFromBackup) {
+                    // User selected a saved custom message
+                    finalResponse = selectFromBackup;
+                    isFromBackup = true;
+                } else if (response) {
+                    // User typed custom text
+                    finalResponse = response;
+                    isFromBackup = false;
+                } else {
+                    return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:Error:1440296241090265088> Error' }, { type: 14 }, { type: 10, content: 'Provide either custom text (response) or select a saved message (select_from_backup).' }] }], flags: 32768 | MessageFlags.Ephemeral });
+                }
+            } else if (type === 'emoji') {
+                if (!response)
+                    return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:Error:1440296241090265088> Error' }, { type: 14 }, { type: 10, content: 'Emoji response is required.' }] }], flags: 32768 | MessageFlags.Ephemeral });
+                finalResponse = response;
+            }
+
+            data.autoresponse[guildId] = data.autoresponse[guildId] || [];
+            data.autoresponse[guildId].push({ 
+                trigger, 
+                type, 
+                response: finalResponse,
+                isFromBackup: isFromBackup
+            });
             fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
-            
-            return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '### <a:balloonpikachu:1441834282816377103> AFK Status Set' }, { type: 14, spacing: 1 }, { type: 10, content: `Status: **${note}**` }] }], flags: 32768 });
+
+            const displayText = type === 'text' 
+                ? (isFromBackup ? `Saved Message: ${finalResponse}` : `Custom Text: ${finalResponse.substring(0, 50)}${finalResponse.length > 50 ? '...' : ''}`)
+                : `Emoji: ${finalResponse}`;
+            const addTitle = `## <:Correct:1440296238305116223> Auto-Response Added`;
+            const addContent = `**Trigger:** ${trigger}\n**Response Type:** ${type.charAt(0).toUpperCase() + type.slice(1)}\n**Response:** ${displayText}`;
+            return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: addTitle }, { type: 14, spacing: 1 }, { type: 10, content: addContent }] }], flags: 32768 | MessageFlags.Ephemeral });
         }
 
-        // /avatar command
-        if (commandName === 'avatar') {
-            const user = options.getUser('user') || interaction.user;
-            const serverOption = options.getBoolean('server');
-            const member = await interaction.guild.members.fetch(user.id).catch(() => null);
-            
-            let mode = 'both';
-            if (serverOption === true) mode = 'server_only';
-            if (serverOption === false) mode = 'default_only';
-            
-            // Get server avatar if member has one
-            const serverAvatarUrl = member && member.avatar ? member.avatarURL() : null;
-            const avatarComponent = createAvatarComponent(user.username, user.displayAvatarURL(), serverAvatarUrl, mode);
-            return interaction.reply(avatarComponent);
+        if (action === 'remove') {
+            if (!trigger)
+                return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:Error:1440296241090265088> Error' }, { type: 14 }, { type: 10, content: 'Trigger is required.' }] }], flags: 32768 | MessageFlags.Ephemeral });
+
+            if (!data.autoresponse[guildId] || data.autoresponse[guildId].length === 0) {
+                return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:Error:1440296241090265088> Error' }, { type: 14 }, { type: 10, content: 'No auto-responses configured.' }] }], flags: 32768 | MessageFlags.Ephemeral });
+            }
+
+            const initialLength = data.autoresponse[guildId].length;
+            data.autoresponse[guildId] = data.autoresponse[guildId].filter(ar => ar.trigger !== trigger);
+
+            if (data.autoresponse[guildId].length === initialLength) {
+                return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:Error:1440296241090265088> Error' }, { type: 14 }, { type: 10, content: `No response found for "${trigger}".` }] }], flags: 32768 | MessageFlags.Ephemeral });
+            }
+
+            fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
+            const removeTitle = `## <:Correct:1440296238305116223> Auto-Response Removed`;
+            const removeContent = `**Trigger:** ${trigger}\n\nThis auto-response has been successfully removed from your server.`;
+            return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: removeTitle }, { type: 14, spacing: 1 }, { type: 10, content: removeContent }] }], flags: 32768 | MessageFlags.Ephemeral });
         }
 
-        // /afklist command
-        if (commandName === 'afklist') {
-            if (!interaction.member.permissions.has(PermissionsBitField.Flags.ManageGuild)) {
-                return interaction.reply({ content: '<:Error:1440296241090265088> You need ManageGuild permission!', flags: MessageFlags.Ephemeral });
+        if (action === 'list') {
+            if (!data.autoresponse[guildId] || data.autoresponse[guildId].length === 0) {
+                return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## 🔄 Auto-Responses' }, { type: 14 }, { type: 10, content: 'None configured yet.' }] }], flags: 32768 | MessageFlags.Ephemeral });
             }
-            
-            const afkList = [];
-            for (const [userId, afkData] of Object.entries(data.afk || {})) {
-                const duration = calculateDuration(afkData.timestamp);
-                afkList.push(`<@${userId}> - **${afkData.reason}** (${duration})`);
+
+            let list = '';
+            data.autoresponse[guildId].forEach((ar, index) => {
+                let responseDisplay = '';
+                if (ar.type === 'text') {
+                    responseDisplay = ar.isFromBackup ? `📦 Saved: ${ar.response}` : `✏️ Text: ${ar.response.substring(0, 40)}${ar.response.length > 40 ? '...' : ''}`;
+                } else {
+                    responseDisplay = `Emoji: ${ar.response}`;
+                }
+                list += `${index + 1}. **${ar.trigger}** (${ar.type})\n   → ${responseDisplay}\n`;
+            });
+
+            const listTitle = `## 🔄 Auto-Responses Configured`;
+            const listContent = `${list}\n**Total:** ${data.autoresponse[guildId].length} response(s) active`;
+            return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: listTitle }, { type: 14, spacing: 1 }, { type: 10, content: listContent }] }], flags: 32768 | MessageFlags.Ephemeral });
+        }
+    }
+
+    // WELCOME - Component V2 Container
+    // type 17 = Container | type 10 = TextDisplay | type 14 = Separator
+    if (commandName === 'welcome') {
+        const subcommand = interaction.options.getSubcommand();
+
+        if (subcommand === 'enable') {
+            const channel = interaction.options.getChannel('setchannel');
+            const delayStr = interaction.options.getString('delaytime');
+            const showList = interaction.options.getBoolean('list');
+
+            data.welcome[guildId] = data.welcome[guildId] || {};
+            data.welcome[guildId].channelId = channel.id;
+            data.welcome[guildId].delay = parseDelayString(delayStr);
+            data.welcome[guildId].enabled = true;
+            fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
+
+            if (showList) {
+                const sampleList = welcomeMessages.slice(0, 10).map((msg, i) => `${i + 1}. ${msg}`).join('\n');
+                const contentText = `**Channel:** ${channel}\n**Delay:** ${delayStr || '120s'}\n\n**Sample Messages:**\n${sampleList}\n\n... (${welcomeMessages.length} total messages available)`;
+                
+                return interaction.reply({ 
+                    content: ' ', 
+                    components: [{ 
+                        type: 17, 
+                        components: [
+                            { type: 10, content: '### <:1_yes_correct:1439893200981721140> Welcome Enabled' },
+                            { type: 14, spacing: 1 },
+                            { type: 10, content: contentText }
+                        ] 
+                    }], 
+                    flags: 32768 | MessageFlags.Ephemeral 
+                });
+            } else {
+                const contentText = `**Channel:** ${channel}\n**Delay:** ${delayStr || '120s'}`;
+                
+                return interaction.reply({ 
+                    content: ' ', 
+                    components: [{ 
+                        type: 17, 
+                        components: [
+                            { type: 10, content: '### <:1_yes_correct:1439893200981721140> Welcome Enabled' },
+                            { type: 14, spacing: 1 },
+                            { type: 10, content: contentText }
+                        ] 
+                    }], 
+                    flags: 32768 | MessageFlags.Ephemeral 
+                });
             }
-            
-            const listText = afkList.length > 0 
-                ? afkList.join('\n')
-                : 'No users are currently AFK.';
-            
+        }
+
+        if (subcommand === 'disable') {
+            data.welcome[guildId] = data.welcome[guildId] || {};
+            data.welcome[guildId].enabled = false;
+            fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
+
             return interaction.reply({ 
                 content: ' ', 
                 components: [{ 
                     type: 17, 
                     components: [
-                        { type: 10, content: `## 😴 AFK Users (${afkList.length})` },
+                        { type: 10, content: '### <:1_yes_correct:1439893200981721140> Welcome Disabled' },
                         { type: 14, spacing: 1 },
-                        { type: 10, content: listText }
+                        { type: 10, content: 'Welcome messages have been disabled for this server.' }
                     ] 
                 }], 
-                flags: 32768 
+                flags: 32768 | MessageFlags.Ephemeral 
             });
         }
+    }
+});
 
-        // /truthordare command
-        if (commandName === 'truthordare') {
-            const truths = [
-                "What's your biggest secret?",
-                "When was the last time you lied?",
-                "What do you regret the most?",
-                "What's something nobody knows about you?",
-                "Who do you have a crush on?",
-                "What's your biggest fear?",
-                "Have you ever stolen anything?",
-                "What's the most embarrassing thing that happened to you?",
-                "Do you have a hidden talent?",
-                "What would you do if nobody was watching?",
-                "Have you ever cheated on someone?",
-                "What's your darkest thought?",
-                "Would you date someone shorter than you?",
-                "Have you ever hurt someone intentionally?",
-                "What's the rudest thing you've thought about someone?",
-                "Do you believe in aliens?",
-                "What's your biggest pet peeve?",
-                "Have you ever been in love?",
-                "What's your most controversial opinion?",
-                "Would you give up your phone for a month?",
-                "If you had supernatural powers, would you use them?",
-                "Have you ever stalked someone on social media?",
-                "What's the most embarrassing song you like?",
-                "Would you change anything about your appearance?",
-                "Have you ever cried watching a movie or anime?",
-                "What's the biggest lie you've ever told your parents?",
-                "Do you believe in ghosts?",
-                "What's your biggest insecurity?",
-                "Would you go back in time and change something?",
-                "What's the worst advice you've ever given?",
-                "Have you ever felt invisible?",
-                "What's something you've done that you're really proud of?",
-                "Would you rather be really popular or really smart?",
-                "Have you ever failed at something important?",
-                "What's the most ridiculous thing you've done for a friend?",
-                "Do you prefer being alone or with people?",
-                "What's a time you stood up for something?",
-                "Have you ever completely changed your mind about someone?",
-                "What's something you want to be better at?",
-                "If you could change one person's mind, whose?",
-                "What's the weirdest dream you've had?",
-                "Have you ever felt misunderstood?",
-                "What's something you're obsessed with?",
-                "Would you rather travel or stay home?",
-                "What's the kindest thing someone has done for you?",
-                "Have you ever been betrayed?",
-                "What's your guilty pleasure?",
-                "If you could live anywhere, where?",
-                "What's something you've always wanted to try?",
-                "Would you sacrifice something for someone you love?",
-                "What anime have you watched the most?",
-                "Which anime character do you relate to the most?",
-                "What's your favorite anime genre?",
-                "If you could live in any anime world, which?",
-                "What's the best anime opening song?",
-                "Which anime made you cry?",
-                "What anime do you secretly love?",
-                "If you could have any anime power?",
-                "What's your take on anime romance?",
-                "Which anime friendship is goals?",
-                "What's an overrated anime in your opinion?",
-                "Which anime character would be your best friend?",
-                "What anime has the best animation?",
-                "If you could be reincarnated like in anime?",
-                "What's your unpopular anime opinion?",
-                "Which anime deserves more recognition?",
-                "If anime was real, how would your life change?",
-                "What's the most beautiful anime scene you've seen?",
-                "Which anime has the best soundtrack?",
-                "What anime made you feel things?",
-                "If you could blend anime culture with your real life, how?",
-                "What's your favorite anime that relates to school life?",
-                "Which anime character's life lesson stuck with you?",
-                "What anime made you think differently about something?",
-                "If you could create your own anime, what would it be about?",
-                "What's the best anime opening or ending theme ever?",
-                "What anime romance do you root for the most?",
-                "Which anime friendship goals do you want in real life?",
-                "What anime rivalry was the most intense?",
-                "If you could experience any anime arc, which one?",
-                "What's your favorite anime school setting?",
-                "Which anime battle was the most epic?",
-                "What anime made you laugh the most?",
-                "If you had to choose a favorite anime studio, which?",
-                "What's your take on anime pacing and storytelling?",
-                "Which anime deserves a second season?",
-                "What anime theme resonates with you personally?",
-                "If anime was real, how would your life change?",
-                "What's the best anime cliffhanger you've experienced?",
-                "Which anime world-building impressed you most?",
-                "What anime inspired you to pursue an interest?",
-                "What's your take on anime vs manga differences?",
-                "If you could rewatch any anime for the first time, which?"
-            ];
+// ------------------------
+// HANDLE MESSAGES
+// ------------------------
+client.on(Events.MessageCreate, async msg => {
+    if (msg.author.bot) return;
+
+    const guildId = msg.guildId;
+    const prefix = getPrefix(guildId);
+
+    // ----- Check mentions for AFK -----
+    msg.mentions.users.forEach(async user => {
+        if (afkUsers[user.id]) {
+            const afkData = afkUsers[user.id];
+            const timestampSeconds = Math.floor(afkData.timestamp / 1000);
             
+            try {
+                const member = await msg.guild.members.fetch(user.id);
+                const displayName = `**${member.nickname || member.displayName}**`;
+                const replyMsg = await msg.reply(`<:mg_alert:1439893442065862698> ${displayName} is AFK for <t:${timestampSeconds}:R> — ${afkData.reason}.`);
+                setTimeout(() => replyMsg.delete().catch(() => {}), 60000);
+            } catch (e) {
+                const replyMsg = await msg.reply(`<:mg_alert:1439893442065862698> **${user.displayName}** is AFK for <t:${timestampSeconds}:R> — ${afkData.reason}.`);
+                setTimeout(() => replyMsg.delete().catch(() => {}), 60000);
+            }
+        }
+    });
+
+    // ----- Reset AFK on any message -----
+    if (afkUsers[msg.author.id]) {
+        const afkData = afkUsers[msg.author.id];
+        const duration = calculateDuration(afkData.timestamp);
+        delete afkUsers[msg.author.id];
+        delete data.afk[msg.author.id];
+        fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
+        await msg.reply(`<:1_yes_correct:1439893200981721140> Welcome back ${msg.author}! You were AFK for ${duration}.`);
+    }
+
+    // ----- Handle prefix commands -----
+    if (msg.content.startsWith(prefix)) {
+        const args = msg.content.slice(prefix.length).trim().split(/ +/);
+        const cmd = args.shift().toLowerCase();
+
+        // AFK
+        if (cmd === 'afk') {
+            const reason = args.join(' ') || 'I am currently AFK.';
+            afkUsers[msg.author.id] = { reason, timestamp: Date.now() };
+            data.afk[msg.author.id] = afkUsers[msg.author.id];
+            fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
+
+            const replyMsg = await msg.reply(`<:mg_alert:1439893442065862698> AFK set: ${reason}`);
+
+            // Delete user message after 5s
+            setTimeout(() => msg.delete().catch(() => {}), 5000);
+            // Delete bot reply after 30s
+            setTimeout(() => replyMsg.delete().catch(() => {}), 30000);
+        }
+
+        // Avatar
+        if (cmd === 'av') {
+            let targetUser = msg.author;
+            let showDefaultOnly = false;
+            let displayName = msg.author.displayName;
+            
+            // Check if user mentioned
+            if (msg.mentions.users.size > 0) {
+                targetUser = msg.mentions.users.first();
+            }
+            
+            // Check for 'df' parameter to show default avatar only
+            // If user mentioned, 'df' would be at index 1, otherwise at index 0
+            const paramIndex = msg.mentions.users.size > 0 ? 1 : 0;
+            if (args.length > paramIndex && args[paramIndex].toLowerCase() === 'df') {
+                showDefaultOnly = true;
+            }
+            
+            let guildAvatar = null;
+            try {
+                const member = await msg.guild.members.fetch(targetUser.id);
+                // Get server nickname if available, otherwise use display name
+                displayName = member.nickname || member.displayName || targetUser.displayName;
+                // Get server-specific avatar if exists
+                if (member.avatar) {
+                    guildAvatar = member.avatarURL({ dynamic: true, size: 1024 });
+                }
+            } catch (e) {
+                // User not in guild or fetch failed
+                displayName = targetUser.displayName;
+            }
+            
+            // Get default avatar from user
+            const defaultAvatar = targetUser.displayAvatarURL({ dynamic: true, size: 1024 });
+            
+            let mode = 'server_only';
+            if (showDefaultOnly) {
+                mode = 'default_only';
+            }
+            
+            const response = createAvatarComponent(displayName, defaultAvatar, guildAvatar, mode);
+            return msg.reply(response);
+        }
+
+        // Prefix Meme - Component V2 Container
+        if (cmd === 'meme') {
+            const [topText, bottomText] = args.join(' ').split(',').map(p => p.trim());
+            if (!topText) return msg.reply('❌ Usage: `!meme <top text>, <bottom text>`');
+            
+            const wait = await msg.reply('🎨 Generating...');
+            try {
+                const imageUrl = data.meme?.templates?.[Math.floor(Math.random() * data.meme.templates.length)]?.url;
+                if (!imageUrl) return wait.edit('❌ No templates found');
+                
+                const buffer = await (await fetch(imageUrl)).arrayBuffer();
+                const img = new (await import('canvas')).Image();
+                img.src = Buffer.from(buffer);
+                
+                const cv = createCanvas(img.width, img.height);
+                const ctx = cv.getContext('2d');
+                ctx.drawImage(img, 0, 0);
+                
+                const fontSize = Math.min(img.width / 8, 60);
+                ctx.font = `bold ${fontSize}px Impact`;
+                ctx.fillStyle = 'white';
+                ctx.strokeStyle = 'black';
+                ctx.lineWidth = Math.max(2, fontSize / 20);
+                ctx.textAlign = 'center';
+                
+                const drawText = (text, isTop) => {
+                    const lines = text.match(/(.{1,30})/g) || [];
+                    lines.forEach((line, i) => {
+                        const y = isTop ? fontSize * (i + 1.5) : img.height - (fontSize * (lines.length - i - 0.5));
+                        ctx.strokeText(line, img.width / 2, y);
+                        ctx.fillText(line, img.width / 2, y);
+                    });
+                };
+                
+                if (topText) drawText(topText, true);
+                if (bottomText) drawText(bottomText, false);
+                
+                const memeBuffer = cv.toBuffer('image/png');
+                const responses = ['🎉 Your meme is ready!', '😂 LOL!', 'Nice meme!', '🔥 Fire!', 'Hilarious!'];
+                const msgText = responses[Math.floor(Math.random() * responses.length)];
+                
+                const payload = {
+                    content: ' ',
+                    components: [
+                        {
+                            type: 17,
+                            components: [
+                                { type: 10, content: `### ${msgText}` },
+                                { type: 14 },
+                                { type: 12, items: [{ type: 1, media: { url: `attachment://meme.png` } }] }
+                            ]
+                        }
+                    ],
+                    files: [{ attachment: memeBuffer, name: 'meme.png' }]
+                };
+                
+                await wait.delete();
+                return msg.reply(payload);
+            } catch (error) {
+                return wait.edit(`❌ Failed: ${error.message}`);
+            }
+        }
+
+        // Fun command: Truth or Dare
+        if (cmd === 'td') {
+            const cooldownRemaining = checkAndWarnCooldown(msg.author.id, 'td', 5000);
+            if (cooldownRemaining > 0) {
+                const warnMsg = await msg.reply({ content: `⏳ Slow down! You can use this command again in **${cooldownRemaining}s**.`, flags: MessageFlags.Ephemeral });
+                setTimeout(() => warnMsg.delete().catch(() => {}), 5000);
+                return;
+            }
+
+            const truths = [
+                "If you could master any skill instantly, what would it be?",
+                "What's the most interesting conspiracy theory you've heard?",
+                "If money wasn't a concern, what would you do with your time?",
+                "What's the weirdest fact you know that most people don't?",
+                "If you could have dinner with any historical figure, who would it be?",
+                "What's a topic you could talk about for hours?",
+                "What's the most underrated movie or show you've watched?",
+                "If you could live in any fictional universe, which one?",
+                "What's something you've changed your mind about?",
+                "What's the best piece of advice you've given someone?",
+                "If you could solve one world problem, what would it be?",
+                "What's a skill you wish more people had?",
+                "What's the most valuable thing you've learned from a game?",
+                "If you could pick any career for a day, what would it be?",
+                "What's the most thought-provoking question you've heard?",
+                "If you could visit any time period, when would it be?",
+                "What's something you find beautiful that others might not?",
+                "What's the most interesting story you know?",
+                "If you could have any job in the world, what would it be?",
+                "What's something you're passionate about explaining to others?",
+                "If AI could do one thing better, what should it be?",
+                "What's the most mind-bending concept you understand?",
+                "If you could create a new holiday, what would it celebrate?",
+                "What's the best decision you've made?",
+                "If you had to teach something to others, what would you pick?",
+                "What's a genre you didn't expect to enjoy but do?",
+                "If you could redesign one system in the world, what would it be?",
+                "What's the most interesting conversation you've had?",
+                "If you could understand any language instantly, which one?",
+                "What's something you'd love to do but haven't yet?",
+                "If you could write a book about anything, what's the topic?",
+                "What's the most useful thing you've learned from the internet?",
+                "If you had to debate any topic, which would you choose?",
+                "What's something you realized was more complex than you thought?",
+                "If you could attend any lecture or talk, what would it be?",
+                "What's the most interesting pattern you've noticed?",
+                "If you could master one video game completely, which one?",
+                "What's something you think is overrated?",
+                "If you could solve a mystery, what would it be?",
+                "What's the most fascinating culture or tradition you know about?",
+                "If you could have a superpower for one day, what would you pick?",
+                "What's something you believe that most people don't?",
+                "If you could ask the internet one question, what would it be?",
+                "What's the most interesting piece of trivia you know?",
+                "If you could design your perfect day, what would it look like?",
+                "What's something you've learned that changed your perspective?",
+                "If you could be an expert in something, what would it be?",
+                "What's the most innovative idea you've heard?",
+                "If you could unlock one secret of the universe, what would it be?",
+                "What's something you think deserves more attention?",
+                "If you could explore any field deeply, what would it be?",
+                "What's your favorite type of story to hear or read?",
+                "What invention would make the world better?",
+                "What's the best plot twist you've experienced?",
+                "If you could only eat food from one cuisine, which would it be?",
+                "What's something everyone should know about?",
+                "What type of problem do you enjoy solving?",
+                "If you could have written any book, which would it be?",
+                "What's the coolest technology you've learned about?",
+                "What's something you think is underrated?",
+                "If you could change the ending of any story, would you?",
+                "What's the most random skill you have?",
+                "What do you think makes a good leader?",
+                "If you could live in any country, where would it be?",
+                "What's your take on the most debated topic in your hobby?",
+                "What's something you thought was boring but turned out cool?",
+                "If you could have any view from your window, what would it be?",
+                "What's the best advice you've received?",
+                "What's something people often misunderstand about your interests?",
+                "If you could master one language, which would it be?",
+                "What's the most hilarious misunderstanding you've had?",
+                "If you could design a perfect society, what would it look like?",
+                "What's something you admire in other people?",
+                "If you could bring back any trend, what would it be?",
+                "What's the most useful lesson life taught you?",
+                "If you could only listen to one artist forever, who?",
+                "What's the best decision you've made recently?",
+                "What's something that surprised you about yourself?",
+                "If you could witness any historical moment, which one?",
+                "What's your take on a heated internet debate?",
+                "What do you think we'll look back on and find weird in 20 years?",
+                "What's the most interesting fact about your favorite hobby?",
+                "If you could have a conversation with any character, who?",
+                "What's something you're proud of that nobody knows about?",
+                "What do you think is the most underrated form of entertainment?",
+                "If you could live in any era, when would you pick?",
+                "What's the best piece of media you've ever experienced?",
+                "What's something you disagree with most people about?",
+                "If you could solve any puzzle, what would it be?",
+                "What's your hot take on a popular franchise?",
+                "What's the most thought-provoking book/game/show you know?"
+            ];
             const dares = [
                 "Describe your favorite movie without using the title.",
                 "Tell us about a conspiracy theory you find interesting.",
@@ -836,50 +2609,75 @@ client.on(Events.InteractionCreate, async interaction => {
                 "Recommend a book, show, or movie in 30 seconds.",
                 "Explain your favorite meme's origin story.",
                 "Describe your dream vacation in detail.",
-                "Tell us what you'd do with a million dollars."
+                "Tell us what you'd do with a million dollars.",
+                "Explain why your favorite hobby is actually cool.",
+                "Share an unpopular opinion you actually believe.",
+                "Tell us what you learned this month that was interesting.",
+                "Explain a scientific concept in simple terms.",
+                "Describe an alternate ending to your favorite show.",
+                "Tell us why your favorite game is underrated.",
+                "Share your theory about something mysterious.",
+                "Explain what makes a perfect day for you.",
+                "Tell us about the weirdest internet rabbit hole you've fallen down.",
+                "Describe your ideal world in 5 sentences.",
+                "Recommend something niche nobody's heard of.",
+                "Tell us your take on AI and the future.",
+                "Explain why something popular is actually overrated.",
+                "Share an interesting fact that blew your mind.",
+                "Describe what makes a good character in fiction.",
+                "Tell us about a skill you wish you had.",
+                "Explain your philosophy on friendship.",
+                "Share your best advice about something.",
+                "Tell us what you'd change about the world.",
+                "Describe what makes you laugh the hardest.",
+                "Explain your dream career and why.",
+                "Tell us about media that changed your perspective.",
+                "Share your take on a complicated topic.",
+                "Describe your perfect creative project.",
+                "Tell us what you'd want to be remembered for.",
+                "Explain why your favorite genre deserves respect.",
+                "Share the most interesting thing about your interests.",
+                "Tell us your theory on why humans are weird.",
+                "Describe what you think the future will look like.",
+                "Explain the appeal of your favorite hobby.",
+                "Tell us your hottest take on a popular franchise.",
+                "Share what fascinates you most about science.",
+                "Describe your ideal learning experience.",
+                "Tell us what makes a good story.",
+                "Explain why you'd survive in any fictional world.",
+                "Share your thoughts on what makes someone interesting.",
+                "Tell us about the coolest concept you've learned.",
+                "Describe your personal theory about something weird.",
+                "Explain what you think is underrated in your interests.",
+                "Tell us what you'd want to explore endlessly."
             ];
-            
-            const tdEmojis = ['<a:cherry:1441782972486516946>', '<a:croissant:1441783019139502112>', '<a:balloonpikachu:1441834282816377103>'];
+            const tdEmojis = ['<a:cherry:1441782972486516946>', '<a:croissant:1441783019139502112>', '<a:balloonpikachu:1441834282816377103>', '<a:mymelody:1441834292400623646>', '<a:orangeblossom:1441834288193605856>', '<a:snowmanhellokitty:1441834296804638800>'];
             const pick = Math.random() < 0.5 ? 'Truth' : 'Dare';
             const question = pick === 'Truth' ? truths[Math.floor(Math.random()*truths.length)] : dares[Math.floor(Math.random()*dares.length)];
             const emoji = tdEmojis[Math.floor(Math.random() * tdEmojis.length)];
             
-            return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: `### ${emoji} ${pick}` }, { type: 14, spacing: 1 }, { type: 10, content: question }] }], flags: 32768 });
+            return msg.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: `### ${emoji} ${pick}` }, { type: 14, spacing: 1 }, { type: 10, content: question }] }], flags: 32768 });
         }
 
-        // /coinflip command
-        if (commandName === 'coinflip') {
-            const result = Math.random() < 0.5 ? 'Heads' : 'Tails';
-            const emoji = result === 'Heads' ? '<a:cherry:1441782972486516946>' : '<a:croissant:1441783019139502112>';
-            return interaction.reply({
-                content: ' ',
-                components: [{
-                    type: 17,
-                    components: [
-                        { type: 10, content: `### ${emoji} Coin Flip` },
-                        { type: 14, spacing: 1 },
-                        { type: 10, content: `**${result}**` }
-                    ]
-                }],
-                flags: 32768
-            });
-        }
-
-        // /choose command
-        if (commandName === 'choose') {
-            const subjectA = options.getString('a');
-            const subjectB = options.getString('b');
-            const subjectC = options.getString('c');
+        // Fun command: Choose
+        if (cmd === 'cs') {
+            const parts = msg.content.substring(4).trim();
+            const subjects = parts.split(',').map(p => p.trim());
             
-            const subjects = [subjectA, subjectB];
-            if (subjectC) subjects.push(subjectC);
+            if (subjects.length < 2) {
+                const usageText = `**Choose between 2-3 options:**\n\n\`!cs <Subject A> , <Subject B>\`\n\n**or**\n\n\`!cs <Subject A> , <Subject B> , <Subject C>\``;
+                const warnMsg = await msg.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:warning:1441531830607151195> Usage Format' }, { type: 14 }, { type: 10, content: usageText }] }], flags: 32768 | MessageFlags.Ephemeral });
+                msg.delete().catch(() => {});
+                setTimeout(() => warnMsg.delete().catch(() => {}), 10000);
+                return;
+            }
             
             const styles = ['I choose…', 'I picked…', "I'll go for…", 'My decision is…', "I'm choosing…"];
             const style = styles[Math.floor(Math.random() * styles.length)];
             const emoji = Math.random() < 0.5 ? '<a:croissant:1441783019139502112>' : '<a:cherry:1441782972486516946>';
             const choice = subjects[Math.floor(Math.random() * subjects.length)];
             
-            return interaction.reply({
+            return msg.reply({
                 content: ' ',
                 components: [{
                     type: 17,
@@ -893,256 +2691,238 @@ client.on(Events.InteractionCreate, async interaction => {
             });
         }
 
-        // Helper function to build config pages
-        function buildConfigPage(pageNum, guildId) {
-            const prefix = getPrefix(guildId);
-            const statusData = data.status || {};
-            
-            let pageComponents = [];
-            
-            if (pageNum === 1) {
-                // Page 1: Prefix & Basic Settings
-                pageComponents = [{
-                    type: 17,
-                    components: [
-                        { type: 10, content: '## ⚙️ Bot Configuration' },
-                        { type: 10, content: '**Page 1/3 - Prefix & Settings**' },
-                        { type: 14, spacing: 1 },
-                        { type: 10, content: `**Current Prefix:** \`${prefix}\`\n**Nickname Mode:** ${data.nickname.mode || '❌ Not Set'}\n**Server:** ${interaction.guild.name}` },
-                        { type: 14, spacing: 1 },
-                        { type: 1, components: [
-                            { type: 2, style: 1, label: 'Set Prefix', custom_id: 'config_set_prefix' }
-                        ] },
-                        { type: 1, components: [
-                            { type: 2, style: 2, label: '← Previous', custom_id: 'config_prev' },
-                            { type: 2, style: 1, label: 'Bot Status →', custom_id: 'config_next' }
-                        ] }
-                    ]
-                }];
-            } else if (pageNum === 2) {
-                // Page 2: FULLY CUSTOMIZABLE BOT STATUS
-                const activityTypes = ['Playing', 'Listening', 'Watching', 'Competing', 'Streaming'];
-                const presenceOptions = ['online', 'idle', 'dnd', 'invisible'];
-                
-                pageComponents = [{
-                    type: 17,
-                    components: [
-                        { type: 10, content: '## 🎮 Bot Status (Fully Customizable)' },
-                        { type: 10, content: '**Page 2/3 - Activity & Presence**' },
-                        { type: 14, spacing: 1 },
-                        { type: 10, content: `**Current Activity:** ${statusData.type || '❌ Not Set'}\n**Activity Text:** ${statusData.text || '(none)'}\n**Emoji:** ${statusData.emoji || '(none)'}\n**Presence:** ${statusData.presence || 'online'}` },
-                        { type: 14, spacing: 1 },
-                        { type: 1, components: [
-                            { type: 3, custom_id: 'config_activity_type', placeholder: 'Choose activity type', options: activityTypes.map(t => ({ label: t, value: t })) }
-                        ] },
-                        { type: 1, components: [
-                            { type: 3, custom_id: 'config_online_status', placeholder: 'Choose presence', options: presenceOptions.map(p => ({ label: p === 'dnd' ? 'Do Not Disturb' : p.charAt(0).toUpperCase() + p.slice(1), value: p })) }
-                        ] },
-                        { type: 1, components: [
-                            { type: 2, style: 1, label: '✏️ Customize', custom_id: 'config_status_set' },
-                            { type: 2, style: 4, label: '🔄 Reset', custom_id: 'config_status_reset' }
-                        ] },
-                        { type: 1, components: [
-                            { type: 2, style: 2, label: '← Settings', custom_id: 'config_prev' },
-                            { type: 2, style: 1, label: 'More →', custom_id: 'config_next' }
-                        ] }
-                    ]
-                }];
-            } else if (pageNum === 3) {
-                // Page 3: Server Profile & Welcome
-                pageComponents = [{
-                    type: 17,
-                    components: [
-                        { type: 10, content: '## 🎨 Server Profile & Welcome' },
-                        { type: 10, content: '**Page 3/3 - Welcome System**' },
-                        { type: 14, spacing: 1 },
-                        { type: 10, content: `**Welcome:** ${data.welcome[guildId]?.enabled ? '✅ Enabled' : '❌ Disabled'}\n**Channel:** ${data.welcome[guildId]?.channelId ? `<#${data.welcome[guildId].channelId}>` : 'Not set'}\n**Delay:** ${data.welcome[guildId]?.delay ? Math.round(data.welcome[guildId].delay / 1000) + 's' : '120s'}` },
-                        { type: 14, spacing: 1 },
-                        { type: 1, components: [
-                            { type: 2, style: 1, label: '📧 Setup Welcome', custom_id: 'config_welcome_setup' }
-                        ] },
-                        { type: 1, components: [
-                            { type: 2, style: 2, label: '← Status', custom_id: 'config_prev' }
-                        ] }
-                    ]
-                }];
+        // Fun command: Coin Flip
+        if (cmd === 'cf') {
+            const cooldownRemaining = checkAndWarnCooldown(msg.author.id, 'cf', 5000);
+            if (cooldownRemaining > 0) {
+                const warnMsg = await msg.reply({ content: `⏳ Slow down! You can use this command again in **${cooldownRemaining}s**.`, flags: MessageFlags.Ephemeral });
+                setTimeout(() => warnMsg.delete().catch(() => {}), 5000);
+                return;
             }
+
+            const result = Math.random() < 0.5 ? 'Heads' : 'Tails';
             
-            return pageComponents;
+            return msg.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '### <:Tails:1441153955412312134> Coin Flip' }, { type: 14, spacing: 1 }, { type: 10, content: `The coin landed on: **${result}**!` }] }], flags: 32768 });
         }
 
-        // /config command
-        if (commandName === 'config') {
-            const pageComponents = buildConfigPage(1, guildId);
-            return interaction.reply({
+        // Bot Info command
+        if (cmd === 'bi') {
+            const botName = client.user.username;
+            const prefix = getPrefix(guildId);
+            const wsLatency = client.ws.ping;
+            const responseTime = Date.now() - msg.createdTimestamp;
+            const uptime = formatUptime(startTime);
+            const botAvatar = client.user.displayAvatarURL({ dynamic: true, size: 1024 });
+            
+            const infoText = `**${packageJson.description}**\n\n**Prefix:** \`${prefix}\`\n**Ping:** ${wsLatency}ms\n**Response Time:** ${responseTime}ms\n**Uptime:** ${uptime}\n**Total Commands:** 15+`;
+            
+            const payload = {
                 content: ' ',
-                components: pageComponents,
-                flags: 32768
-            });
-        }
-
-        // Fallback for any unhandled commands
-        return interaction.reply({ content: 'Command not yet implemented!', flags: MessageFlags.Ephemeral });
-
-    } catch (error) {
-        console.error('Interaction handler error:', error);
-        return interaction.reply({ content: 'Error processing command', flags: MessageFlags.Ephemeral }).catch(() => {});
-    }
-});
-
-// ========================
-// MESSAGE EVENTS (AFK, Prefix Commands, Auto-responses)
-// ========================
-client.on(Events.MessageCreate, async msg => {
-    if (msg.author.bot) return;
-    if (!msg.guild) return;
-
-    const guildId = msg.guild.id;
-    const prefix = getPrefix(guildId);
-
-    // Check if user is AFK and remove status when they send a message
-    if (data.afk && data.afk[msg.author.id]) {
-        delete data.afk[msg.author.id];
-        delete afkUsers[msg.author.id];
-        fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
-        
-        await msg.reply({
-            content: ' ',
-            components: [{
-                type: 17,
                 components: [
-                    { type: 10, content: '### <:Correct:1440296238305116223> Welcome Back!' },
-                    { type: 14, spacing: 1 },
-                    { type: 10, content: 'Your AFK status has been removed.' }
-                ]
-            }],
-            flags: 32768
-        }).catch(() => {});
-    }
-
-    // Check if anyone mentioned is AFK
-    if (msg.mentions && msg.mentions.size > 0) {
-        for (const mentionedUser of msg.mentions.values()) {
-            if (data.afk && data.afk[mentionedUser.id]) {
-                const afkInfo = data.afk[mentionedUser.id];
-                const duration = calculateDuration(afkInfo.timestamp);
-                
-                await msg.reply({
-                    content: ' ',
-                    components: [{
+                    {
                         type: 17,
                         components: [
-                            { type: 10, content: `### 😴 ${mentionedUser.username} is AFK` },
-                            { type: 14, spacing: 1 },
-                            { type: 10, content: `**Reason:** ${afkInfo.reason}` },
-                            { type: 10, content: `**Away for:** ${duration}` }
+                            {
+                                type: 10,
+                                content: `## ${BOT_NAME}│v${BOT_VERSION}`
+                            },
+                            {
+                                type: 14
+                            },
+                            {
+                                type: 9,
+                                components: [
+                                    {
+                                        type: 10,
+                                        content: infoText
+                                    }
+                                ],
+                                accessory: {
+                                    type: 11,
+                                    media: {
+                                        url: botAvatar
+                                    }
+                                }
+                            }
                         ]
-                    }],
+                    }
+                ],
+                flags: 32768
+            };
+            
+            return msg.reply(payload);
+        }
+
+        // Search command
+        if (cmd === 'sh') {
+            const fullQuery = args.join(' ');
+            if (!fullQuery) {
+                return msg.reply({ content: '<:Error:1440296241090265088> Usage: `!sh <query>` or `!sh <query> , local` to search local data', flags: MessageFlags.Ephemeral });
+            }
+
+            // Check for comma to determine if local search
+            const parts = fullQuery.split(',');
+            const query = parts[0].trim();
+            const searchLocal = parts.length > 1;
+
+            try {
+                const waitMsg = await msg.reply('<:question:1441531934332424314> Searching...');
+                const botAvatar = client.user.displayAvatarURL({ dynamic: true, size: 1024 });
+                let resultText = '';
+                let mediaUrl = null;
+                let pageTitle = null;
+
+                if (searchLocal) {
+                    // Local search - search all server data
+                    const searchResults = [];
+                    
+                    // Search in autoresponses
+                    if (data.autoresponse[guildId]) {
+                        data.autoresponse[guildId].forEach(ar => {
+                            if (ar.trigger.toLowerCase().includes(query.toLowerCase()) || ar.response.toLowerCase().includes(query.toLowerCase())) {
+                                searchResults.push(`**AR:** ${ar.trigger} → ${ar.response}`);
+                            }
+                        });
+                    }
+
+                    // Search in banned words
+                    if (data.nickname.filter && data.nickname.filter.length > 0) {
+                        data.nickname.filter.forEach(word => {
+                            if (word.toLowerCase().includes(query.toLowerCase())) {
+                                searchResults.push(`**Filter:** ${word}`);
+                            }
+                        });
+                    }
+
+                    // Search in AFK data
+                    for (const [userId, afkData] of Object.entries(data.afk || {})) {
+                        if (afkData.reason.toLowerCase().includes(query.toLowerCase())) {
+                            searchResults.push(`**AFK:** <@${userId}> - ${afkData.reason}`);
+                        }
+                    }
+
+                    // Search in welcome data
+                    for (const [guildIdKey, welcomeData] of Object.entries(data.welcome || {})) {
+                        if (guildIdKey === guildId) {
+                            if (query.toLowerCase().includes('welcome') || query.toLowerCase().includes('join')) {
+                                searchResults.push(`**Welcome:** <#${welcomeData.channelId}> (${welcomeData.enabled ? 'Enabled' : 'Disabled'})`);
+                            }
+                        }
+                    }
+
+                    // Search in prefix data
+                    if (data.prefix[guildId]) {
+                        const prefixChar = data.prefix[guildId];
+                        if (query.toLowerCase().includes('prefix')) {
+                            searchResults.push(`**Prefix:** \`${prefixChar}\``);
+                        }
+                    }
+
+                    // Search in bot status
+                    if (data.bot?.status) {
+                        const status = data.bot.status;
+                        if (status.text.toLowerCase().includes(query.toLowerCase()) || status.emoji.toLowerCase().includes(query.toLowerCase())) {
+                            searchResults.push(`**Status:** ${status.text} ${status.emoji}`);
+                        }
+                    }
+
+                    if (searchResults.length > 0) {
+                        resultText = searchResults.slice(0, 15).join('\n');
+                    } else {
+                        resultText = 'No local data found matching your search.';
+                    }
+                } else {
+                    // Wikipedia API search (free, popular, reliable)
+                    try {
+                        const searchResponse = await fetch(`https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&format=json&origin=*`);
+                        const wikiSearch = await searchResponse.json();
+                        
+                        let results = [];
+
+                        if (wikiSearch.query && wikiSearch.query.search && wikiSearch.query.search.length > 0) {
+                            pageTitle = wikiSearch.query.search[0].title;
+                            results.push(wikiSearch.query.search[0].snippet.replace(/<[^>]*>/g, '').substring(0, 500));
+
+                            const pageResponse = await fetch(`https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(pageTitle)}&prop=extracts|pageimages&exintro&piprop=original&format=json&origin=*`);
+                            const pageInfo = await pageResponse.json();
+                            const pages = pageInfo.query.pages;
+                            const firstPage = pages[Object.keys(pages)[0]];
+                            
+                            if (firstPage && firstPage.extract) {
+                                const cleanText = firstPage.extract.replace(/<[^>]*>/g, '').substring(0, 1000);
+                                if (cleanText) results.push(cleanText);
+                            }
+                            
+                            if (firstPage && firstPage.original && firstPage.original.source) {
+                                mediaUrl = firstPage.original.source;
+                            }
+                        }
+
+                        if (results.length > 0) {
+                            resultText = results.join('\n');
+                        } else {
+                            resultText = 'No detailed results found on Wikipedia. Try a different search query.';
+                        }
+                    } catch (wikiError) {
+                        resultText = 'Wikipedia search unavailable. Try again later.';
+                    }
+                }
+
+                // Limit line breaks to max 3 for compact display
+                const limitedText = resultText.replace(/\n{4,}/g, '\n\n\n').substring(0, 2000);
+                
+                // Add clickable Wikipedia link if we have a page title
+                let displayText = limitedText;
+                if (pageTitle && !searchLocal) {
+                    const wikiUrl = `https://en.wikipedia.org/wiki/${encodeURIComponent(pageTitle.replace(/ /g, '_'))}`;
+                    displayText = `${limitedText}\n\n<:question:1441531934332424314> [**Read Full Article:**](${wikiUrl})`;
+                }
+
+                const containerComponents = [
+                    {
+                        type: 9,
+                        components: [
+                            {
+                                type: 10,
+                                content: `**@${msg.author.username}** searched\n## 🔍 ${query}`
+                            }
+                        ],
+                        accessory: {
+                            type: 11,
+                            media: {
+                                url: botAvatar
+                            }
+                        }
+                    },
+                    {
+                        type: 14
+                    },
+                    {
+                        type: 10,
+                        content: displayText
+                    }
+                ];
+
+                const payload = {
+                    content: ' ',
+                    components: [
+                        {
+                            type: 17,
+                            components: containerComponents
+                        }
+                    ],
                     flags: 32768
+                };
+
+                await waitMsg.edit(payload);
+            } catch (error) {
+                return msg.reply({
+                    content: `<:Error:1440296241090265088> Search failed: ${error.message}`,
+                    flags: MessageFlags.Ephemeral
                 }).catch(() => {});
             }
         }
-    }
 
-    // Prefix commands
-    if (msg.content.startsWith(prefix)) {
-        const args = msg.content.slice(prefix.length).trim().split(/ +/);
-        const cmd = args.shift().toLowerCase();
-
-        // !afk command
-        if (cmd === 'afk') {
-            const reason = args.join(' ') || 'AFK';
-            afkUsers[msg.author.id] = { reason, timestamp: Date.now() };
-            data.afk[msg.author.id] = afkUsers[msg.author.id];
-            fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
-            
-            return msg.reply({
-                content: ' ',
-                components: [{
-                    type: 17,
-                    components: [
-                        { type: 10, content: '### <a:balloonpikachu:1441834282816377103> AFK Status Set' },
-                        { type: 14, spacing: 1 },
-                        { type: 10, content: `**${reason}**` }
-                    ]
-                }],
-                flags: 32768
-            }).catch(() => {});
-        }
-
-        // !av command (avatar prefix commands)
-        if (cmd === 'av') {
-            let user = msg.author;
-            let mode = 'server_only'; // default for !av is server avatar only
-            
-            // Parse arguments: !av, !av df, !av @user, !av @user df
-            if (args.length > 0) {
-                if (args[0] === 'df') {
-                    // !av df - your default account avatar
-                    mode = 'default_only';
-                } else if (msg.mentions.size > 0) {
-                    // !av @user or !av @user df
-                    user = msg.mentions.first();
-                    if (args[1] === 'df') {
-                        // !av @user df - user default account avatar
-                        mode = 'default_only';
-                    } else {
-                        // !av @user - user specific server avatar
-                        mode = 'server_only';
-                    }
-                }
-            }
-            
-            // Get server avatar if member has one
-            const member = await msg.guild.members.fetch(user.id).catch(() => null);
-            const serverAvatarUrl = member && member.avatar ? member.avatarURL() : null;
-            const avatarComponent = createAvatarComponent(user.username, user.displayAvatarURL(), serverAvatarUrl, mode);
-            return msg.reply(avatarComponent).catch(() => {});
-        }
-
-        // !td command (truthordare)
-        if (cmd === 'td') {
-            const truths = [
-                "What's your biggest secret?",
-                "When was the last time you lied?",
-                "What do you regret the most?"
-            ];
-            const dares = [
-                "Describe your favorite movie without using the title.",
-                "Tell us about a conspiracy theory you find interesting."
-            ];
-            
-            const pick = Math.random() < 0.5 ? 'Truth' : 'Dare';
-            const question = pick === 'Truth' ? truths[Math.floor(Math.random()*truths.length)] : dares[Math.floor(Math.random()*dares.length)];
-            
-            return msg.reply({
-                content: ' ',
-                components: [{
-                    type: 17,
-                    components: [
-                        { type: 10, content: `### ${pick}` },
-                        { type: 14, spacing: 1 },
-                        { type: 10, content: question }
-                    ]
-                }],
-                flags: 32768
-            }).catch(() => {});
-        }
-
-        // !cf command (coinflip)
-        if (cmd === 'cf') {
-            const result = Math.random() < 0.5 ? 'Heads' : 'Tails';
-            return msg.reply({
-                content: ' ',
-                components: [{
-                    type: 17,
-                    components: [
-                        { type: 10, content: `### ${result}` }
-                    ]
-                }],
-                flags: 32768
-            }).catch(() => {});
-        }
     }
 
     // ----- Auto-response triggers -----
@@ -1150,9 +2930,33 @@ client.on(Events.MessageCreate, async msg => {
         for (const ar of data.autoresponse[guildId]) {
             if (msg.content.includes(ar.trigger)) {
                 if (ar.type === 'text') {
-                    const isComponent = tryParseAndSendComponent(msg, ar.response);
-                    if (!isComponent) {
-                        msg.reply(ar.response).catch(() => {});
+                    if (ar.isFromBackup) {
+                        // Text response from saved custom message
+                        const customMsg = data.autoresponse[guildId]?.find(m => m.title === ar.response);
+                        if (customMsg) {
+                            // Reconstruct Component V2 message from saved data
+                            const container = new ContainerBuilder();
+                            
+                            // Add title
+                            const titleDisplay = new TextDisplayBuilder().setContent(`### ${customMsg.title}`);
+                            container.addTextDisplayComponents(titleDisplay);
+                            
+                            // Add any stored content
+                            if (customMsg.content) {
+                                const contentDisplay = new TextDisplayBuilder().setContent(customMsg.content);
+                                container.addTextDisplayComponents(contentDisplay);
+                            }
+                            
+                            msg.reply({ content: ' ', components: [container], flags: MessageFlags.IsComponentsV2 }).catch(() => {});
+                        } else {
+                            msg.reply(`<:warning:1441531830607151195> Saved message "${ar.response}" not found.`).catch(() => {});
+                        }
+                    } else {
+                        // Plain text or JSON response - try to parse as Component V2 first
+                        const isComponent = tryParseAndSendComponent(msg, ar.response);
+                        if (!isComponent) {
+                            msg.reply(ar.response).catch(() => {});
+                        }
                     }
                 } else if (ar.type === 'react') {
                     msg.react(ar.response).catch(() => {});
@@ -1162,9 +2966,10 @@ client.on(Events.MessageCreate, async msg => {
     }
 });
 
-// ========================
+// ------------------------
 // NICKNAME MESSAGE HANDLER
-// ========================
+// (Unchanged from your original system)
+// ------------------------
 client.on(Events.MessageCreate, async msg => {
     if (msg.author.bot) return;
     if (!data.nickname.channelId || msg.channel.id !== data.nickname.channelId) return;
@@ -1253,9 +3058,9 @@ client.on(Events.MessageCreate, async msg => {
     }
 });
 
-// ========================
+// ------------------------
 // GUILD MEMBER ADD (WELCOME SYSTEM)
-// ========================
+// ------------------------
 client.on(Events.GuildMemberAdd, async member => {
     const guildId = member.guild.id;
     
@@ -1281,5 +3086,5 @@ client.on(Events.GuildMemberAdd, async member => {
     }, delay);
 });
 
-// ========================
+// ------------------------
 client.login(TOKEN);
