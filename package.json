@@ -1,6 +1,6 @@
 {
   "name": "m•bot",
-  "version": "1.0.25",
+  "version": "1.0.26",
   "description": "A personal Discord bot for Mining Bangladesh with AFK, Welcome, Auto-Response, Nickname, Status, Moderation, and Fun commands (Choose, Coinflip, Truth or Dare).",
   "main": "index.js",
   "type": "module",
@@ -8,7 +8,9 @@
     "start": "node index.js"
   },
   "dependencies": {
+    "@discord-player/extractor": "^7.1.0",
     "canvas": "^3.2.0",
+    "discord-player": "^7.1.0",
     "discord.js": "^14.13.0",
     "openai": "^6.9.1"
   }

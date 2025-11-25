@@ -1,4 +1,5 @@
 import { Client, GatewayIntentBits, Partials, Collection, ButtonStyle, ActionRowBuilder, ButtonBuilder, Events, PermissionsBitField, REST, Routes, SlashCommandBuilder, EmbedBuilder, MessageFlags, ActivityType, ContainerBuilder, TextDisplayBuilder, MediaGalleryBuilder, MediaGalleryItemBuilder } from 'discord.js';
+import { Player } from 'discord-player';
 import fs from 'fs';
 import { createCanvas } from 'canvas';
 import { allCommands } from './src/commands/index.js';
@@ -74,8 +75,15 @@ const client = new Client({
         GatewayIntentBits.Guilds,
         GatewayIntentBits.GuildMessages,
         GatewayIntentBits.MessageContent,
-        GatewayIntentBits.GuildMembers
+        GatewayIntentBits.GuildMembers,
+        GatewayIntentBits.GuildVoiceStates
     ]
+});
+
+const player = new Player(client, {
+    leaveOnEmpty: true,
+    leaveOnEnd: false,
+    leaveOnStop: true
 });
 
 client.commands = new Collection();
@@ -1092,18 +1100,9 @@ client.on(Events.InteractionCreate, async interaction => {
         return interaction.reply(response);
     }
 
-    // PLAY - Music command
+    // PLAY - Music command with discord-player
     if (commandName === 'play') {
-        let voiceMember = member;
-        try {
-            voiceMember = await interaction.guild.members.fetch(user.id);
-        } catch (e) {
-            console.error('Failed to fetch member:', e);
-        }
-        
-        console.log(`[PLAY] User voice channel: ${voiceMember?.voice?.channel?.id || 'None'}`);
-        
-        if (!voiceMember?.voice?.channel) {
+        if (!member.voice.channel) {
             return interaction.reply({ 
                 content: ' ', 
                 components: [{ 
@@ -1118,20 +1117,65 @@ client.on(Events.InteractionCreate, async interaction => {
             });
         }
 
-        const queue = interaction.options.getString('queue');
+        const query = interaction.options.getString('queue');
         
-        console.log(`[PLAY] Music queued: ${queue} in channel ${voiceMember.voice.channel.name}`);
+        try {
+            let queue = player.nodes.get(interaction.guildId);
+            if (!queue) {
+                queue = player.nodes.create(interaction.guildId, {
+                    metadata: { channel: interaction.channel }
+                });
+            }
 
-        const mockTrack = {
-            name: queue,
-            url: '#',
-            artist: 'Artist',
-            length: '0:00',
-            thumbnail: 'https://via.placeholder.com/200'
-        };
+            if (!queue.connection) {
+                queue.connect(member.voice.channel);
+            }
 
-        const panel = createMusicControlPanel(mockTrack, user, 100, '▶️ Now Playing');
-        return interaction.reply(panel);
+            const result = await player.search(query, { requestedBy: user });
+            if (!result || !result.tracks.length) {
+                return interaction.reply({ 
+                    content: ' ', 
+                    components: [{ 
+                        type: 17, 
+                        components: [
+                            { type: 10, content: '## ❌ No Results' }, 
+                            { type: 14, spacing: 1 }, 
+                            { type: 10, content: `No songs found for: ${query}` }
+                        ] 
+                    }], 
+                    flags: 32768 | MessageFlags.Ephemeral 
+                });
+            }
+
+            result.tracks.forEach(track => queue.addTrack(track));
+            if (!queue.isPlaying()) await queue.node.play();
+
+            const track = result.tracks[0];
+            const mockTrack = {
+                name: track.title,
+                url: track.url,
+                artist: track.author,
+                length: track.duration ? `${Math.floor(track.duration / 60000)}:${String(Math.floor((track.duration % 60000) / 1000)).padStart(2, '0')}` : '0:00',
+                thumbnail: track.thumbnail
+            };
+
+            const panel = createMusicControlPanel(mockTrack, user, 100, '▶️ Now Playing');
+            return interaction.reply(panel);
+        } catch (error) {
+            console.error('[PLAY] Error:', error);
+            return interaction.reply({ 
+                content: ' ', 
+                components: [{ 
+                    type: 17, 
+                    components: [
+                        { type: 10, content: '## ❌ Playback Error' }, 
+                        { type: 14, spacing: 1 }, 
+                        { type: 10, content: error.message || 'Failed to play music' }
+                    ] 
+                }], 
+                flags: 32768 | MessageFlags.Ephemeral 
+            });
+        }
     }
 
     // ------------------------
@@ -2265,29 +2309,52 @@ client.on(Events.MessageCreate, async msg => {
             return msg.reply(response);
         }
 
-        // Play/Music - Prefix commands !p and !play
+        // Play/Music - Prefix commands !p and !play with discord-player
         if (cmd === 'p' || cmd === 'play') {
             if (!msg.member.voice.channel) {
                 return msg.reply('🚫 You must be in a voice channel to use this command.');
             }
 
-            const queue = args.join(' ');
-            if (!queue) {
+            const query = args.join(' ');
+            if (!query) {
                 return msg.reply('❌ Usage: `!play <song name or URL>`');
             }
 
-            console.log(`[PLAY] Music queued: ${queue} in channel ${msg.member.voice.channel.name}`);
+            try {
+                let queue = player.nodes.get(msg.guildId);
+                if (!queue) {
+                    queue = player.nodes.create(msg.guildId, {
+                        metadata: { channel: msg.channel }
+                    });
+                }
 
-            const mockTrack = {
-                name: queue,
-                url: '#',
-                artist: 'Artist',
-                length: '0:00',
-                thumbnail: 'https://via.placeholder.com/200'
-            };
+                if (!queue.connection) {
+                    queue.connect(msg.member.voice.channel);
+                }
 
-            const panel = createMusicControlPanel(mockTrack, msg.author, 100, '▶️ Now Playing');
-            return msg.reply(panel);
+                const result = await player.search(query, { requestedBy: msg.author });
+                if (!result || !result.tracks.length) {
+                    return msg.reply('❌ No songs found for: ' + query);
+                }
+
+                result.tracks.forEach(track => queue.addTrack(track));
+                if (!queue.isPlaying()) await queue.node.play();
+
+                const track = result.tracks[0];
+                const mockTrack = {
+                    name: track.title,
+                    url: track.url,
+                    artist: track.author,
+                    length: track.duration ? `${Math.floor(track.duration / 60000)}:${String(Math.floor((track.duration % 60000) / 1000)).padStart(2, '0')}` : '0:00',
+                    thumbnail: track.thumbnail
+                };
+
+                const panel = createMusicControlPanel(mockTrack, msg.author, 100, '▶️ Now Playing');
+                return msg.reply(panel);
+            } catch (error) {
+                console.error('[PLAY] Error:', error);
+                return msg.reply('❌ Failed to play music: ' + error.message);
+            }
         }
 
         // Prefix Meme - Component V2 Container
