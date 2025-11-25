@@ -204,10 +204,23 @@ changelog: `
 - Config page 3 (`/config`) displays version from `versionData.js`
 - All version references throughout bot auto-update
 
+## Automatic Version Increment System
+
+Every code edit increments the PATCH version automatically:
+- PATCH (last number): 0-99, increments with each edit
+- When PATCH reaches 100 → resets to 0, MINOR increments
+- MINOR (middle number): 0-4, increments when PATCH overflows
+- When MINOR reaches 5 → resets to 0, MAJOR increments
+- MAJOR (first number): increments when MINOR overflows
+
+**Progression Example:**
+- 1.0.11 → 1.0.12 → 1.0.13 → ... → 1.0.99 → 1.0.100 (becomes 1.1.0)
+- 1.4.99 → 1.5.0 → ... → 1.5.99 → 1.5.100 (becomes 2.0.0)
+
 ## Current Version
-- **Version**: 1.0.10
-- **Last Updated**: Nov 25, 2025
-- **Status**: Fully modularized, version system implemented
+- **Version**: 1.0.12
+- **Last Updated**: Nov 25, 2025 2:20 PM
+- **Status**: Fully modularized, version system with auto-increment implemented
 
 # Recent Changes (Nov 25, 2025)
 - **COMPLETED: Full Modularization**
