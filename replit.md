@@ -226,7 +226,7 @@ changelog: `
 - Major update: 1.5.99 → 2.0.0 (MAJOR increments, MINOR resets)
 
 ## Current Version
-- **Version**: 1.0.20
+- **Version**: 1.0.21
 - **Last Updated**: Nov 25, 2025 2:20 PM
 - **Status**: Fully modularized, version system with auto-increment implemented
 

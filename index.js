@@ -120,28 +120,7 @@ async function initializeTopics() {
     fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
 }
 
-// Initialize topics when bot is ready
-client.once('clientReady', async () => {
-    console.log(`${client.user.tag} is online!`);
-    await initializeTopics();
-    
-    // Keep-alive mechanism: Update activity every 30 minutes to prevent idle timeout
-    setInterval(() => {
-        try {
-            const activities = [
-                { name: 'your commands', type: 'LISTENING' },
-                { name: 'Mining Bangladesh', type: 'WATCHING' },
-                { name: 'Discord', type: 'PLAYING' }
-            ];
-            const activity = activities[Math.floor(Math.random() * activities.length)];
-            client.user.setActivity(activity.name, { type: ActivityType[activity.type] }).catch(() => {});
-        } catch (err) {
-            console.error('Keep-alive activity update failed:', err.message);
-        }
-    }, 1800000); // 30 minutes
-    
-    console.log('✅ Keep-alive mechanism activated');
-});
+// Initialize topics when bot is ready (moved to Events.ClientReady handler below)
 
 // Auto-reconnection on disconnect
 client.on('disconnect', () => {
@@ -210,6 +189,11 @@ function applyBotStatus() {
 // ------------------------
 client.once(Events.ClientReady, async () => {
     console.log(`${client.user.tag} is online!`);
+    
+    // Initialize topics
+    await initializeTopics();
+    
+    // Apply custom status from saved data
     applyBotStatus();
     
     // Load AFK data from storage
