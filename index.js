@@ -686,13 +686,46 @@ client.on(Events.InteractionCreate, async interaction => {
         if (commandName === 'avatar') {
             const user = options.getUser('user') || interaction.user;
             const serverOption = options.getBoolean('server');
+            const member = await interaction.guild.members.fetch(user.id).catch(() => null);
             
             let mode = 'both';
             if (serverOption === true) mode = 'server_only';
             if (serverOption === false) mode = 'default_only';
             
-            const avatarComponent = createAvatarComponent(user.username, user.displayAvatarURL(), user.banner ? user.bannerURL() : null, mode);
+            // Get server avatar if member has one
+            const serverAvatarUrl = member && member.avatar ? member.avatarURL() : null;
+            const avatarComponent = createAvatarComponent(user.username, user.displayAvatarURL(), serverAvatarUrl, mode);
             return interaction.reply(avatarComponent);
+        }
+
+        // /afklist command
+        if (commandName === 'afklist') {
+            if (!interaction.member.permissions.has(PermissionsBitField.Flags.ManageGuild)) {
+                return interaction.reply({ content: '<:Error:1440296241090265088> You need ManageGuild permission!', flags: MessageFlags.Ephemeral });
+            }
+            
+            const afkList = [];
+            for (const [userId, afkData] of Object.entries(data.afk || {})) {
+                const duration = calculateDuration(afkData.timestamp);
+                afkList.push(`<@${userId}> - **${afkData.reason}** (${duration})`);
+            }
+            
+            const listText = afkList.length > 0 
+                ? afkList.join('\n')
+                : 'No users are currently AFK.';
+            
+            return interaction.reply({ 
+                content: ' ', 
+                components: [{ 
+                    type: 17, 
+                    components: [
+                        { type: 10, content: `## 😴 AFK Users (${afkList.length})` },
+                        { type: 14, spacing: 1 },
+                        { type: 10, content: listText }
+                    ] 
+                }], 
+                flags: 32768 
+            });
         }
 
         // /truthordare command
