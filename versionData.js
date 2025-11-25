@@ -1,8 +1,8 @@
 export default {
-    version: "1.0.32",
-    releaseDate: "Nov 25, 2025 3:17 PM",
-    releaseDateTimestamp: 1764064640,
-    changesSummary: "Fixed: Corrected API limit to 100, now properly skips messages with bot replies",
+    version: "1.0.33",
+    releaseDate: "Nov 25, 2025 3:18 PM",
+    releaseDateTimestamp: 1764064700,
+    changesSummary: "NEW: Interactive 3-page /botinfo with Full Description & Commands Guide buttons",
 
     versionGuide: `
 📌 Versioning Guide

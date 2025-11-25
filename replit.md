@@ -226,9 +226,9 @@ changelog: `
 - Major update: 1.5.99 → 2.0.0 (MAJOR increments, MINOR resets)
 
 ## Current Version
-- **Version**: 1.0.32
-- **Last Updated**: Nov 25, 2025 3:17 PM
-- **Status**: Fixed: API limit corrected, now properly detects and skips processed messages
+- **Version**: 1.0.33
+- **Last Updated**: Nov 25, 2025 3:18 PM
+- **Status**: NEW: Interactive /botinfo with 3 pages - Main, Full Description, Commands Guide
 
 # Recent Changes (Nov 25, 2025)
 - **COMPLETED: Full Modularization**
