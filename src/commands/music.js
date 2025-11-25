@@ -1,3 +1,6 @@
+import { SlashCommandBuilder } from 'discord.js';
+import { createMusicControlPanel } from './music.js';
+
 export function createMusicControlPanel(track, user, volume = 100, status = "Playing") {
     return {
         content: ' ',
@@ -53,14 +56,13 @@ export function createMusicControlPanel(track, user, volume = 100, status = "Pla
     };
 }
 
-export const musicCommand = {
-    name: 'music',
-    description: 'Music system for the bot',
-    execute: async (interaction) => {
-        // Placeholder for future music implementation
-        await interaction.reply({
-            content: 'Music system coming soon!',
-            flags: 32768
-        });
-    }
-};
+export const playCommand = new SlashCommandBuilder()
+    .setName('play')
+    .setDescription('Play a song or add it to queue')
+    .addStringOption(option => 
+        option.setName('queue')
+            .setDescription('Song name, URL, or playlist')
+            .setRequired(true)
+    );
+
+export const musicCommands = [playCommand];
