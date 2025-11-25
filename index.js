@@ -87,26 +87,29 @@ const musicState = new Map();
 
 async function playYouTubeTrack(guild, member, query, user) {
     try {
-        console.log('[PLAY] Searching YouTube for:', query);
+        console.log('[PLAY] Searching Spotify for:', query);
         
-        // Use play-dl to search YouTube
-        const results = await play.search(query, { limit: 1 });
+        // Use play-dl to search Spotify (avoids YouTube bot detection)
+        const results = await play.search(query, { 
+            limit: 1,
+            source: { spotify: true }
+        });
         
         if (!results || results.length === 0) {
-            throw new Error(`No videos found for: ${query}`);
+            throw new Error(`No tracks found for: ${query}`);
         }
         
-        const video = results[0];
-        const url = video.url;
+        const track = results[0];
+        const url = track.url;
         
-        console.log('[PLAY] Found video:', video.title);
+        console.log('[PLAY] Found track:', track.title);
         
         return {
-            title: video.title,
+            title: track.title,
             url: url,
-            thumbnail: video.thumbnail?.url || '',
-            duration: video.durationInSec || 0,
-            info: video
+            thumbnail: track.thumbnail?.url || '',
+            duration: track.durationInSec || 0,
+            info: track
         };
     } catch (error) {
         console.error('[PLAY] Search error:', error.message);
@@ -1351,7 +1354,7 @@ client.on(Events.InteractionCreate, async interaction => {
             const mockTrack = {
                 name: track.title,
                 url: track.url,
-                artist: 'YouTube',
+                artist: track.info?.author?.name || 'Spotify',
                 length: track.duration ? `${Math.floor(track.duration / 60)}:${String(track.duration % 60).padStart(2, '0')}` : '0:00',
                 thumbnail: track.thumbnail
             };
@@ -2515,7 +2518,7 @@ client.on(Events.MessageCreate, async msg => {
                 const mockTrack = {
                     name: track.title,
                     url: track.url,
-                    artist: 'YouTube',
+                    artist: track.info?.author?.name || 'Spotify',
                     length: track.duration ? `${Math.floor(track.duration / 60)}:${String(track.duration % 60).padStart(2, '0')}` : '0:00',
                     thumbnail: track.thumbnail
                 };
