@@ -73,100 +73,9 @@ const client = new Client({
         GatewayIntentBits.Guilds,
         GatewayIntentBits.GuildMessages,
         GatewayIntentBits.MessageContent,
-        GatewayIntentBits.GuildMembers,
-        GatewayIntentBits.GuildVoiceStates
+        GatewayIntentBits.GuildMembers
     ]
 });
-
-// Music state
-const musicState = new Map();
-
-
-async function playYouTubeTrack(guild, member, query, user) {
-    try {
-        console.log('[PLAY] Searching for:', query);
-        
-        // Use play-dl YouTube search (more reliable than manual parsing)
-        const results = await play.search(query, { limit: 1 });
-        
-        if (!results || results.length === 0) {
-            throw new Error(`No tracks found for: ${query}`);
-        }
-        
-        const track = results[0];
-        console.log('[PLAY] Found track:', track.title);
-        
-        return {
-            title: track.title,
-            url: track.url,
-            thumbnail: track.thumbnail?.url || '',
-            duration: track.durationInSec || 0,
-            info: track
-        };
-    } catch (error) {
-        console.error('[PLAY] Search error:', error.message);
-        throw error;
-    }
-}
-
-async function streamToVoice(guild, member, trackInfo) {
-    try {
-        console.log('[PLAY] Creating voice connection...');
-        
-        const connection = joinVoiceChannel({
-            channelId: member.voice.channel.id,
-            guildId: guild.id,
-            adapterCreator: guild.voiceAdapterCreator,
-            selfDeaf: true,
-            selfMute: false
-        });
-
-        const player = createAudioPlayer();
-        
-        // Get audio stream using play-dl
-        console.log('[PLAY] Getting audio stream from:', trackInfo.url);
-        const stream = await play.stream(trackInfo.url);
-
-        const resource = createAudioResource(stream.stream, { 
-            inlineVolume: true,
-            inputType: stream.type
-        });
-        
-        player.play(resource);
-        connection.subscribe(player);
-
-        return new Promise((resolve, reject) => {
-            player.on(AudioPlayerStatus.Playing, () => {
-                console.log('[PLAY] ✅ Now playing:', trackInfo.title);
-                resolve(player);
-            });
-
-            player.on('error', (error) => {
-                console.error('[PLAY] ❌ Player error:', error);
-                connection.destroy();
-                reject(error);
-            });
-
-            stream.stream.on('error', (error) => {
-                console.error('[PLAY] ❌ Stream error:', error);
-                connection.destroy();
-                reject(error);
-            });
-
-            // Timeout
-            setTimeout(() => {
-                connection.destroy();
-                reject(new Error('Playback timeout'));
-            }, 30000);
-        });
-    } catch (error) {
-        console.error('[PLAY] Connection error:', error);
-        throw error;
-    }
-}
-
-// Removed old discord-player code - using ytdl-core instead
-console.log('[INIT] ✅ Extractors loaded');
 
 client.commands = new Collection();
 const startTime = Date.now();
@@ -280,7 +189,6 @@ function applyBotStatus() {
 // ------------------------
 client.once(Events.ClientReady, async () => {
     console.log(`${client.user.tag} is online!`);
-    console.log(`${BOT_NAME}│v${BOT_VERSION}`);
     
     // Initialize topics
     await initializeTopics();
@@ -293,15 +201,17 @@ client.once(Events.ClientReady, async () => {
         afkUsers = { ...data.afk };
     }
     
-    // Update bot role name in all guilds with version number (silent)
+    // Update bot role name in all guilds with version number
     const botRoleName = `${BOT_NAME}│v${BOT_VERSION}`;
     try {
         for (const guild of client.guilds.cache.values()) {
             try {
                 const botRole = guild.roles.cache.find(role => role.name === `${BOT_NAME}` || role.name.includes(BOT_NAME));
                 if (botRole && botRole.managed) {
+                    // Only update if role name is different
                     if (botRole.name !== botRoleName) {
                         await botRole.setName(botRoleName).catch(() => {});
+                        console.log(`✅ Updated bot role in ${guild.name} to: ${botRoleName}`);
                     }
                 }
             } catch (guildError) {
@@ -309,7 +219,7 @@ client.once(Events.ClientReady, async () => {
             }
         }
     } catch (error) {
-        // Silent fail
+        console.error('Error updating bot role names:', error);
     }
 });
 
@@ -603,8 +513,7 @@ client.on(Events.InteractionCreate, async interaction => {
                 data.status.presence = newStatus;
                 fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
                 applyBotStatus();
-                return interaction.reply({ content: '## <:1_yes_correct:1439893200981721140> Online Status Updated' 
-'`Bot visibility set to: **${newStatus === 'dnd' ? 'Do Not Disturb' : newStatus.charAt(0).toUpperCase() + newStatus.slice(1)}**` }] }], flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:1_yes_correct:1439893200981721140> Online Status Updated' }, { type: 14 }, { type: 10, content: `Bot visibility set to: **${newStatus === 'dnd' ? 'Do Not Disturb' : newStatus.charAt(0).toUpperCase() + newStatus.slice(1)}**` }] }], flags: 32768 | MessageFlags.Ephemeral });
             }
 
             // Config: Activity Type dropdown
@@ -614,8 +523,7 @@ client.on(Events.InteractionCreate, async interaction => {
                 data.status.type = newType;
                 fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
                 applyBotStatus();
-                return interaction.reply({ content: '## <:1_yes_correct:1439893200981721140> Activity Type Updated' 
-'`Activity type set to: **${newType}**` }] }], flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:1_yes_correct:1439893200981721140> Activity Type Updated' }, { type: 14 }, { type: 10, content: `Activity type set to: **${newType}**` }] }], flags: 32768 | MessageFlags.Ephemeral });
             }
         }
 
@@ -698,8 +606,7 @@ client.on(Events.InteractionCreate, async interaction => {
             fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
             applyBotStatus();
 
-            return interaction.reply({ content: '## <:1_yes_correct:1439893200981721140> Status Cleared' 
-''Bot status reset to online.' }] }], flags: MessageFlags.Ephemeral });
+            return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:1_yes_correct:1439893200981721140> Status Cleared' }, { type: 14 }, { type: 10, content: 'Bot status reset to online.' }] }], flags: 32768 | MessageFlags.Ephemeral });
         }
 
         // Config: Page Navigation buttons
@@ -732,7 +639,7 @@ client.on(Events.InteractionCreate, async interaction => {
                     type: 17,
                     components: pageComponents
                 }],
-                flags: MessageFlags.Ephemeral
+                flags: 32768 | MessageFlags.Ephemeral
             };
             
             return interaction.update(configPanel);
@@ -750,7 +657,7 @@ client.on(Events.InteractionCreate, async interaction => {
                         { type: 10, content: '**Upload a header image for your server profile**\n\nRecommended size: **1920x480px**\n\n⏳ Waiting for file... (60 seconds)' }
                     ]
                 }],
-                flags: MessageFlags.Ephemeral
+                flags: 32768 | MessageFlags.Ephemeral
             });
 
             // Create a message collector for file uploads
@@ -824,7 +731,7 @@ client.on(Events.InteractionCreate, async interaction => {
                         { type: 10, content: '**Upload a background image for your server**\n\nRecommended size: **1200x300px**\n\n⏳ Waiting for file... (60 seconds)' }
                     ]
                 }],
-                flags: MessageFlags.Ephemeral
+                flags: 32768 | MessageFlags.Ephemeral
             });
 
             // Create a message collector for file uploads
@@ -885,117 +792,6 @@ client.on(Events.InteractionCreate, async interaction => {
                 }
             });
         }
-
-        // ===== MUSIC CONTROL BUTTONS =====
-        if (customId === 'music_queue') {
-            const queue = player.nodes.get(interaction.guildId);
-            if (!queue || !queue.tracks.length) {
-                return interaction.reply({ content: '## 🎵 Queue Empty' 
-''No songs in queue.' }] }], flags: MessageFlags.Ephemeral });
-            }
-            const queueList = queue.tracks.slice(0, 10).map((t, i) => `**${i + 1}.** ${t.title} (${t.duration})`).join('\n');
-            return interaction.reply({ content: '## 🎵 Queue' 
-'queueList }] }], flags: MessageFlags.Ephemeral });
-        }
-
-        if (customId === 'music_next') {
-            const queue = player.nodes.get(interaction.guildId);
-            if (!queue) return interaction.reply({ content: '❌ No queue found', flags: MessageFlags.Ephemeral });
-            try {
-                await queue.node.skip();
-                return interaction.reply({ content: '⏭️ Skipped to next track', flags: MessageFlags.Ephemeral });
-            } catch (err) {
-                return interaction.reply({ content: '❌ Failed to skip', flags: MessageFlags.Ephemeral });
-            }
-        }
-
-        if (customId === 'music_prev') {
-            const queue = player.nodes.get(interaction.guildId);
-            if (!queue) return interaction.reply({ content: '❌ No queue found', flags: MessageFlags.Ephemeral });
-            try {
-                await queue.history.back();
-                return interaction.reply({ content: '⏮️ Playing previous track', flags: MessageFlags.Ephemeral });
-            } catch (err) {
-                return interaction.reply({ content: '❌ No previous track', flags: MessageFlags.Ephemeral });
-            }
-        }
-
-        if (customId === 'music_toggle') {
-            const queue = player.nodes.get(interaction.guildId);
-            if (!queue) return interaction.reply({ content: '❌ No queue found', flags: MessageFlags.Ephemeral });
-            try {
-                if (queue.node.isPaused()) {
-                    await queue.node.resume();
-                    return interaction.reply({ content: '▶️ Resumed', flags: MessageFlags.Ephemeral });
-                } else {
-                    await queue.node.pause();
-                    return interaction.reply({ content: '⏸️ Paused', flags: MessageFlags.Ephemeral });
-                }
-            } catch (err) {
-                return interaction.reply({ content: '❌ Failed to toggle', flags: MessageFlags.Ephemeral });
-            }
-        }
-
-        if (customId === 'music_loop') {
-            const queue = player.nodes.get(interaction.guildId);
-            if (!queue) return interaction.reply({ content: '❌ No queue found', flags: MessageFlags.Ephemeral });
-            try {
-                const modes = [0, 1, 2, 3];
-                const current = queue.repeatMode || 0;
-                const nextMode = modes[(modes.indexOf(current) + 1) % modes.length];
-                queue.setRepeatMode(nextMode);
-                const modeNames = ['Off', 'Track', 'Queue', 'AutoPlay'];
-                return interaction.reply({ content: `🔁 Loop: **${modeNames[nextMode]}**`, flags: MessageFlags.Ephemeral });
-            } catch (err) {
-                return interaction.reply({ content: '❌ Failed to toggle loop', flags: MessageFlags.Ephemeral });
-            }
-        }
-
-        if (customId === 'music_leave') {
-            const queue = player.nodes.get(interaction.guildId);
-            if (!queue) return interaction.reply({ content: '❌ Not connected to voice', flags: MessageFlags.Ephemeral });
-            try {
-                queue.delete();
-                return interaction.reply({ content: '👋 Disconnected', flags: MessageFlags.Ephemeral });
-            } catch (err) {
-                return interaction.reply({ content: '❌ Failed to disconnect', flags: MessageFlags.Ephemeral });
-            }
-        }
-
-        if (customId === 'music_settings') {
-            return interaction.reply({ content: '## ⚙️ Music Settings' 
-''• Volume: 100%\n• Loop: Off\n• Quality: High' }] }], flags: MessageFlags.Ephemeral });
-        }
-
-        if (customId === 'music_lyrics') {
-            const queue = player.nodes.get(interaction.guildId);
-            if (!queue || !queue.current) return interaction.reply({ content: '❌ No track playing', flags: MessageFlags.Ephemeral });
-            return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: `## 📝 Lyrics\n${queue.current.title}` 
-''[Lyrics not available for this track]' }] }], flags: MessageFlags.Ephemeral });
-        }
-
-        if (customId === 'music_247') {
-            return interaction.reply({ content: '🕐 24/7 mode: Not available yet', flags: MessageFlags.Ephemeral });
-        }
-
-        if (customId === 'music_addqueue') {
-            const modal = {
-                custom_id: 'modal_add_song',
-                title: 'Add Song to Queue',
-                components: [{
-                    type: 1,
-                    components: [{
-                        type: 4,
-                        custom_id: 'song_query',
-                        label: 'Song name or URL',
-                        style: 1,
-                        placeholder: 'e.g., Never Gonna Give You Up',
-                        required: true
-                    }]
-                }]
-            };
-            return interaction.showModal(modal);
-        }
         }
     } catch (error) {
         console.error('Error handling interaction:', error);
@@ -1018,7 +814,7 @@ client.on(Events.InteractionCreate, async interaction => {
                         { type: 10, content: `New prefix: \`${newPrefix}\`` }
                     ]
                 }],
-                flags: MessageFlags.Ephemeral
+                flags: 32768 | MessageFlags.Ephemeral
             });
         }
 
@@ -1047,38 +843,10 @@ client.on(Events.InteractionCreate, async interaction => {
                 if (activityText) msg += `Activity: ${activityText} `;
                 if (emoji) msg += `Emoji: ${emoji} `;
                 if (streamUrl) msg += `Stream: ${streamUrl}`;
-                return interaction.reply({ content: '## <:1_yes_correct:1439893200981721140> Status Updated' 
-'msg || 'No changes made.' }] }], flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:1_yes_correct:1439893200981721140> Status Updated' }, { type: 14 }, { type: 10, content: msg || 'No changes made.' }] }], flags: 32768 | MessageFlags.Ephemeral });
             } catch (err) {
                 console.error('Modal status set error:', err);
-                return interaction.reply({ content: '## <:Error:1440296241090265088> Error' 
-'`Error updating status: ${err.message}` }] }], flags: MessageFlags.Ephemeral });
-            }
-        }
-
-        if (interaction.customId === 'modal_add_song') {
-            const query = interaction.fields.getTextInputValue('song_query');
-            if (!interaction.member.voice.channel) {
-                return interaction.reply({ content: '🚫 You must be in a voice channel', flags: MessageFlags.Ephemeral });
-            }
-            try {
-                let queue = player.nodes.get(interaction.guildId);
-                if (!queue) {
-                    queue = player.nodes.create(interaction.guildId, {
-                        metadata: { channel: interaction.channel }
-                    });
-                }
-                if (!queue.connection) {
-                    queue.connect(interaction.member.voice.channel);
-                }
-                const result = await player.search(query, { requestedBy: interaction.user });
-                if (!result || !result.tracks.length) {
-                    return interaction.reply({ content: `❌ No songs found for: ${query}`, flags: MessageFlags.Ephemeral });
-                }
-                result.tracks.forEach(track => queue.addTrack(track));
-                return interaction.reply({ content: `✅ Added **${result.tracks[0].title}** to queue`, flags: MessageFlags.Ephemeral });
-            } catch (err) {
-                return interaction.reply({ content: `❌ Error: ${err.message}`, flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:Error:1440296241090265088> Error' }, { type: 14 }, { type: 10, content: `Error updating status: ${err.message}` }] }], flags: 32768 | MessageFlags.Ephemeral });
             }
         }
     }
@@ -1107,15 +875,15 @@ client.on(Events.InteractionCreate, async interaction => {
             data.nickname.mode = mode;
             fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
 
-            return interaction.reply({ content: '## ✅ Setup Complete' }, { type: 14, spacing: 1 }, { type: 10, content: `Channel: ${channel}\nMode: **${mode}**` }] }], flags: MessageFlags.Ephemeral });
+            return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## ✅ Setup Complete' }, { type: 14, spacing: 1 }, { type: 10, content: `Channel: ${channel}\nMode: **${mode}**` }] }], flags: 32768 | MessageFlags.Ephemeral });
         }
 
         if (subcommand === 'reset') {
             try {
                 await member.setNickname(null);
-                return interaction.reply({ content: '## Reset' }, { type: 14, spacing: 1 }, { type: 10, content: 'Nickname reset to default.' }] }], flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## Reset' }, { type: 14, spacing: 1 }, { type: 10, content: 'Nickname reset to default.' }] }], flags: 32768 | MessageFlags.Ephemeral });
             } catch {
-                return interaction.reply({ content: '## Failed' }, { type: 14, spacing: 1 }, { type: 10, content: 'Couldn\'t reset nickname.' }] }], flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## Failed' }, { type: 14, spacing: 1 }, { type: 10, content: 'Couldn\'t reset nickname.' }] }], flags: 32768 | MessageFlags.Ephemeral });
             }
         }
     }
@@ -1128,35 +896,35 @@ client.on(Events.InteractionCreate, async interaction => {
 
         if (action === 'add') {
             if (!word)
-                return interaction.reply({ content: '## <:Error:1440296241090265088> Error' }, { type: 14, spacing: 1 }, { type: 10, content: 'Please provide a word to ban.' }] }], flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:Error:1440296241090265088> Error' }, { type: 14, spacing: 1 }, { type: 10, content: 'Please provide a word to ban.' }] }], flags: 32768 | MessageFlags.Ephemeral });
 
             if (data.nickname.filter.includes(word))
-                return interaction.reply({ content: '## <:Error:1440296241090265088> Error' }, { type: 14, spacing: 1 }, { type: 10, content: `Word "**${word}**" is already banned.` }] }], flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:Error:1440296241090265088> Error' }, { type: 14, spacing: 1 }, { type: 10, content: `Word "**${word}**" is already banned.` }] }], flags: 32768 | MessageFlags.Ephemeral });
 
             data.nickname.filter.push(word);
             fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
-            return interaction.reply({ content: '## <:Bin:1441777857205637254> Word Added' }, { type: 14, spacing: 1 }, { type: 10, content: `"**${word}**" added to ban list.` }] }], flags: MessageFlags.Ephemeral });
+            return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:Bin:1441777857205637254> Word Added' }, { type: 14, spacing: 1 }, { type: 10, content: `"**${word}**" added to ban list.` }] }], flags: 32768 | MessageFlags.Ephemeral });
         }
 
         if (action === 'remove') {
             if (!word)
-                return interaction.reply({ content: '## <:Error:1440296241090265088> Error' }, { type: 14, spacing: 1 }, { type: 10, content: 'Please provide a word to unban.' }] }], flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:Error:1440296241090265088> Error' }, { type: 14, spacing: 1 }, { type: 10, content: 'Please provide a word to unban.' }] }], flags: 32768 | MessageFlags.Ephemeral });
 
             const index = data.nickname.filter.indexOf(word);
             if (index === -1)
-                return interaction.reply({ content: '## <:Error:1440296241090265088> Error' }, { type: 14, spacing: 1 }, { type: 10, content: `No ban found for "**${word}**".` }] }], flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:Error:1440296241090265088> Error' }, { type: 14, spacing: 1 }, { type: 10, content: `No ban found for "**${word}**".` }] }], flags: 32768 | MessageFlags.Ephemeral });
 
             data.nickname.filter.splice(index, 1);
             fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
-            return interaction.reply({ content: '## <:Correct:1440296238305116223> Word Removed' }, { type: 14, spacing: 1 }, { type: 10, content: `"**${word}**" removed from ban list.` }] }], flags: MessageFlags.Ephemeral });
+            return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:Correct:1440296238305116223> Word Removed' }, { type: 14, spacing: 1 }, { type: 10, content: `"**${word}**" removed from ban list.` }] }], flags: 32768 | MessageFlags.Ephemeral });
         }
 
         if (action === 'list') {
             if (data.nickname.filter.length === 0)
-                return interaction.reply({ content: '## 📋 Banned Words' }, { type: 14, spacing: 1 }, { type: 10, content: 'No words configured yet.' }] }], flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## 📋 Banned Words' }, { type: 14, spacing: 1 }, { type: 10, content: 'No words configured yet.' }] }], flags: 32768 | MessageFlags.Ephemeral });
 
             const list = data.nickname.filter.map((w, i) => `${i+1}. **${w}**`).join('\n');
-            return interaction.reply({ content: '## 🚫 Banned Words' }, { type: 14, spacing: 1 }, { type: 10, content: list }] }], flags: MessageFlags.Ephemeral });
+            return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## 🚫 Banned Words' }, { type: 14, spacing: 1 }, { type: 10, content: list }] }], flags: 32768 | MessageFlags.Ephemeral });
         }
     }
 
@@ -1166,16 +934,14 @@ client.on(Events.InteractionCreate, async interaction => {
         const newPrefix = interaction.options.getString('prefix');
         data.prefix[guildId] = newPrefix;
         fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
-        return interaction.reply({ content: '## <:1_yes_correct:1439893200981721140> Prefix Updated' 
-'`New prefix: **${newPrefix}**` }] }], flags: MessageFlags.Ephemeral });
+        return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:1_yes_correct:1439893200981721140> Prefix Updated' }, { type: 14 }, { type: 10, content: `New prefix: **${newPrefix}**` }] }], flags: 32768 | MessageFlags.Ephemeral });
     }
 
     // PREFIX - Component V2 Container
     // type 17 = Container | type 10 = TextDisplay | type 14 = Separator
     if (commandName === 'prefix') {
         const prefix = getPrefix(guildId);
-        return interaction.reply({ content: '## <:mg_question:1439893408041930894> Current Prefix' 
-'`\`${prefix}\`` }] }], flags: MessageFlags.Ephemeral });
+        return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:mg_question:1439893408041930894> Current Prefix' }, { type: 14 }, { type: 10, content: `\`${prefix}\`` }] }], flags: 32768 | MessageFlags.Ephemeral });
     }
 
     // BOTINFO - Component V2 Container
@@ -1221,7 +987,7 @@ client.on(Events.InteractionCreate, async interaction => {
                     ]
                 }
             ],
-            flags: MessageFlags.Ephemeral
+            flags: 32768 | MessageFlags.Ephemeral
         };
         
         return interaction.reply(payload);
@@ -1244,8 +1010,7 @@ client.on(Events.InteractionCreate, async interaction => {
             console.error('Failed to set AFK nickname:', e);
         }
         
-        const { resource: replyMsg } = await interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:mg_alert:1439893442065862698> AFK Set' 
-'reason }] }], flags: MessageFlags.Ephemeral, withResponse: true });
+        const { resource: replyMsg } = await interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:mg_alert:1439893442065862698> AFK Set' }, { type: 14 }, { type: 10, content: reason }] }], flags: 32768 | MessageFlags.Ephemeral, withResponse: true });
 
         setTimeout(() => replyMsg.delete().catch(() => {}), 30000);
     }
@@ -1254,11 +1019,11 @@ client.on(Events.InteractionCreate, async interaction => {
     // type 17 = Container | type 10 = TextDisplay | type 14 = Separator
     if (commandName === 'afklist') {
         if (!member.permissions.has(PermissionsBitField.Flags.ManageGuild) && !member.permissions.has(PermissionsBitField.Flags.Administrator)) {
-            return interaction.reply({ content: '## 🚫 Permission Denied' }, { type: 14, spacing: 1 }, { type: 10, content: 'You need ManageGuild permission.' }] }], flags: MessageFlags.Ephemeral });
+            return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## 🚫 Permission Denied' }, { type: 14, spacing: 1 }, { type: 10, content: 'You need ManageGuild permission.' }] }], flags: 32768 | MessageFlags.Ephemeral });
         }
 
         if (Object.keys(afkUsers).length === 0) {
-            return interaction.reply({ content: '## ⏱️ AFK Status' }, { type: 14, spacing: 1 }, { type: 10, content: 'No users are currently AFK.' }] }], flags: MessageFlags.Ephemeral });
+            return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## ⏱️ AFK Status' }, { type: 14, spacing: 1 }, { type: 10, content: 'No users are currently AFK.' }] }], flags: 32768 | MessageFlags.Ephemeral });
         }
 
         let afkList = '';
@@ -1280,7 +1045,7 @@ client.on(Events.InteractionCreate, async interaction => {
             }
         }
 
-        return interaction.reply({ components: [{ type: 17, components: [{ type: 10, content: '## 🚫 Currently AFK' }, { type: 14, spacing: 1 }, { type: 10, content: afkList }] }], flags: MessageFlags.Ephemeral });
+        return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## 🚫 Currently AFK' }, { type: 14, spacing: 1 }, { type: 10, content: afkList }] }], flags: 32768 | MessageFlags.Ephemeral });
     }
 
     // AVATAR - Component V2 Container (via createAvatarComponent)
@@ -1313,8 +1078,7 @@ client.on(Events.InteractionCreate, async interaction => {
             if (guildAvatar) {
                 response = createAvatarComponent(displayName, defaultAvatar, guildAvatar, 'server_only');
             } else {
-                response = { components: [{ type: 17, components: [{ type: 10, content: '## <:2_no_wrong:1439893245130838047> No Server Avatar' 
-''This user has no server-specific avatar set.' }] }], flags: MessageFlags.Ephemeral };
+                response = { content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:2_no_wrong:1439893245130838047> No Server Avatar' }, { type: 14 }, { type: 10, content: 'This user has no server-specific avatar set.' }] }], flags: 32768 | MessageFlags.Ephemeral };
             }
         } else if (showServerOnly === false) {
             // Show default avatar only
@@ -1326,7 +1090,6 @@ client.on(Events.InteractionCreate, async interaction => {
         
         return interaction.reply(response);
     }
-
 
     // ------------------------
     // FUN COMMAND: Truth or Dare
@@ -1865,7 +1628,7 @@ client.on(Events.InteractionCreate, async interaction => {
                 type: 17,
                 components: pageComponents
             }],
-            flags: MessageFlags.Ephemeral
+            flags: 32768 | MessageFlags.Ephemeral
         };
 
         return interaction.reply(configPanel);
@@ -2167,7 +1930,7 @@ client.on(Events.InteractionCreate, async interaction => {
 
         const result = Math.random() < 0.5 ? 'Heads' : 'Tails';
         
-        return interaction.reply({ content: '### <:Tails:1441153955412312134> Coin Flip' }, { type: 14, spacing: 1 }, { type: 10, content: `The coin landed on: **${result}**!` }] }], flags: 32768 });
+        return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '### <:Tails:1441153955412312134> Coin Flip' }, { type: 14, spacing: 1 }, { type: 10, content: `The coin landed on: **${result}**!` }] }], flags: 32768 });
     }
 
     // AUTORESPONSE - Component V2 Container
@@ -2181,11 +1944,9 @@ client.on(Events.InteractionCreate, async interaction => {
 
         if (action === 'add') {
             if (!trigger)
-                return interaction.reply({ content: '## <:Error:1440296241090265088> Error' 
-''Trigger is required.' }] }], flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:Error:1440296241090265088> Error' }, { type: 14 }, { type: 10, content: 'Trigger is required.' }] }], flags: 32768 | MessageFlags.Ephemeral });
             if (!type)
-                return interaction.reply({ content: '## <:Error:1440296241090265088> Error' 
-''Response type is required.' }] }], flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:Error:1440296241090265088> Error' }, { type: 14 }, { type: 10, content: 'Response type is required.' }] }], flags: 32768 | MessageFlags.Ephemeral });
 
             let finalResponse = null;
             let isFromBackup = false;
@@ -2200,13 +1961,11 @@ client.on(Events.InteractionCreate, async interaction => {
                     finalResponse = response;
                     isFromBackup = false;
                 } else {
-                    return interaction.reply({ content: '## <:Error:1440296241090265088> Error' 
-''Provide either custom text (response) or select a saved message (select_from_backup).' }] }], flags: MessageFlags.Ephemeral });
+                    return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:Error:1440296241090265088> Error' }, { type: 14 }, { type: 10, content: 'Provide either custom text (response) or select a saved message (select_from_backup).' }] }], flags: 32768 | MessageFlags.Ephemeral });
                 }
             } else if (type === 'emoji') {
                 if (!response)
-                    return interaction.reply({ content: '## <:Error:1440296241090265088> Error' 
-''Emoji response is required.' }] }], flags: MessageFlags.Ephemeral });
+                    return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:Error:1440296241090265088> Error' }, { type: 14 }, { type: 10, content: 'Emoji response is required.' }] }], flags: 32768 | MessageFlags.Ephemeral });
                 finalResponse = response;
             }
 
@@ -2224,37 +1983,33 @@ client.on(Events.InteractionCreate, async interaction => {
                 : `Emoji: ${finalResponse}`;
             const addTitle = `## <:Correct:1440296238305116223> Auto-Response Added`;
             const addContent = `**Trigger:** ${trigger}\n**Response Type:** ${type.charAt(0).toUpperCase() + type.slice(1)}\n**Response:** ${displayText}`;
-            return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: addTitle }, { type: 14, spacing: 1 }, { type: 10, content: addContent }] }], flags: MessageFlags.Ephemeral });
+            return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: addTitle }, { type: 14, spacing: 1 }, { type: 10, content: addContent }] }], flags: 32768 | MessageFlags.Ephemeral });
         }
 
         if (action === 'remove') {
             if (!trigger)
-                return interaction.reply({ content: '## <:Error:1440296241090265088> Error' 
-''Trigger is required.' }] }], flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:Error:1440296241090265088> Error' }, { type: 14 }, { type: 10, content: 'Trigger is required.' }] }], flags: 32768 | MessageFlags.Ephemeral });
 
             if (!data.autoresponse[guildId] || data.autoresponse[guildId].length === 0) {
-                return interaction.reply({ content: '## <:Error:1440296241090265088> Error' 
-''No auto-responses configured.' }] }], flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:Error:1440296241090265088> Error' }, { type: 14 }, { type: 10, content: 'No auto-responses configured.' }] }], flags: 32768 | MessageFlags.Ephemeral });
             }
 
             const initialLength = data.autoresponse[guildId].length;
             data.autoresponse[guildId] = data.autoresponse[guildId].filter(ar => ar.trigger !== trigger);
 
             if (data.autoresponse[guildId].length === initialLength) {
-                return interaction.reply({ content: '## <:Error:1440296241090265088> Error' 
-'`No response found for "${trigger}".` }] }], flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:Error:1440296241090265088> Error' }, { type: 14 }, { type: 10, content: `No response found for "${trigger}".` }] }], flags: 32768 | MessageFlags.Ephemeral });
             }
 
             fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
             const removeTitle = `## <:Correct:1440296238305116223> Auto-Response Removed`;
             const removeContent = `**Trigger:** ${trigger}\n\nThis auto-response has been successfully removed from your server.`;
-            return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: removeTitle }, { type: 14, spacing: 1 }, { type: 10, content: removeContent }] }], flags: MessageFlags.Ephemeral });
+            return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: removeTitle }, { type: 14, spacing: 1 }, { type: 10, content: removeContent }] }], flags: 32768 | MessageFlags.Ephemeral });
         }
 
         if (action === 'list') {
             if (!data.autoresponse[guildId] || data.autoresponse[guildId].length === 0) {
-                return interaction.reply({ content: '## 🔄 Auto-Responses' 
-''None configured yet.' }] }], flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## 🔄 Auto-Responses' }, { type: 14 }, { type: 10, content: 'None configured yet.' }] }], flags: 32768 | MessageFlags.Ephemeral });
             }
 
             let list = '';
@@ -2270,7 +2025,7 @@ client.on(Events.InteractionCreate, async interaction => {
 
             const listTitle = `## 🔄 Auto-Responses Configured`;
             const listContent = `${list}\n**Total:** ${data.autoresponse[guildId].length} response(s) active`;
-            return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: listTitle }, { type: 14, spacing: 1 }, { type: 10, content: listContent }] }], flags: MessageFlags.Ephemeral });
+            return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: listTitle }, { type: 14, spacing: 1 }, { type: 10, content: listContent }] }], flags: 32768 | MessageFlags.Ephemeral });
         }
     }
 
@@ -2304,7 +2059,7 @@ client.on(Events.InteractionCreate, async interaction => {
                             { type: 10, content: contentText }
                         ] 
                     }], 
-                    flags: MessageFlags.Ephemeral 
+                    flags: 32768 | MessageFlags.Ephemeral 
                 });
             } else {
                 const contentText = `**Channel:** ${channel}\n**Delay:** ${delayStr || '120s'}`;
@@ -2319,7 +2074,7 @@ client.on(Events.InteractionCreate, async interaction => {
                             { type: 10, content: contentText }
                         ] 
                     }], 
-                    flags: MessageFlags.Ephemeral 
+                    flags: 32768 | MessageFlags.Ephemeral 
                 });
             }
         }
@@ -2339,7 +2094,7 @@ client.on(Events.InteractionCreate, async interaction => {
                         { type: 10, content: 'Welcome messages have been disabled for this server.' }
                     ] 
                 }], 
-                flags: MessageFlags.Ephemeral 
+                flags: 32768 | MessageFlags.Ephemeral 
             });
         }
     }
@@ -2398,7 +2153,6 @@ client.on(Events.MessageCreate, async msg => {
     if (msg.content.startsWith(prefix)) {
         const args = msg.content.slice(prefix.length).trim().split(/ +/);
         const cmd = args.shift().toLowerCase();
-
 
         // AFK
         if (cmd === 'afk') {
@@ -2466,39 +2220,6 @@ client.on(Events.MessageCreate, async msg => {
             
             const response = createAvatarComponent(displayName, defaultAvatar, guildAvatar, mode);
             return msg.reply(response);
-        }
-
-        // Play/Music - Prefix commands !p and !play with ytdl-core
-        if (cmd === 'p' || cmd === 'play') {
-            if (!msg.member.voice.channel) {
-                return msg.reply('🚫 You must be in a voice channel to use this command.');
-            }
-
-            const query = args.join(' ');
-            if (!query) {
-                return msg.reply('❌ Usage: `!play <song name or URL>`');
-            }
-
-            const loading = await msg.reply('⏳ Loading music...');
-            try {
-                const track = await playYouTubeTrack(msg.guild, msg.member, query, msg.author);
-                console.log('[PLAY] Found:', track.title);
-                
-                const mockTrack = {
-                    name: track.title,
-                    url: track.url,
-                    artist: track.info?.author?.name || 'YouTube',
-                    length: track.duration ? `${Math.floor(track.duration / 60)}:${String(track.duration % 60).padStart(2, '0')}` : '0:00',
-                    thumbnail: track.thumbnail
-                };
-
-                await streamToVoice(msg.guild, msg.member, track);
-                const panel = createMusicControlPanel(mockTrack, msg.author, 100, '▶️ Now Playing');
-                await loading.edit(panel);
-            } catch (error) {
-                console.error('[PLAY] Error:', error.message);
-                await loading.edit('❌ ' + error.message);
-            }
         }
 
         // Prefix Meme - Component V2 Container
@@ -2733,8 +2454,7 @@ client.on(Events.MessageCreate, async msg => {
             
             if (subjects.length < 2) {
                 const usageText = `**Choose between 2-3 options:**\n\n\`!cs <Subject A> , <Subject B>\`\n\n**or**\n\n\`!cs <Subject A> , <Subject B> , <Subject C>\``;
-                const warnMsg = await msg.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:warning:1441531830607151195> Usage Format' 
-'usageText }] }], flags: MessageFlags.Ephemeral });
+                const warnMsg = await msg.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:warning:1441531830607151195> Usage Format' }, { type: 14 }, { type: 10, content: usageText }] }], flags: 32768 | MessageFlags.Ephemeral });
                 msg.delete().catch(() => {});
                 setTimeout(() => warnMsg.delete().catch(() => {}), 10000);
                 return;

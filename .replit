@@ -1,7 +1,7 @@
-modules = ["nodejs-20", "python-3.11"]
+modules = ["nodejs-20"]
 [agent]
 expertMode = true
-integrations = ["javascript_openai:1.0.0", "spotify:1.0.0"]
+integrations = ["javascript_openai:1.0.0"]
 
 [workflows]
 runButton = "Project"
@@ -28,7 +28,7 @@ outputType = "console"
 
 [nix]
 channel = "stable-25_05"
-packages = ["cairo", "libpng", "libuuid", "pixman", "ffmpeg"]
+packages = ["libuuid", "pixman", "libpng", "cairo"]
 
 [deployment]
 deploymentTarget = "vm"
