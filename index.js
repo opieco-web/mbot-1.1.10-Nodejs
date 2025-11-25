@@ -606,21 +606,18 @@ client.on(Events.InteractionCreate, async interaction => {
 
         // Config: Page Navigation buttons
         if (customId === 'config_prev' || customId === 'config_next') {
-            // Extract current page from the components
-            const messageComponents = interaction.message.components[0].components;
+            // Extract current page from the message content
+            const messageContent = interaction.message.content;
+            const components = interaction.message.components[0].components;
             let currentPage = 1;
             
-            // Look for page indicator in text components
-            for (const comp of messageComponents) {
-                if (comp.type === 17) {
-                    for (const inner of comp.components) {
-                        if (inner.content && inner.content.includes('Page')) {
-                            const match = inner.content.match(/Page (\d+)\/3/);
-                            if (match) {
-                                currentPage = parseInt(match[1]);
-                                break;
-                            }
-                        }
+            // Look for page indicator in all components
+            for (const comp of components) {
+                if (comp.content && comp.content.includes('Page')) {
+                    const match = comp.content.match(/Page (\d+)\/3/);
+                    if (match) {
+                        currentPage = parseInt(match[1]);
+                        break;
                     }
                 }
             }
@@ -631,13 +628,16 @@ client.on(Events.InteractionCreate, async interaction => {
             
             const pageComponents = buildConfigPage(nextPage, guildId);
             
-            return interaction.update({
+            const configPanel = {
                 content: ' ',
                 components: [{
                     type: 17,
                     components: pageComponents
-                }]
-            });
+                }],
+                flags: 32768 | MessageFlags.Ephemeral
+            };
+            
+            return interaction.update(configPanel);
         }
 
         // Config: Header Attachment button
