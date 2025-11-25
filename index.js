@@ -1,6 +1,7 @@
 import { Client, GatewayIntentBits, Partials, Collection, ButtonStyle, ActionRowBuilder, ButtonBuilder, Events, PermissionsBitField, REST, Routes, SlashCommandBuilder, EmbedBuilder, MessageFlags, ActivityType, ContainerBuilder, TextDisplayBuilder, MediaGalleryBuilder, MediaGalleryItemBuilder } from 'discord.js';
 import { Player } from 'discord-player';
-import { DefaultExtractors } from '@discord-player/extractor';
+import extractorPkg from '@discord-player/extractor';
+const { YouTubeExtractor, SpotifyExtractor } = extractorPkg;
 import fs from 'fs';
 import { createCanvas } from 'canvas';
 import { allCommands } from './src/commands/index.js';
@@ -90,13 +91,13 @@ const player = new Player(client, {
     useSafeTimestampExtraction: true
 });
 
-// Load extractors immediately for YouTube, Spotify, SoundCloud, etc.
+// Load only YouTube and Spotify extractors (no SoundCloud)
 (async () => {
     try {
-        await player.extractors.loadMulti(DefaultExtractors);
-        console.log('[INIT] ✅ Extractors pre-loaded');
+        await player.extractors.loadMulti([YouTubeExtractor, SpotifyExtractor]);
+        console.log('[INIT] ✅ YouTube & Spotify extractors loaded');
     } catch (error) {
-        console.error('[INIT] ⚠️ Failed to pre-load extractors:', error.message);
+        console.error('[INIT] ⚠️ Failed to load extractors:', error.message);
     }
 })();
 
