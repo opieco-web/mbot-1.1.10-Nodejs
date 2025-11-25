@@ -1,7 +1,7 @@
 export default {
-    version: "1.0.36",
-    releaseDate: "Nov 26, 2025 12:32 AM",
-    releaseDateTimestamp: 1764112378,
+    version: "1.0.37",
+    releaseDate: "Nov 26, 2025 12:35 AM",
+    releaseDateTimestamp: 1764112500,
     changesSummary: "Updated /config pages with custom emojis, dynamic visibility status display",
 
     versionGuide: `
