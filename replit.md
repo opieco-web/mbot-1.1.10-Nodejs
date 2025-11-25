@@ -226,8 +226,8 @@ changelog: `
 - Major update: 1.5.99 → 2.0.0 (MAJOR increments, MINOR resets)
 
 ## Current Version
-- **Version**: 1.0.25
-- **Last Updated**: Nov 25, 2025 3:10 PM
+- **Version**: 1.0.26
+- **Last Updated**: Nov 25, 2025 3:11 PM
 - **Status**: Bot scans nickname channel on startup and auto-applies unapplied nickname requests
 
 # Recent Changes (Nov 25, 2025)

@@ -1,8 +1,8 @@
 export default {
-    version: "1.0.25",
-    releaseDate: "Nov 25, 2025 3:10 PM",
-    releaseDateTimestamp: 1764064220,
-    changesSummary: "Bot scans nickname channel on startup - auto-applies unapplied requests after coming online",
+    version: "1.0.26",
+    releaseDate: "Nov 25, 2025 3:11 PM",
+    releaseDateTimestamp: 1764064280,
+    changesSummary: "Fixed: msg.reactions error - now properly detects bot replies",
 
     versionGuide: `
 📌 Versioning Guide

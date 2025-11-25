@@ -269,16 +269,20 @@ async function processPendingNicknameRequests() {
             if (!nickname || nickname.toLowerCase() === 'reset') continue;
             
             // Check if bot already replied to this message
-            const replies = await msg.thread?.messages.fetch().catch(() => null);
-            const hasSuccessReply = msg.reactions?.some(reaction => 
-                reaction.me // Bot reacted
-            ) || msg.mentions?.has?.(client.user?.id);
-            
-            // More reliable: Check if there's a reply from the bot
             let botReplied = false;
-            if (msg.hasThread) {
-                const threadMsgs = await msg.thread.messages.fetch().catch(() => []);
-                botReplied = Array.from(threadMsgs.values()).some(m => m.author.bot);
+            try {
+                const replies = await msg.fetchReferences().catch(() => []);
+                botReplied = Array.isArray(replies) && replies.some(m => m.author.bot);
+            } catch (e) {
+                // Try checking if message has a thread with bot messages
+                if (msg.hasThread) {
+                    try {
+                        const threadMsgs = await msg.thread.messages.fetch().catch(() => []);
+                        botReplied = Array.from(threadMsgs.values()).some(m => m.author.bot);
+                    } catch (e2) {
+                        // If all else fails, assume not replied yet
+                    }
+                }
             }
             
             // If no bot reply found, apply the nickname now
