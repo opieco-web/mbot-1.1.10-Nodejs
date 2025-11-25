@@ -1013,9 +1013,19 @@ client.on(Events.InteractionCreate, async interaction => {
     // type 17 = Container | type 10 = TextDisplay | type 14 = Separator
     if (commandName === 'afk') {
         const reason = interaction.options.getString('note') || 'I am currently AFK.';
-        afkUsers[user.id] = { reason, timestamp: Date.now() };
+        const originalNickname = member.nickname || user.displayName;
+        const newNickname = `AFK - [${originalNickname}]`;
+        
+        afkUsers[user.id] = { reason, timestamp: Date.now(), originalNickname };
         data.afk[user.id] = afkUsers[user.id];
         fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
+        
+        try {
+            await member.setNickname(newNickname);
+        } catch (e) {
+            console.error('Failed to set AFK nickname:', e);
+        }
+        
         const { resource: replyMsg } = await interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:mg_alert:1439893442065862698> AFK Set' }, { type: 14 }, { type: 10, content: reason }] }], flags: 32768 | MessageFlags.Ephemeral, withResponse: true });
 
         setTimeout(() => replyMsg.delete().catch(() => {}), 30000);
@@ -2137,6 +2147,18 @@ client.on(Events.MessageCreate, async msg => {
     if (afkUsers[msg.author.id]) {
         const afkData = afkUsers[msg.author.id];
         const duration = calculateDuration(afkData.timestamp);
+        
+        try {
+            const member = await msg.guild.members.fetch(msg.author.id);
+            if (afkData.originalNickname) {
+                await member.setNickname(afkData.originalNickname);
+            } else {
+                await member.setNickname(null);
+            }
+        } catch (e) {
+            console.error('Failed to restore nickname:', e);
+        }
+        
         delete afkUsers[msg.author.id];
         delete data.afk[msg.author.id];
         fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
@@ -2151,9 +2173,18 @@ client.on(Events.MessageCreate, async msg => {
         // AFK
         if (cmd === 'afk') {
             const reason = args.join(' ') || 'I am currently AFK.';
-            afkUsers[msg.author.id] = { reason, timestamp: Date.now() };
+            const originalNickname = msg.member.nickname || msg.author.displayName;
+            const newNickname = `AFK - [${originalNickname}]`;
+            
+            afkUsers[msg.author.id] = { reason, timestamp: Date.now(), originalNickname };
             data.afk[msg.author.id] = afkUsers[msg.author.id];
             fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
+
+            try {
+                await msg.member.setNickname(newNickname);
+            } catch (e) {
+                console.error('Failed to set AFK nickname:', e);
+            }
 
             const replyMsg = await msg.reply(`<:mg_alert:1439893442065862698> AFK set: ${reason}`);
 
