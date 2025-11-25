@@ -1782,11 +1782,11 @@ ${prefix}afk [reason] - Set AFK
         if (pageNum === 1) {
             // Page 1: Prefix Settings
             pageComponents = [
-                { type: 10, content: `## 🎛️ ${BOT_NAME} Configuration` },
-                { type: 10, content: `**📄 Page 1/3**` },
+                { type: 10, content: `## <:settingsinfo:1442985524204802230> ${BOT_NAME} Configuration` },
+                { type: 10, content: `**<:Page:1442984948305887362> Page 1/3**` },
                 { type: 14, spacing: 1 },
-                { type: 10, content: '### 📌 Prefix Settings' },
-                { type: 10, content: `**Current Prefix:** \`${prefix}\`` },
+                { type: 10, content: '### <:Pin:1442985716287148194> Prefix Settings' },
+                { type: 10, content: `**Current Prefix:** **\`${prefix}\`**` },
                 {
                     type: 1,
                     components: [
@@ -1805,17 +1805,17 @@ ${prefix}afk [reason] - Set AFK
                 if (data.status.type === 'Streaming' && data.status.streamUrl) {
                     statusText += `**Stream:** ${data.status.streamUrl}\n`;
                 }
-                statusText += `**Visibility:** ${data.status.presence || 'online'}`;
+                statusText += `**Visibility:** <:online:1442982229688189153>, <:idle:1442982232083005634>, <:dnd:1442982235379859486>, <:invisible:1442982240588926996>│online, idle, dnd, invisible`;
             }
             
             pageComponents = [
-                { type: 10, content: `## 🎛️ ${BOT_NAME} Configuration` },
-                { type: 10, content: `**📄 Page 2/3**` },
+                { type: 10, content: `## <:settingsinfo:1442985524204802230> ${BOT_NAME} Configuration` },
+                { type: 10, content: `**<:Page:1442984948305887362> Page 2/3**` },
                 { type: 14, spacing: 1 },
-                { type: 10, content: '### 🤖 Bot Status' },
+                { type: 10, content: '### <:Bot1:1442980696078549062><:Bot2:1442980693453045912> Status' },
                 { type: 10, content: statusText },
                 { type: 14, spacing: 1 },
-                { type: 10, content: '**📝 Set Status Section**' },
+                { type: 10, content: '**<:Lines3:1443008801509740646> Set Status Section**' },
                 {
                     type: 1,
                     components: [
@@ -1856,7 +1856,7 @@ ${prefix}afk [reason] - Set AFK
                     ]
                 },
                 { type: 14, spacing: 1 },
-                { type: 10, content: '**🔄 Reset Status Section**' },
+                { type: 10, content: '**<:Time:1442980699547238653> Reset Status Section**' },
                 {
                     type: 1,
                     components: [
@@ -1867,12 +1867,12 @@ ${prefix}afk [reason] - Set AFK
         } else if (pageNum === 3) {
             // Page 3: Bot Version & Latest Changes
             pageComponents = [
-                { type: 10, content: `## 🎛️ ${BOT_NAME} Configuration` },
-                { type: 10, content: `**📄 Page 3/3**` },
+                { type: 10, content: `## <:settingsinfo:1442985524204802230> ${BOT_NAME} Configuration` },
+                { type: 10, content: `**<:Page:1442984948305887362> Page 3/3**` },
                 { type: 14, spacing: 1 },
-                { type: 10, content: '### 📜 Bot Version & Changes' },
-                { type: 10, content: `**Version:** v${versionData.version}` },
-                { type: 10, content: `**Released:** <t:${versionData.releaseDateTimestamp}:f>` },
+                { type: 10, content: '### <:Bot1:1442980696078549062><:Bot2:1442980693453045912> Version & Changes' },
+                { type: 10, content: `**<:new1:1442980719755399280><:new2:1442980717079298139> Version:** v${versionData.version}` },
+                { type: 10, content: `**<:new1:1442980719755399280><:new2:1442980717079298139> Released:** <t:${versionData.releaseDateTimestamp}:f>` },
                 { type: 14, spacing: 1 },
                 { type: 10, content: `**Latest Updates:**` },
                 { type: 10, content: versionData.changesSummary }
