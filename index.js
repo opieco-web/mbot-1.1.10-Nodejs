@@ -1,6 +1,6 @@
 import { Client, GatewayIntentBits, Partials, Collection, ButtonStyle, ActionRowBuilder, ButtonBuilder, Events, PermissionsBitField, REST, Routes, SlashCommandBuilder, EmbedBuilder, MessageFlags, ActivityType, ContainerBuilder, TextDisplayBuilder, MediaGalleryBuilder, MediaGalleryItemBuilder } from 'discord.js';
-import { Player } from 'discord-player';
-import { DefaultExtractors } from '@discord-player/extractor';
+import { joinVoiceChannel, createAudioPlayer, createAudioResource, AudioPlayerStatus } from '@discordjs/voice';
+import ytdl from 'ytdl-core';
 import fs from 'fs';
 import { createCanvas } from 'canvas';
 import { allCommands } from './src/commands/index.js';
@@ -81,51 +81,106 @@ const client = new Client({
     ]
 });
 
-const player = new Player(client, {
-    leaveOnEmpty: true,
-    leaveOnEnd: false,
-    leaveOnStop: true,
-    connectionTimeout: 60000,
-    skipFFmpeg: false,
-    useSafeTimestampExtraction: true
-});
+// Music state
+const musicState = new Map();
 
-// Load extractors for music playback (YouTube, Spotify)
-(async () => {
+async function playYouTubeTrack(guild, member, query, user) {
     try {
-        await player.extractors.loadMulti(DefaultExtractors);
-        console.log('[INIT] ✅ Extractors loaded');
+        console.log('[PLAY] Searching YouTube for:', query);
+        
+        // Search for video
+        const videos = await ytdl.getBasicInfo(`https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`);
+        if (!videos) throw new Error('No results found');
+        
+        // Alternative: search directly for video ID
+        const searchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`;
+        const info = await ytdl.getInfo(searchUrl).catch(async () => {
+            // Try fetching with direct video search
+            const videoId = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}&type=video&key=AIzaSyDyWJaIehesFbqKx8KhA0J7-PQqV8v4E_k`)
+                .then(r => r.json())
+                .then(d => d.items?.[0]?.id?.videoId || null)
+                .catch(() => null);
+            
+            if (!videoId) throw new Error('Could not find video');
+            return await ytdl.getInfo(`https://www.youtube.com/watch?v=${videoId}`);
+        });
+
+        const title = info.videoDetails.title;
+        const url = `https://www.youtube.com/watch?v=${info.videoDetails.videoId}`;
+        const thumbnail = info.videoDetails.thumbnail.thumbnails[0].url;
+        const duration = parseInt(info.videoDetails.lengthSeconds);
+        
+        return {
+            title,
+            url,
+            thumbnail,
+            duration,
+            info
+        };
     } catch (error) {
-        console.error('[INIT] ⚠️ Extractor error:', error.message);
+        console.error('[PLAY] Search error:', error.message);
+        throw error;
     }
-})();
+}
 
-// Add comprehensive event handlers for player debugging
-player.events.on('error', (queue, error) => {
-    console.error('[PLAYER ERROR]', error);
-});
+async function streamToVoice(guild, member, trackInfo) {
+    try {
+        console.log('[PLAY] Creating voice connection...');
+        
+        const connection = joinVoiceChannel({
+            channelId: member.voice.channel.id,
+            guildId: guild.id,
+            adapterCreator: guild.voiceAdapterCreator,
+            selfDeaf: true,
+            selfMute: false
+        });
 
-player.events.on('playerError', (queue, error) => {
-    console.error('[STREAM ERROR]', error);
-});
+        const player = createAudioPlayer();
+        
+        // Get audio stream
+        console.log('[PLAY] Getting audio stream from:', trackInfo.url);
+        const stream = ytdl(trackInfo.url, { 
+            quality: 'highestaudio',
+            filter: 'audioonly'
+        });
 
-player.events.on('debug', (message) => {
-    if (typeof message === 'string' && (message.includes('error') || message.includes('Error'))) {
-        console.log('[DEBUG]', message);
+        const resource = createAudioResource(stream, { inlineVolume: true });
+        player.play(resource);
+
+        connection.subscribe(player);
+
+        return new Promise((resolve, reject) => {
+            player.on(AudioPlayerStatus.Playing, () => {
+                console.log('[PLAY] ✅ Now playing:', trackInfo.title);
+                resolve(player);
+            });
+
+            player.on('error', (error) => {
+                console.error('[PLAY] ❌ Player error:', error);
+                connection.destroy();
+                reject(error);
+            });
+
+            stream.on('error', (error) => {
+                console.error('[PLAY] ❌ Stream error:', error);
+                connection.destroy();
+                reject(error);
+            });
+
+            // Timeout
+            setTimeout(() => {
+                connection.destroy();
+                reject(new Error('Playback timeout'));
+            }, 30000);
+        });
+    } catch (error) {
+        console.error('[PLAY] Connection error:', error);
+        throw error;
     }
-});
+}
 
-player.events.on('trackStart', (queue, track) => {
-    console.log('[TRACK START]', track.title);
-});
-
-player.events.on('trackEnd', (queue, track) => {
-    console.log('[TRACK END]', track.title);
-});
-
-player.events.on('queueCreate', (queue) => {
-    console.log('[QUEUE CREATE]', queue.guild.name);
-});
+// Removed old discord-player code - using ytdl-core instead
+console.log('[INIT] ✅ Extractors loaded');
 
 client.commands = new Collection();
 const startTime = Date.now();
@@ -1277,7 +1332,7 @@ client.on(Events.InteractionCreate, async interaction => {
         return interaction.reply(response);
     }
 
-    // PLAY - Music command with discord-player
+    // PLAY - Music command with ytdl-core
     if (commandName === 'play') {
         if (!member.voice.channel) {
             return interaction.reply({ 
@@ -1295,98 +1350,27 @@ client.on(Events.InteractionCreate, async interaction => {
         }
 
         const query = interaction.options.getString('queue');
-        
+        const placeholder = { content: '⏳ Loading music...', flags: 32768 | MessageFlags.Ephemeral };
+        await interaction.reply(placeholder);
+
         try {
-            // Acknowledge immediately
-            const placeholder = { content: '⏳ Loading music...', flags: 32768 | MessageFlags.Ephemeral };
-            await interaction.reply(placeholder);
-            
-            // Create/get queue
-            let queue = player.nodes.get(interaction.guildId);
-            if (!queue) {
-                queue = player.nodes.create(interaction.guildId, {
-                    metadata: { channel: interaction.channel },
-                    connectionTimeout: 120000,
-                    selfDeaf: true,
-                    selfMute: false
-                });
-            }
-
-            // Ensure connected
-            if (!queue.connection) {
-                console.log('[PLAY] Connecting to voice channel...');
-                queue.connect(member.voice.channel);
-                // Wait for connection
-                await new Promise(resolve => setTimeout(resolve, 1000));
-            }
-
-            // Search YouTube explicitly
-            console.log('[PLAY] Searching YouTube for:', query);
-            const result = await player.search(`${query} official`, { 
-                requestedBy: user,
-                searchEngine: 'youtube'
-            });
-            
-            if (!result || !result.tracks.length) {
-                return interaction.editReply({ 
-                    content: ' ', 
-                    components: [{ 
-                        type: 17, 
-                        components: [
-                            { type: 10, content: '## ❌ No Results' }, 
-                            { type: 14, spacing: 1 }, 
-                            { type: 10, content: `No songs found for: ${query}` }
-                        ] 
-                    }]
-                });
-            }
-
-            const track = result.tracks[0];
-            console.log('[PLAY] Found track:', track.title, 'URL:', track.url);
+            const track = await playYouTubeTrack(interaction.guild, member, query, user);
+            console.log('[PLAY] Found:', track.title);
             
             const mockTrack = {
                 name: track.title,
                 url: track.url,
-                artist: track.author,
-                length: track.duration ? `${Math.floor(track.duration / 60000)}:${String(Math.floor((track.duration % 60000) / 1000)).padStart(2, '0')}` : '0:00',
+                artist: 'YouTube',
+                length: track.duration ? `${Math.floor(track.duration / 60)}:${String(track.duration % 60).padStart(2, '0')}` : '0:00',
                 thumbnail: track.thumbnail
             };
 
+            await streamToVoice(interaction.guild, member, track);
             const panel = createMusicControlPanel(mockTrack, user, 100, '▶️ Now Playing');
-            
-            // Add track to queue
-            queue.addTrack(track);
-            console.log('[PLAY] Track added to queue. Queue size:', queue.tracks.length);
-
-            // Play if not already playing
-            if (!queue.isPlaying()) {
-                console.log('[PLAY] Queue not playing, starting playback...');
-                try {
-                    await queue.node.play();
-                    console.log('[PLAY] ✅ Playback started');
-                    // Update with actual panel after successful playback
-                    await interaction.editReply(panel);
-                } catch (playError) {
-                    console.error('[PLAY] Playback error:', playError);
-                    await interaction.editReply({ 
-                        content: '❌ Failed to start playback: ' + playError.message,
-                        components: []
-                    });
-                }
-            } else {
-                console.log('[PLAY] Queue already playing, track queued');
-                await interaction.editReply(panel);
-            }
+            await interaction.editReply(panel);
         } catch (error) {
-            console.error('[PLAY] Fatal error:', error);
-            try {
-                await interaction.editReply({ 
-                    content: '❌ Error: ' + (error.message || 'Unknown error'),
-                    components: []
-                });
-            } catch (e) {
-                console.error('Failed to send error message:', e);
-            }
+            console.error('[PLAY] Error:', error.message);
+            await interaction.editReply({ content: '❌ ' + error.message, components: [] });
         }
     }
 
@@ -2521,7 +2505,7 @@ client.on(Events.MessageCreate, async msg => {
             return msg.reply(response);
         }
 
-        // Play/Music - Prefix commands !p and !play with discord-player
+        // Play/Music - Prefix commands !p and !play with ytdl-core
         if (cmd === 'p' || cmd === 'play') {
             if (!msg.member.voice.channel) {
                 return msg.reply('🚫 You must be in a voice channel to use this command.');
@@ -2532,50 +2516,25 @@ client.on(Events.MessageCreate, async msg => {
                 return msg.reply('❌ Usage: `!play <song name or URL>`');
             }
 
+            const loading = await msg.reply('⏳ Loading music...');
             try {
-                let queue = player.nodes.get(msg.guildId);
-                if (!queue) {
-                    queue = player.nodes.create(msg.guildId, {
-                        metadata: { channel: msg.channel }
-                    });
-                }
-
-                if (!queue.connection) {
-                    queue.connect(msg.member.voice.channel);
-                }
-
-                const result = await player.search(query, { requestedBy: msg.author });
-                if (!result || !result.tracks.length) {
-                    return msg.reply('❌ No songs found for: ' + query);
-                }
-
-                const track = result.tracks[0];
+                const track = await playYouTubeTrack(msg.guild, msg.member, query, msg.author);
+                console.log('[PLAY] Found:', track.title);
+                
                 const mockTrack = {
                     name: track.title,
                     url: track.url,
-                    artist: track.author,
-                    length: track.duration ? `${Math.floor(track.duration / 60000)}:${String(Math.floor((track.duration % 60000) / 1000)).padStart(2, '0')}` : '0:00',
+                    artist: 'YouTube',
+                    length: track.duration ? `${Math.floor(track.duration / 60)}:${String(track.duration % 60).padStart(2, '0')}` : '0:00',
                     thumbnail: track.thumbnail
                 };
 
+                await streamToVoice(msg.guild, msg.member, track);
                 const panel = createMusicControlPanel(mockTrack, msg.author, 100, '▶️ Now Playing');
-                await msg.reply(panel);
-
-                queue.addTrack(track);
-                if (!queue.isPlaying()) {
-                    try {
-                        console.log('[PLAY] Starting playback for:', track.title);
-                        await queue.node.play();
-                        console.log('[PLAY] ✅ Successfully started playing');
-                    } catch (playError) {
-                        console.error('[PLAY] ❌ Failed to start playback:', playError.message);
-                    }
-                } else {
-                    console.log('[PLAY] Queue already playing, track added');
-                }
+                await loading.edit(panel);
             } catch (error) {
-                console.error('[PLAY] Error:', error);
-                return msg.reply('❌ Failed to play music: ' + error.message);
+                console.error('[PLAY] Error:', error.message);
+                await loading.edit('❌ ' + error.message);
             }
         }
 
