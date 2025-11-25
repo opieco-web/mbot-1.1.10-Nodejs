@@ -99,7 +99,7 @@ player.events.on('playerError', (queue, error) => {
 });
 
 player.events.on('debug', (message) => {
-    if (message.includes('error') || message.includes('Error')) {
+    if (typeof message === 'string' && (message.includes('error') || message.includes('Error'))) {
         console.log('[DEBUG]', message);
     }
 });
