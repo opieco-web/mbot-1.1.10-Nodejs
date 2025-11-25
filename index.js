@@ -1575,37 +1575,18 @@ client.on(Events.InteractionCreate, async interaction => {
                 }
             ];
         } else if (pageNum === 3) {
-            // Page 3: Server Custom Profile & Changelog
+            // Page 3: Bot Version & Latest Changes
             pageComponents = [
                 { type: 10, content: `## 🎛️ ${BOT_NAME} Configuration` },
                 { type: 10, content: `**📄 Page 3/3**` },
                 { type: 14, spacing: 1 },
-                { type: 10, content: '### 👤 Server Custom Profile' },
-                { type: 10, content: 'Upload custom icon and banner for this server only' },
-                {
-                    type: 1,
-                    components: [
-                        { type: 2, style: 1, label: 'Bot Icon', custom_id: 'config_header_attach' },
-                        { type: 2, style: 1, label: 'Bot Banner', custom_id: 'config_banner_attach' }
-                    ]
-                }
+                { type: 10, content: '### 📜 Bot Version & Changes' },
+                { type: 10, content: `**Version:** v${versionData.version}` },
+                { type: 10, content: `**Released:** ${versionData.releaseDate}` },
+                { type: 14, spacing: 1 },
+                { type: 10, content: `**Latest Updates:**` },
+                { type: 10, content: versionData.changesSummary }
             ];
-            
-            if (headerUrl || bgUrl) {
-                pageComponents.push({ type: 14, spacing: 1 });
-                pageComponents.push({ type: 10, content: '### 📸 Current Custom Profile' });
-                const mediaItems = [];
-                if (headerUrl) mediaItems.push({ type: 1, media: { url: headerUrl }, description: 'Bot Icon' });
-                if (bgUrl) mediaItems.push({ type: 1, media: { url: bgUrl }, description: 'Bot Banner' });
-                pageComponents.push({ type: 12, items: mediaItems });
-            }
-            
-            // Add Bot Version & Latest Changes
-            pageComponents.push({ type: 14, spacing: 1 });
-            pageComponents.push({ type: 10, content: '### 📜 Bot Version & Changes' });
-            pageComponents.push({ type: 10, content: `**Version:** v${versionData.version} (${versionData.releaseDate})` });
-            pageComponents.push({ type: 14, spacing: 1 });
-            pageComponents.push({ type: 10, content: versionData.changesSummary });
         }
         
         // Add pagination buttons
