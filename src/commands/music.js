@@ -3,10 +3,10 @@ import { SlashCommandBuilder } from 'discord.js';
 export const musicCommands = [
     new SlashCommandBuilder()
         .setName('play')
-        .setDescription('Play music from Bandcamp or direct audio URL')
+        .setDescription('Play music from direct audio file URL (no bot restrictions)')
         .addStringOption(option => 
             option.setName('queue')
-                .setDescription('Bandcamp URL or direct audio URL (.mp3, .wav, .flac)')
+                .setDescription('Direct audio URL (.mp3, .wav, .flac, .ogg, .m4a)')
                 .setRequired(true)
         )
 ];

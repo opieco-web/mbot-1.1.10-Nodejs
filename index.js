@@ -1322,7 +1322,7 @@ client.on(Events.InteractionCreate, async interaction => {
         return interaction.reply(response);
     }
 
-    // PLAY - Music command (Bandcamp & Direct Audio URLs)
+    // PLAY - Music command (Direct audio file URLs only)
     if (commandName === 'play') {
         if (!member.voice.channel) {
             return interaction.reply({ 
@@ -1338,29 +1338,22 @@ client.on(Events.InteractionCreate, async interaction => {
             });
         }
 
-        let input = interaction.options.getString('queue');
+        const input = interaction.options.getString('queue');
         await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
         try {
-            // Accept Bandcamp URLs or direct audio file URLs
-            if (!input.includes('bandcamp') && !input.endsWith('.mp3') && !input.endsWith('.wav') && !input.endsWith('.flac') && !input.includes('http')) {
-                throw new Error('❌ Please provide a Bandcamp URL or direct audio file URL (.mp3, .wav, .flac)');
-            }
-
-            // Clean up URL - remove query parameters for Bandcamp
-            if (input.includes('bandcamp')) {
-                const urlObj = new URL(input);
-                input = urlObj.origin + urlObj.pathname;
+            // Accept only direct audio file URLs (no bot restrictions)
+            if (!input.endsWith('.mp3') && !input.endsWith('.wav') && !input.endsWith('.flac') && !input.endsWith('.ogg') && !input.endsWith('.m4a')) {
+                throw new Error('❌ Please provide a direct audio file URL (.mp3, .wav, .flac, .ogg, .m4a)\n\nExample: https://example.com/song.mp3');
             }
 
             console.log('[PLAY] Streaming:', input);
             
-            // For Bandcamp URLs or direct audio files
             const stream = await play.stream(input);
             const mockTrack = {
-                name: input.includes('bandcamp') ? 'Bandcamp Track' : 'Audio File',
+                name: 'Audio Track',
                 url: input,
-                artist: input.includes('bandcamp') ? 'Bandcamp' : 'Direct URL',
+                artist: 'Direct URL',
                 length: '0:00',
                 thumbnail: ''
             };
