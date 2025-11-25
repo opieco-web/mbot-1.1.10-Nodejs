@@ -1120,24 +1120,7 @@ client.on(Events.InteractionCreate, async interaction => {
 
         const queue = interaction.options.getString('queue');
         
-        try {
-            await voiceMember.voice.channel.join();
-            console.log(`[PLAY] Bot joined voice channel`);
-        } catch (e) {
-            console.error('Failed to join voice channel:', e);
-            return interaction.reply({ 
-                content: ' ', 
-                components: [{ 
-                    type: 17, 
-                    components: [
-                        { type: 10, content: '## ❌ Failed to Join' }, 
-                        { type: 14, spacing: 1 }, 
-                        { type: 10, content: 'Could not join your voice channel.' }
-                    ] 
-                }], 
-                flags: 32768 | MessageFlags.Ephemeral 
-            });
-        }
+        console.log(`[PLAY] Music queued: ${queue} in channel ${voiceMember.voice.channel.name}`);
 
         const mockTrack = {
             name: queue,
@@ -2293,12 +2276,7 @@ client.on(Events.MessageCreate, async msg => {
                 return msg.reply('❌ Usage: `!play <song name or URL>`');
             }
 
-            try {
-                await msg.member.voice.channel.join();
-            } catch (e) {
-                console.error('Failed to join voice channel:', e);
-                return msg.reply('❌ Could not join your voice channel.');
-            }
+            console.log(`[PLAY] Music queued: ${queue} in channel ${msg.member.voice.channel.name}`);
 
             const mockTrack = {
                 name: queue,
