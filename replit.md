@@ -226,9 +226,9 @@ changelog: `
 - Major update: 1.5.99 → 2.0.0 (MAJOR increments, MINOR resets)
 
 ## Current Version
-- **Version**: 1.0.34
-- **Last Updated**: Nov 25, 2025 3:19 PM
-- **Status**: NEW: Both /botinfo & !bi now use interactive 3-page system
+- **Version**: 1.0.35
+- **Last Updated**: Nov 25, 2025 3:20 PM
+- **Status**: FIXED: Button interactions now work - moved handlers before slash command filter
 
 # Recent Changes (Nov 25, 2025)
 - **COMPLETED: Full Modularization**

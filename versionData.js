@@ -1,8 +1,8 @@
 export default {
-    version: "1.0.34",
-    releaseDate: "Nov 25, 2025 3:19 PM",
-    releaseDateTimestamp: 1764064760,
-    changesSummary: "NEW: !bi prefix command now uses 3-page interactive system like /botinfo",
+    version: "1.0.35",
+    releaseDate: "Nov 25, 2025 3:20 PM",
+    releaseDateTimestamp: 1764064820,
+    changesSummary: "FIXED: Moved button handlers before slash command early return - buttons now work!",
 
     versionGuide: `
 📌 Versioning Guide

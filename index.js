@@ -991,6 +991,150 @@ client.on(Events.InteractionCreate, async interaction => {
         }
     }
 
+    // ===== HANDLE BUTTONS =====
+    // BUTTON: botinfo_description - Full Bot Description
+    if (interaction.isButton() && interaction.customId === 'botinfo_description') {
+        const fullDesc = `**m•bot** is a comprehensive Discord bot designed for Mining Bangladesh community.
+
+🎯 **Core Features:**
+📝 **Nickname Management** - Users request nicknames in a channel, bot processes them with smart anti-spam & offline support
+😴 **AFK System** - Set AFK status with reason, get notified when mentioned, auto-removes when you return
+👋 **Welcome Messages** - 60+ unique localized welcome messages with configurable delays
+💬 **Auto-Responses** - Create custom triggers that automatically reply with text or emoji
+🎮 **Fun Commands** - Truth or Dare, Coin Flip, Choice selector
+🛠️ **Utilities** - Avatar display, Bot info, Wikipedia search
+
+⚡ **Why Choose m•bot:**
+✅ Reliable offline processing - nicknames won't get lost
+✅ Prevents duplicate processing - won't reapply same nicknames
+✅ Beautiful Component V2 UI - modern Discord interface
+✅ Persistent data - survives bot restarts
+✅ Fully customizable - per-server settings
+✅ Community focused - designed for Mining Bangladesh
+✅ Clean modular code - fast updates and new features`;
+
+        const backPayload = {
+            content: ' ',
+            components: [
+                {
+                    type: 17,
+                    components: [
+                        { type: 10, content: `## ${BOT_NAME}│About` },
+                        { type: 14 },
+                        { type: 10, content: fullDesc },
+                        { type: 14, spacing: 1 },
+                        {
+                            type: 1,
+                            components: [
+                                { type: 2, label: '← Back to Main', custom_id: 'botinfo_main', style: 2 }
+                            ]
+                        }
+                    ]
+                }
+            ],
+            flags: 32768 | MessageFlags.Ephemeral
+        };
+        
+        return interaction.update(backPayload);
+    }
+
+    // BUTTON: botinfo_commands - User Commands Guide
+    if (interaction.isButton() && interaction.customId === 'botinfo_commands') {
+        const prefix = getPrefix(guildId);
+        const commandsGuide = `**📌 SLASH COMMANDS** (Use with /)
+
+🎮 **Fun Commands:**
+/truthordare - Get random truth question or dare
+/coinflip - Flip a coin (Heads or Tails)
+/choose - Pick between 2-3 options
+
+🛠️ **Utility Commands:**
+/avatar [@user] [server: true/false] - Show avatar (default, server, or both)
+/afk [note] - Set AFK status with optional reason
+/botinfo - View this bot information
+
+💬 **Nickname System:**
+In the nickname channel, just type your desired nickname!
+Type "reset" to reset to default
+Examples: "Shadow", "Phoenix", "reset"
+
+**📌 PREFIX COMMANDS** (Use with ${prefix})
+
+🎮 **Fun:**
+${prefix}td - Truth or Dare
+${prefix}cf - Coin flip
+${prefix}choose - Choice selector
+
+🛠️ **Utility:**
+${prefix}av [@user] - Show avatar
+${prefix}afk [reason] - Set AFK
+
+**💡 HOW TO USE:**
+1. Slash commands: Type / and select the command
+2. Prefix commands: Type ${prefix} then the command
+3. Nickname: Go to nickname channel and type your desired name
+4. AFK: Use /afk or ${prefix}afk with optional reason`;
+
+        const commandsPayload = {
+            content: ' ',
+            components: [
+                {
+                    type: 17,
+                    components: [
+                        { type: 10, content: `## ${BOT_NAME}│Commands` },
+                        { type: 14 },
+                        { type: 10, content: commandsGuide },
+                        { type: 14, spacing: 1 },
+                        {
+                            type: 1,
+                            components: [
+                                { type: 2, label: '← Back to Main', custom_id: 'botinfo_main', style: 2 }
+                            ]
+                        }
+                    ]
+                }
+            ],
+            flags: 32768 | MessageFlags.Ephemeral
+        };
+        
+        return interaction.update(commandsPayload);
+    }
+
+    // BUTTON: botinfo_main - Back to Main Page
+    if (interaction.isButton() && interaction.customId === 'botinfo_main') {
+        const botAvatar = client.user.displayAvatarURL({ dynamic: true, size: 1024 });
+        const wsLatency = client.ws.ping;
+        const uptime = formatUptime(startTime);
+        const prefix = getPrefix(guildId);
+        
+        const shortSummary = `Smart Discord bot for Mining Bangladesh with nickname management, AFK system, welcome messages, auto-responses, and fun commands.\n\n**Ping:** ${wsLatency}ms | **Uptime:** ${uptime}`;
+        
+        const mainPayload = {
+            content: ' ',
+            components: [
+                {
+                    type: 17,
+                    components: [
+                        { type: 10, content: `## ${BOT_NAME}│v${BOT_VERSION}` },
+                        { type: 14 },
+                        { type: 10, content: shortSummary },
+                        { type: 14, spacing: 1 },
+                        {
+                            type: 1,
+                            components: [
+                                { type: 2, label: '📖 Full Description', custom_id: 'botinfo_description', style: 1 },
+                                { type: 2, label: '📚 Commands Guide', custom_id: 'botinfo_commands', style: 1 }
+                            ]
+                        }
+                    ]
+                }
+            ],
+            flags: 32768 | MessageFlags.Ephemeral
+        };
+        
+        return interaction.update(mainPayload);
+    }
+
     // ===== HANDLE SLASH COMMANDS =====
     if (!interaction.isChatInputCommand()) return;
 
@@ -1177,149 +1321,6 @@ client.on(Events.InteractionCreate, async interaction => {
 
         const afkCount = Object.keys(afkUsers).length;
         return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: `## 🚫 Currently AFK - ${afkCount}` }, { type: 14, spacing: 1 }, { type: 10, content: afkList }] }], flags: 32768 | MessageFlags.Ephemeral });
-    }
-
-    // BUTTON: botinfo_description - Full Bot Description
-    if (interaction.isButton() && interaction.customId === 'botinfo_description') {
-        const fullDesc = `**m•bot** is a comprehensive Discord bot designed for Mining Bangladesh community.
-
-🎯 **Core Features:**
-📝 **Nickname Management** - Users request nicknames in a channel, bot processes them with smart anti-spam & offline support
-😴 **AFK System** - Set AFK status with reason, get notified when mentioned, auto-removes when you return
-👋 **Welcome Messages** - 60+ unique localized welcome messages with configurable delays
-💬 **Auto-Responses** - Create custom triggers that automatically reply with text or emoji
-🎮 **Fun Commands** - Truth or Dare, Coin Flip, Choice selector
-🛠️ **Utilities** - Avatar display, Bot info, Wikipedia search
-
-⚡ **Why Choose m•bot:**
-✅ Reliable offline processing - nicknames won't get lost
-✅ Prevents duplicate processing - won't reapply same nicknames
-✅ Beautiful Component V2 UI - modern Discord interface
-✅ Persistent data - survives bot restarts
-✅ Fully customizable - per-server settings
-✅ Community focused - designed for Mining Bangladesh
-✅ Clean modular code - fast updates and new features`;
-
-        const backPayload = {
-            content: ' ',
-            components: [
-                {
-                    type: 17,
-                    components: [
-                        { type: 10, content: `## ${BOT_NAME}│About` },
-                        { type: 14 },
-                        { type: 10, content: fullDesc },
-                        { type: 14, spacing: 1 },
-                        {
-                            type: 1,
-                            components: [
-                                { type: 2, label: '← Back to Main', custom_id: 'botinfo_main', style: 2 }
-                            ]
-                        }
-                    ]
-                }
-            ],
-            flags: 32768 | MessageFlags.Ephemeral
-        };
-        
-        return interaction.update(backPayload);
-    }
-
-    // BUTTON: botinfo_commands - User Commands Guide
-    if (interaction.isButton() && interaction.customId === 'botinfo_commands') {
-        const prefix = getPrefix(guildId);
-        const commandsGuide = `**📌 SLASH COMMANDS** (Use with /)
-
-🎮 **Fun Commands:**
-/truthordare - Get random truth question or dare
-/coinflip - Flip a coin (Heads or Tails)
-/choose - Pick between 2-3 options
-
-🛠️ **Utility Commands:**
-/avatar [@user] [server: true/false] - Show avatar (default, server, or both)
-/afk [note] - Set AFK status with optional reason
-/botinfo - View this bot information
-
-💬 **Nickname System:**
-In the nickname channel, just type your desired nickname!
-Type "reset" to reset to default
-Examples: "Shadow", "Phoenix", "reset"
-
-**📌 PREFIX COMMANDS** (Use with ${prefix})
-
-🎮 **Fun:**
-${prefix}td - Truth or Dare
-${prefix}cf - Coin flip
-${prefix}choose - Choice selector
-
-🛠️ **Utility:**
-${prefix}av [@user] - Show avatar
-${prefix}afk [reason] - Set AFK
-
-**💡 HOW TO USE:**
-1. Slash commands: Type / and select the command
-2. Prefix commands: Type ${prefix} then the command
-3. Nickname: Go to nickname channel and type your desired name
-4. AFK: Use /afk or ${prefix}afk with optional reason`;
-
-        const commandsPayload = {
-            content: ' ',
-            components: [
-                {
-                    type: 17,
-                    components: [
-                        { type: 10, content: `## ${BOT_NAME}│Commands` },
-                        { type: 14 },
-                        { type: 10, content: commandsGuide },
-                        { type: 14, spacing: 1 },
-                        {
-                            type: 1,
-                            components: [
-                                { type: 2, label: '← Back to Main', custom_id: 'botinfo_main', style: 2 }
-                            ]
-                        }
-                    ]
-                }
-            ],
-            flags: 32768 | MessageFlags.Ephemeral
-        };
-        
-        return interaction.update(commandsPayload);
-    }
-
-    // BUTTON: botinfo_main - Back to Main Page
-    if (interaction.isButton() && interaction.customId === 'botinfo_main') {
-        const botAvatar = client.user.displayAvatarURL({ dynamic: true, size: 1024 });
-        const wsLatency = client.ws.ping;
-        const uptime = formatUptime(startTime);
-        const prefix = getPrefix(guildId);
-        
-        const shortSummary = `Smart Discord bot for Mining Bangladesh with nickname management, AFK system, welcome messages, auto-responses, and fun commands.\n\n**Ping:** ${wsLatency}ms | **Uptime:** ${uptime}`;
-        
-        const mainPayload = {
-            content: ' ',
-            components: [
-                {
-                    type: 17,
-                    components: [
-                        { type: 10, content: `## ${BOT_NAME}│v${BOT_VERSION}` },
-                        { type: 14 },
-                        { type: 10, content: shortSummary },
-                        { type: 14, spacing: 1 },
-                        {
-                            type: 1,
-                            components: [
-                                { type: 2, label: '📖 Full Description', custom_id: 'botinfo_description', style: 1 },
-                                { type: 2, label: '📚 Commands Guide', custom_id: 'botinfo_commands', style: 1 }
-                            ]
-                        }
-                    ]
-                }
-            ],
-            flags: 32768 | MessageFlags.Ephemeral
-        };
-        
-        return interaction.update(mainPayload);
     }
 
     // AVATAR - Component V2 Container (via createAvatarComponent)
