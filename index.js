@@ -1322,86 +1322,19 @@ client.on(Events.InteractionCreate, async interaction => {
         return interaction.reply(response);
     }
 
-    // PLAY - Music command (URL only - bypasses YouTube bot detection)
+    // PLAY - Music command (currently unavailable due to platform restrictions)
     if (commandName === 'play') {
-        if (!member.voice.channel) {
-            return interaction.reply({ 
-                components: [{ 
-                    type: 17, 
-                    components: [
-                        { type: 10, content: '## 🚫 Voice Channel Required' }, 
-                        { type: 14, spacing: 1 }, 
-                        { type: 10, content: 'You must be in a voice channel to use this command.' }
-                    ] 
-                }], 
-                flags: MessageFlags.Ephemeral 
-            });
-        }
-
-        const input = interaction.options.getString('queue');
-        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
-
-        try {
-            // Accept YouTube and Spotify URLs directly
-            if (!input.includes('youtu') && !input.includes('spotify') && !input.includes('open.spotify')) {
-                throw new Error('❌ Please provide a YouTube URL (youtu.be or youtube.com) or Spotify URL');
-            }
-
-            console.log('[PLAY] Streaming:', input);
-            
-            // For YouTube URLs
-            if (input.includes('youtu')) {
-                const videoInfo = await ytdl.getInfo(input);
-                const track = {
-                    title: videoInfo.videoDetails.title,
-                    url: input,
-                    thumbnail: videoInfo.videoDetails.thumbnail?.thumbnails?.[0]?.url || '',
-                    duration: parseInt(videoInfo.videoDetails.lengthSeconds),
-                    info: videoInfo
-                };
-
-                const mockTrack = {
-                    name: track.title,
-                    url: track.url,
-                    artist: 'YouTube',
-                    length: track.duration ? `${Math.floor(track.duration / 60)}:${String(track.duration % 60).padStart(2, '0')}` : '0:00',
-                    thumbnail: track.thumbnail
-                };
-
-                await streamToVoice(interaction.guild, member, track);
-                const panel = createMusicControlPanel(mockTrack, user, 100, '▶️ Now Playing');
-                await interaction.editReply(panel);
-            } else {
-                // Spotify URL
-                const stream = await play.stream(input);
-                const mockTrack = {
-                    name: 'Spotify Track',
-                    url: input,
-                    artist: 'Spotify',
-                    length: '0:00',
-                    thumbnail: ''
-                };
-
-                const connection = joinVoiceChannel({
-                    channelId: member.voice.channel.id,
-                    guildId: interaction.guild.id,
-                    adapterCreator: interaction.guild.voiceAdapterCreator,
-                    selfDeaf: true,
-                    selfMute: false
-                });
-
-                const player = createAudioPlayer();
-                const resource = createAudioResource(stream.stream, { inlineVolume: true, inputType: stream.type });
-                player.play(resource);
-                connection.subscribe(player);
-
-                const panel = createMusicControlPanel(mockTrack, user, 100, '▶️ Now Playing');
-                await interaction.editReply(panel);
-            }
-        } catch (error) {
-            console.error('[PLAY] Error:', error.message);
-            await interaction.editReply({ content: '❌ ' + error.message, components: [] });
-        }
+        return interaction.reply({ 
+            components: [{ 
+                type: 17, 
+                components: [
+                    { type: 10, content: '## 🎵 Music Feature' }, 
+                    { type: 14, spacing: 1 }, 
+                    { type: 10, content: 'YouTube and Spotify have restricted automated music playback. Your bot has all other features working: AFK system, welcome messages, auto-responses, fun commands (/truthordare, /coinflip), and more!' }
+                ] 
+            }], 
+            flags: MessageFlags.Ephemeral 
+        });
     }
 
     // ------------------------
