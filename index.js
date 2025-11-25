@@ -1308,7 +1308,7 @@ client.on(Events.InteractionCreate, async interaction => {
                 queue.connect(member.voice.channel);
             }
 
-            const result = await player.search(query, { requestedBy: user, searchEngine: 'spotify' });
+            const result = await player.search(query, { requestedBy: user });
             if (!result || !result.tracks.length) {
                 return interaction.reply({ 
                     content: ' ', 
@@ -2519,7 +2519,7 @@ client.on(Events.MessageCreate, async msg => {
                     queue.connect(msg.member.voice.channel);
                 }
 
-                const result = await player.search(query, { requestedBy: msg.author, searchEngine: 'spotify' });
+                const result = await player.search(query, { requestedBy: msg.author });
                 if (!result || !result.tracks.length) {
                     return msg.reply('❌ No songs found for: ' + query);
                 }
