@@ -1297,20 +1297,38 @@ client.on(Events.InteractionCreate, async interaction => {
         const query = interaction.options.getString('queue');
         
         try {
+            // Acknowledge immediately
+            const placeholder = { content: '⏳ Loading music...', flags: 32768 | MessageFlags.Ephemeral };
+            await interaction.reply(placeholder);
+            
+            // Create/get queue
             let queue = player.nodes.get(interaction.guildId);
             if (!queue) {
                 queue = player.nodes.create(interaction.guildId, {
-                    metadata: { channel: interaction.channel }
+                    metadata: { channel: interaction.channel },
+                    connectionTimeout: 120000,
+                    selfDeaf: true,
+                    selfMute: false
                 });
             }
 
+            // Ensure connected
             if (!queue.connection) {
+                console.log('[PLAY] Connecting to voice channel...');
                 queue.connect(member.voice.channel);
+                // Wait for connection
+                await new Promise(resolve => setTimeout(resolve, 1000));
             }
 
-            const result = await player.search(query, { requestedBy: user });
+            // Search YouTube explicitly
+            console.log('[PLAY] Searching YouTube for:', query);
+            const result = await player.search(`${query} official`, { 
+                requestedBy: user,
+                searchEngine: 'youtube'
+            });
+            
             if (!result || !result.tracks.length) {
-                return interaction.reply({ 
+                return interaction.editReply({ 
                     content: ' ', 
                     components: [{ 
                         type: 17, 
@@ -1319,12 +1337,13 @@ client.on(Events.InteractionCreate, async interaction => {
                             { type: 14, spacing: 1 }, 
                             { type: 10, content: `No songs found for: ${query}` }
                         ] 
-                    }], 
-                    flags: 32768 | MessageFlags.Ephemeral 
+                    }]
                 });
             }
 
             const track = result.tracks[0];
+            console.log('[PLAY] Found track:', track.title, 'URL:', track.url);
+            
             const mockTrack = {
                 name: track.title,
                 url: track.url,
@@ -1334,34 +1353,40 @@ client.on(Events.InteractionCreate, async interaction => {
             };
 
             const panel = createMusicControlPanel(mockTrack, user, 100, '▶️ Now Playing');
-            await interaction.reply(panel);
-
+            
+            // Add track to queue
             queue.addTrack(track);
+            console.log('[PLAY] Track added to queue. Queue size:', queue.tracks.length);
+
+            // Play if not already playing
             if (!queue.isPlaying()) {
+                console.log('[PLAY] Queue not playing, starting playback...');
                 try {
-                    console.log('[PLAY] Starting playback for:', track.title);
                     await queue.node.play();
-                    console.log('[PLAY] ✅ Successfully started playing');
+                    console.log('[PLAY] ✅ Playback started');
+                    // Update with actual panel after successful playback
+                    await interaction.editReply(panel);
                 } catch (playError) {
-                    console.error('[PLAY] ❌ Failed to start playback:', playError.message);
+                    console.error('[PLAY] Playback error:', playError);
+                    await interaction.editReply({ 
+                        content: '❌ Failed to start playback: ' + playError.message,
+                        components: []
+                    });
                 }
             } else {
-                console.log('[PLAY] Queue already playing, track added');
+                console.log('[PLAY] Queue already playing, track queued');
+                await interaction.editReply(panel);
             }
         } catch (error) {
-            console.error('[PLAY] Error:', error);
-            return interaction.reply({ 
-                content: ' ', 
-                components: [{ 
-                    type: 17, 
-                    components: [
-                        { type: 10, content: '## ❌ Playback Error' }, 
-                        { type: 14, spacing: 1 }, 
-                        { type: 10, content: error.message || 'Failed to play music' }
-                    ] 
-                }], 
-                flags: 32768 | MessageFlags.Ephemeral 
-            });
+            console.error('[PLAY] Fatal error:', error);
+            try {
+                await interaction.editReply({ 
+                    content: '❌ Error: ' + (error.message || 'Unknown error'),
+                    components: []
+                });
+            } catch (e) {
+                console.error('Failed to send error message:', e);
+            }
         }
     }
 
