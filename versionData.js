@@ -1,8 +1,8 @@
 export default {
-    version: "1.0.28",
-    releaseDate: "Nov 25, 2025 3:13 PM",
-    releaseDateTimestamp: 1764064400,
-    changesSummary: "Fixed: Reset command now works when bot comes online",
+    version: "1.0.29",
+    releaseDate: "Nov 25, 2025 3:14 PM",
+    releaseDateTimestamp: 1764064460,
+    changesSummary: "Skip users who already have bot replies - no duplicate processing",
 
     versionGuide: `
 📌 Versioning Guide

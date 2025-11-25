@@ -261,10 +261,39 @@ async function processPendingNicknameRequests() {
         const messages = await channel.messages.fetch({ limit: 100 });
         let processedCount = 0;
         
-        // Group messages by user and keep only the latest from each user
+        // Find which users have already been replied to by bot
+        const usersWithBotReply = new Set();
+        for (const msg of messages.values()) {
+            if (msg.author.bot) continue;
+            
+            // Check if this message has a bot reply
+            try {
+                const replies = await msg.fetchReferences().catch(() => []);
+                if (Array.isArray(replies) && replies.some(m => m.author.bot)) {
+                    usersWithBotReply.add(msg.author.id);
+                }
+            } catch (e) {
+                // Try checking thread
+                if (msg.hasThread) {
+                    try {
+                        const threadMsgs = await msg.thread.messages.fetch().catch(() => []);
+                        if (Array.from(threadMsgs.values()).some(m => m.author.bot)) {
+                            usersWithBotReply.add(msg.author.id);
+                        }
+                    } catch (e2) {
+                        // Ignore
+                    }
+                }
+            }
+        }
+        
+        // Group messages by user and keep only the latest from each user (excluding those already replied)
         const latestByUser = new Map();
         for (const msg of messages.values()) {
             if (msg.author.bot) continue;
+            
+            // Skip users who already have bot replies
+            if (usersWithBotReply.has(msg.author.id)) continue;
             
             const content = msg.content.trim();
             if (!content) continue;
@@ -275,96 +304,76 @@ async function processPendingNicknameRequests() {
             }
         }
         
-        // Process only the latest message from each user
+        // Process only the latest message from each user (who don't have existing replies)
         for (const msg of latestByUser.values()) {
             const content = msg.content.trim();
             const isReset = content.toLowerCase() === 'reset';
             const nickname = isReset ? null : content;
             
-            // Check if bot already replied to this message
-            let botReplied = false;
             try {
-                const replies = await msg.fetchReferences().catch(() => []);
-                botReplied = Array.isArray(replies) && replies.some(m => m.author.bot);
-            } catch (e) {
-                // Try checking if message has a thread with bot messages
-                if (msg.hasThread) {
-                    try {
-                        const threadMsgs = await msg.thread.messages.fetch().catch(() => []);
-                        botReplied = Array.from(threadMsgs.values()).some(m => m.author.bot);
-                    } catch (e2) {
-                        // If all else fails, assume not replied yet
-                    }
-                }
-            }
-            
-            // If no bot reply found, apply the nickname now
-            if (!botReplied) {
-                try {
-                    const member = await channel.guild.members.fetch(msg.author.id);
-                    
-                    // Handle reset
-                    if (isReset) {
-                        await member.setNickname(null);
-                        await msg.reply({ 
-                            content: ' ', 
-                            components: [{ 
-                                type: 17, 
-                                components: [
-                                    { type: 10, content: '### <:Correct:1440296238305116223> Reset' }, 
-                                    { type: 14, spacing: 1 }, 
-                                    { type: 10, content: 'Your nickname has been reset to default.' }
-                                ] 
-                            }], 
-                            flags: 32768 
-                        }).catch(() => {});
-                        console.log(`✅ [PENDING NICKNAMES] Reset nickname for ${msg.author.tag}`);
-                        processedCount++;
-                        continue;
-                    }
-                    
-                    // Check banned words for nickname
-                    const bannedWord = data.nickname.filter?.some(word => 
-                        nickname.toLowerCase().includes(word.toLowerCase())
-                    );
-                    
-                    if (bannedWord) {
-                        await msg.reply({ 
-                            content: ' ', 
-                            components: [{ 
-                                type: 17, 
-                                components: [
-                                    { type: 10, content: '### <:Bin:1441777857205637254> Cannot Set' }, 
-                                    { type: 14, spacing: 1 }, 
-                                    { type: 10, content: `Word "**${bannedWord}**" is not allowed.` }
-                                ] 
-                            }], 
-                            flags: 32768 
-                        }).catch(() => {});
-                        continue;
-                    }
-                    
-                    const before = member.nickname || member.displayName;
-                    await member.setNickname(nickname);
-                    
+                const member = await channel.guild.members.fetch(msg.author.id);
+                
+                // Handle reset
+                if (isReset) {
+                    await member.setNickname(null);
                     await msg.reply({ 
                         content: ' ', 
                         components: [{ 
                             type: 17, 
                             components: [
-                                { type: 10, content: `### <:Correct:1440296238305116223> Changed To ${nickname}` }, 
+                                { type: 10, content: '### <:Correct:1440296238305116223> Reset' }, 
                                 { type: 14, spacing: 1 }, 
-                                { type: 10, content: `Your previous nickname was **${before}**` }
+                                { type: 10, content: 'Your nickname has been reset to default.' }
                             ] 
                         }], 
                         flags: 32768 
                     }).catch(() => {});
-                    
-                    console.log(`✅ [PENDING NICKNAMES] Applied nickname "${nickname}" to ${msg.author.tag}`);
+                    console.log(`✅ [PENDING NICKNAMES] Reset nickname for ${msg.author.tag}`);
                     processedCount++;
-                } catch (err) {
-                    console.error(`❌ [PENDING NICKNAMES] Failed to apply nickname for ${msg.author.tag}:`, err.message);
+                    continue;
                 }
+                
+                // Check banned words for nickname
+                const bannedWord = data.nickname.filter?.some(word => 
+                    nickname.toLowerCase().includes(word.toLowerCase())
+                );
+                
+                if (bannedWord) {
+                    await msg.reply({ 
+                        content: ' ', 
+                        components: [{ 
+                            type: 17, 
+                            components: [
+                                { type: 10, content: '### <:Bin:1441777857205637254> Cannot Set' }, 
+                                { type: 14, spacing: 1 }, 
+                                { type: 10, content: `Word "**${bannedWord}**" is not allowed.` }
+                            ] 
+                        }], 
+                        flags: 32768 
+                    }).catch(() => {});
+                    continue;
+                }
+                
+                const before = member.nickname || member.displayName;
+                await member.setNickname(nickname);
+                
+                await msg.reply({ 
+                    content: ' ', 
+                    components: [{ 
+                        type: 17, 
+                        components: [
+                            { type: 10, content: `### <:Correct:1440296238305116223> Changed To ${nickname}` }, 
+                            { type: 14, spacing: 1 }, 
+                            { type: 10, content: `Your previous nickname was **${before}**` }
+                        ] 
+                    }], 
+                    flags: 32768 
+                }).catch(() => {});
+                
+                console.log(`✅ [PENDING NICKNAMES] Applied nickname "${nickname}" to ${msg.author.tag}`);
+                processedCount++;
+            } catch (err) {
+                console.error(`❌ [PENDING NICKNAMES] Failed to apply nickname for ${msg.author.tag}:`, err.message);
             }
         }
         
