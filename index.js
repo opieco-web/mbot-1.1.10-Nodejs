@@ -208,13 +208,34 @@ function applyBotStatus() {
 // ------------------------
 // BOT READY
 // ------------------------
-client.once(Events.ClientReady, () => {
+client.once(Events.ClientReady, async () => {
     console.log(`${client.user.tag} is online!`);
     applyBotStatus();
     
     // Load AFK data from storage
     if (data.afk) {
         afkUsers = { ...data.afk };
+    }
+    
+    // Update bot role name in all guilds with version number
+    const botRoleName = `${BOT_NAME}│v${BOT_VERSION}`;
+    try {
+        for (const guild of client.guilds.cache.values()) {
+            try {
+                const botRole = guild.roles.cache.find(role => role.name === `${BOT_NAME}` || role.name.includes(BOT_NAME));
+                if (botRole && botRole.managed) {
+                    // Only update if role name is different
+                    if (botRole.name !== botRoleName) {
+                        await botRole.setName(botRoleName).catch(() => {});
+                        console.log(`✅ Updated bot role in ${guild.name} to: ${botRoleName}`);
+                    }
+                }
+            } catch (guildError) {
+                // Skip this guild if error occurs
+            }
+        }
+    } catch (error) {
+        console.error('Error updating bot role names:', error);
     }
 });
 
