@@ -89,7 +89,7 @@ const player = new Player(client, {
     skipFFmpeg: false
 });
 
-// Add error handlers for player events
+// Add comprehensive event handlers for player debugging
 player.events.on('error', (queue, error) => {
     console.error('[PLAYER ERROR]', error);
 });
@@ -102,6 +102,30 @@ player.events.on('debug', (message) => {
     if (typeof message === 'string' && (message.includes('error') || message.includes('Error'))) {
         console.log('[DEBUG]', message);
     }
+});
+
+player.events.on('trackStart', (queue, track) => {
+    console.log('[TRACK START]', track.title);
+});
+
+player.events.on('trackEnd', (queue, track) => {
+    console.log('[TRACK END]', track.title);
+});
+
+player.events.on('queueCreate', (queue) => {
+    console.log('[QUEUE CREATE]', queue.guild.name);
+    
+    queue.dispatcher.on('start', () => {
+        console.log('[AUDIO START]', 'Audio stream started');
+    });
+    
+    queue.dispatcher.on('error', (err) => {
+        console.error('[DISPATCHER ERROR]', err);
+    });
+    
+    queue.dispatcher.on('finish', () => {
+        console.log('[AUDIO FINISH]', 'Audio stream finished');
+    });
 });
 
 client.commands = new Collection();
@@ -1309,12 +1333,17 @@ client.on(Events.InteractionCreate, async interaction => {
             result.tracks.forEach(track => queue.addTrack(track));
             if (!queue.isPlaying()) {
                 try {
+                    console.log('[PLAY] Queue connection status:', queue.connection ? 'Connected' : 'Not connected');
+                    console.log('[PLAY] Current track:', result.tracks[0].title);
+                    console.log('[PLAY] Track extractor:', result.tracks[0].extractor?.name || 'Unknown');
                     await queue.node.play();
-                    console.log('[PLAY] Started playing:', result.tracks[0].title);
+                    console.log('[PLAY] ✅ Successfully started playing');
                 } catch (playError) {
-                    console.error('[PLAY] Failed to start playback:', playError);
+                    console.error('[PLAY] ❌ Failed to start playback:', playError.message);
                     throw playError;
                 }
+            } else {
+                console.log('[PLAY] Queue already playing, track added to queue');
             }
 
             const track = result.tracks[0];
@@ -2507,12 +2536,17 @@ client.on(Events.MessageCreate, async msg => {
                 result.tracks.forEach(track => queue.addTrack(track));
                 if (!queue.isPlaying()) {
                     try {
+                        console.log('[PLAY] Queue connection status:', queue.connection ? 'Connected' : 'Not connected');
+                        console.log('[PLAY] Current track:', result.tracks[0].title);
+                        console.log('[PLAY] Track extractor:', result.tracks[0].extractor?.name || 'Unknown');
                         await queue.node.play();
-                        console.log('[PLAY] Started playing:', result.tracks[0].title);
+                        console.log('[PLAY] ✅ Successfully started playing');
                     } catch (playError) {
-                        console.error('[PLAY] Failed to start playback:', playError);
+                        console.error('[PLAY] ❌ Failed to start playback:', playError.message);
                         throw playError;
                     }
+                } else {
+                    console.log('[PLAY] Queue already playing, track added to queue');
                 }
 
                 const track = result.tracks[0];
