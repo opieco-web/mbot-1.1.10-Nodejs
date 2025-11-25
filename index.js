@@ -88,29 +88,41 @@ const musicState = new Map();
 
 async function playYouTubeTrack(guild, member, query, user) {
     try {
-        console.log('[PLAY] Searching YouTube for:', query);
+        console.log('[PLAY] Searching for:', query);
         
-        // Use play-dl to search YouTube
-        const results = await play.search(query, { 
-            limit: 1,
-            source: { youtube: true }
-        });
+        // Search YouTube using ytdl
+        const searchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`;
+        let videoInfo;
         
-        if (!results || results.length === 0) {
-            throw new Error(`No tracks found for: ${query}`);
+        try {
+            // Try to get info from search results
+            videoInfo = await ytdl.getInfo(searchUrl);
+        } catch (e) {
+            // Fallback: search for first video manually
+            const fetch_url = await fetch(`https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`);
+            const html = await fetch_url.text();
+            const videoIdMatch = html.match(/(?:\/watch\?v=|\")([a-zA-Z0-9_-]{11})/);
+            
+            if (!videoIdMatch || !videoIdMatch[1]) {
+                throw new Error('No videos found');
+            }
+            
+            videoInfo = await ytdl.getInfo(`https://www.youtube.com/watch?v=${videoIdMatch[1]}`);
         }
         
-        const track = results[0];
-        const url = track.url;
+        const title = videoInfo.videoDetails.title;
+        const url = `https://www.youtube.com/watch?v=${videoInfo.videoDetails.videoId}`;
+        const thumbnail = videoInfo.videoDetails.thumbnail?.thumbnails?.[0]?.url || '';
+        const duration = parseInt(videoInfo.videoDetails.lengthSeconds);
         
-        console.log('[PLAY] Found track:', track.title);
+        console.log('[PLAY] Found track:', title);
         
         return {
-            title: track.title,
-            url: url,
-            thumbnail: track.thumbnail?.url || '',
-            duration: track.durationInSec || 0,
-            info: track
+            title,
+            url,
+            thumbnail,
+            duration,
+            info: videoInfo
         };
     } catch (error) {
         console.error('[PLAY] Search error:', error.message);
@@ -132,13 +144,15 @@ async function streamToVoice(guild, member, trackInfo) {
 
         const player = createAudioPlayer();
         
-        // Get audio stream using play-dl
+        // Get audio stream using ytdl
         console.log('[PLAY] Getting audio stream from:', trackInfo.url);
-        const stream = await play.stream(trackInfo.url);
+        const stream = ytdl(trackInfo.url, {
+            quality: 'highestaudio',
+            filter: 'audioonly'
+        });
 
-        const resource = createAudioResource(stream.stream, { 
-            inlineVolume: true,
-            inputType: stream.type
+        const resource = createAudioResource(stream, { 
+            inlineVolume: true
         });
         
         player.play(resource);
@@ -156,7 +170,7 @@ async function streamToVoice(guild, member, trackInfo) {
                 reject(error);
             });
 
-            stream.stream.on('error', (error) => {
+            stream.on('error', (error) => {
                 console.error('[PLAY] ❌ Stream error:', error);
                 connection.destroy();
                 reject(error);
@@ -1344,8 +1358,7 @@ client.on(Events.InteractionCreate, async interaction => {
         }
 
         const query = interaction.options.getString('queue');
-        const placeholder = { content: '⏳ Loading music...', flags: MessageFlags.Ephemeral };
-        await interaction.deferReply({ ephemeral: true });
+        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
         try {
             const track = await playYouTubeTrack(interaction.guild, member, query, user);
