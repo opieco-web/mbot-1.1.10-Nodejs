@@ -1575,7 +1575,7 @@ client.on(Events.InteractionCreate, async interaction => {
                 }
             ];
         } else if (pageNum === 3) {
-            // Page 3: Server Custom Profile
+            // Page 3: Server Custom Profile & Changelog
             pageComponents = [
                 { type: 10, content: `## 🎛️ ${BOT_NAME} Configuration` },
                 { type: 10, content: `**📄 Page 3/3**` },
@@ -1599,6 +1599,13 @@ client.on(Events.InteractionCreate, async interaction => {
                 if (bgUrl) mediaItems.push({ type: 1, media: { url: bgUrl }, description: 'Bot Banner' });
                 pageComponents.push({ type: 12, items: mediaItems });
             }
+            
+            // Add Changelog Section
+            pageComponents.push({ type: 14, spacing: 1 });
+            pageComponents.push({ type: 10, content: '### 📜 Bot Changelog' });
+            pageComponents.push({ type: 10, content: `**Version:** v${versionData.version}` });
+            pageComponents.push({ type: 14, spacing: 1 });
+            pageComponents.push({ type: 10, content: versionData.changelog });
         }
         
         // Add pagination buttons
