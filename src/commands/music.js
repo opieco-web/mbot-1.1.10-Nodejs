@@ -3,10 +3,10 @@ import { SlashCommandBuilder } from 'discord.js';
 export const musicCommands = [
     new SlashCommandBuilder()
         .setName('play')
-        .setDescription('Play music from YouTube or Spotify URL')
+        .setDescription('Play music from Bandcamp or direct audio URL')
         .addStringOption(option => 
             option.setName('queue')
-                .setDescription('YouTube URL (youtu.be) or Spotify URL')
+                .setDescription('Bandcamp URL or direct audio URL (.mp3, .wav, .flac)')
                 .setRequired(true)
         )
 ];

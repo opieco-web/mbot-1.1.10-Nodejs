@@ -1322,19 +1322,70 @@ client.on(Events.InteractionCreate, async interaction => {
         return interaction.reply(response);
     }
 
-    // PLAY - Music command (currently unavailable due to platform restrictions)
+    // PLAY - Music command (Bandcamp & Direct Audio URLs)
     if (commandName === 'play') {
-        return interaction.reply({ 
-            components: [{ 
-                type: 17, 
-                components: [
-                    { type: 10, content: '## 🎵 Music Feature' }, 
-                    { type: 14, spacing: 1 }, 
-                    { type: 10, content: 'YouTube and Spotify have restricted automated music playback. Your bot has all other features working: AFK system, welcome messages, auto-responses, fun commands (/truthordare, /coinflip), and more!' }
-                ] 
-            }], 
-            flags: MessageFlags.Ephemeral 
-        });
+        if (!member.voice.channel) {
+            return interaction.reply({ 
+                components: [{ 
+                    type: 17, 
+                    components: [
+                        { type: 10, content: '## 🚫 Voice Channel Required' }, 
+                        { type: 14, spacing: 1 }, 
+                        { type: 10, content: 'You must be in a voice channel to use this command.' }
+                    ] 
+                }], 
+                flags: MessageFlags.Ephemeral 
+            });
+        }
+
+        const input = interaction.options.getString('queue');
+        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+
+        try {
+            // Accept Bandcamp URLs or direct audio file URLs
+            if (!input.includes('bandcamp') && !input.endsWith('.mp3') && !input.endsWith('.wav') && !input.endsWith('.flac') && !input.includes('http')) {
+                throw new Error('❌ Please provide a Bandcamp URL or direct audio file URL (.mp3, .wav, .flac)');
+            }
+
+            console.log('[PLAY] Streaming:', input);
+            
+            // For Bandcamp URLs or direct audio files
+            const stream = await play.stream(input);
+            const mockTrack = {
+                name: input.includes('bandcamp') ? 'Bandcamp Track' : 'Audio File',
+                url: input,
+                artist: input.includes('bandcamp') ? 'Bandcamp' : 'Direct URL',
+                length: '0:00',
+                thumbnail: ''
+            };
+
+            const connection = joinVoiceChannel({
+                channelId: member.voice.channel.id,
+                guildId: interaction.guild.id,
+                adapterCreator: interaction.guild.voiceAdapterCreator,
+                selfDeaf: true,
+                selfMute: false
+            });
+
+            const player = createAudioPlayer();
+            const resource = createAudioResource(stream.stream, { 
+                inlineVolume: true, 
+                inputType: stream.type 
+            });
+            player.play(resource);
+            connection.subscribe(player);
+
+            player.on('error', (error) => {
+                console.error('[PLAY] Player error:', error);
+                connection.destroy();
+            });
+
+            const panel = createMusicControlPanel(mockTrack, user, 100, '▶️ Now Playing');
+            await interaction.editReply(panel);
+        } catch (error) {
+            console.error('[PLAY] Error:', error.message);
+            await interaction.editReply({ content: '❌ ' + error.message, components: [] });
+        }
     }
 
     // ------------------------
