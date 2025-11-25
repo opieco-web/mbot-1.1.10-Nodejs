@@ -827,6 +827,113 @@ client.on(Events.InteractionCreate, async interaction => {
                 }
             });
         }
+
+        // ===== MUSIC CONTROL BUTTONS =====
+        if (customId === 'music_queue') {
+            const queue = player.nodes.get(interaction.guildId);
+            if (!queue || !queue.tracks.length) {
+                return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## 🎵 Queue Empty' }, { type: 14 }, { type: 10, content: 'No songs in queue.' }] }], flags: 32768 | MessageFlags.Ephemeral });
+            }
+            const queueList = queue.tracks.slice(0, 10).map((t, i) => `**${i + 1}.** ${t.title} (${t.duration})`).join('\n');
+            return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## 🎵 Queue' }, { type: 14 }, { type: 10, content: queueList }] }], flags: 32768 | MessageFlags.Ephemeral });
+        }
+
+        if (customId === 'music_next') {
+            const queue = player.nodes.get(interaction.guildId);
+            if (!queue) return interaction.reply({ content: '❌ No queue found', flags: MessageFlags.Ephemeral });
+            try {
+                await queue.node.skip();
+                return interaction.reply({ content: '⏭️ Skipped to next track', flags: MessageFlags.Ephemeral });
+            } catch (err) {
+                return interaction.reply({ content: '❌ Failed to skip', flags: MessageFlags.Ephemeral });
+            }
+        }
+
+        if (customId === 'music_prev') {
+            const queue = player.nodes.get(interaction.guildId);
+            if (!queue) return interaction.reply({ content: '❌ No queue found', flags: MessageFlags.Ephemeral });
+            try {
+                await queue.history.back();
+                return interaction.reply({ content: '⏮️ Playing previous track', flags: MessageFlags.Ephemeral });
+            } catch (err) {
+                return interaction.reply({ content: '❌ No previous track', flags: MessageFlags.Ephemeral });
+            }
+        }
+
+        if (customId === 'music_toggle') {
+            const queue = player.nodes.get(interaction.guildId);
+            if (!queue) return interaction.reply({ content: '❌ No queue found', flags: MessageFlags.Ephemeral });
+            try {
+                if (queue.node.isPaused()) {
+                    await queue.node.resume();
+                    return interaction.reply({ content: '▶️ Resumed', flags: MessageFlags.Ephemeral });
+                } else {
+                    await queue.node.pause();
+                    return interaction.reply({ content: '⏸️ Paused', flags: MessageFlags.Ephemeral });
+                }
+            } catch (err) {
+                return interaction.reply({ content: '❌ Failed to toggle', flags: MessageFlags.Ephemeral });
+            }
+        }
+
+        if (customId === 'music_loop') {
+            const queue = player.nodes.get(interaction.guildId);
+            if (!queue) return interaction.reply({ content: '❌ No queue found', flags: MessageFlags.Ephemeral });
+            try {
+                const modes = [0, 1, 2, 3];
+                const current = queue.repeatMode || 0;
+                const nextMode = modes[(modes.indexOf(current) + 1) % modes.length];
+                queue.setRepeatMode(nextMode);
+                const modeNames = ['Off', 'Track', 'Queue', 'AutoPlay'];
+                return interaction.reply({ content: `🔁 Loop: **${modeNames[nextMode]}**`, flags: MessageFlags.Ephemeral });
+            } catch (err) {
+                return interaction.reply({ content: '❌ Failed to toggle loop', flags: MessageFlags.Ephemeral });
+            }
+        }
+
+        if (customId === 'music_leave') {
+            const queue = player.nodes.get(interaction.guildId);
+            if (!queue) return interaction.reply({ content: '❌ Not connected to voice', flags: MessageFlags.Ephemeral });
+            try {
+                queue.delete();
+                return interaction.reply({ content: '👋 Disconnected', flags: MessageFlags.Ephemeral });
+            } catch (err) {
+                return interaction.reply({ content: '❌ Failed to disconnect', flags: MessageFlags.Ephemeral });
+            }
+        }
+
+        if (customId === 'music_settings') {
+            return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## ⚙️ Music Settings' }, { type: 14 }, { type: 10, content: '• Volume: 100%\n• Loop: Off\n• Quality: High' }] }], flags: 32768 | MessageFlags.Ephemeral });
+        }
+
+        if (customId === 'music_lyrics') {
+            const queue = player.nodes.get(interaction.guildId);
+            if (!queue || !queue.current) return interaction.reply({ content: '❌ No track playing', flags: MessageFlags.Ephemeral });
+            return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: `## 📝 Lyrics\n${queue.current.title}` }, { type: 14 }, { type: 10, content: '[Lyrics not available for this track]' }] }], flags: 32768 | MessageFlags.Ephemeral });
+        }
+
+        if (customId === 'music_247') {
+            return interaction.reply({ content: '🕐 24/7 mode: Not available yet', flags: MessageFlags.Ephemeral });
+        }
+
+        if (customId === 'music_addqueue') {
+            const modal = {
+                custom_id: 'modal_add_song',
+                title: 'Add Song to Queue',
+                components: [{
+                    type: 1,
+                    components: [{
+                        type: 4,
+                        custom_id: 'song_query',
+                        label: 'Song name or URL',
+                        style: 1,
+                        placeholder: 'e.g., Never Gonna Give You Up',
+                        required: true
+                    }]
+                }]
+            };
+            return interaction.showModal(modal);
+        }
         }
     } catch (error) {
         console.error('Error handling interaction:', error);
@@ -882,6 +989,32 @@ client.on(Events.InteractionCreate, async interaction => {
             } catch (err) {
                 console.error('Modal status set error:', err);
                 return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:Error:1440296241090265088> Error' }, { type: 14 }, { type: 10, content: `Error updating status: ${err.message}` }] }], flags: 32768 | MessageFlags.Ephemeral });
+            }
+        }
+
+        if (interaction.customId === 'modal_add_song') {
+            const query = interaction.fields.getTextInputValue('song_query');
+            if (!interaction.member.voice.channel) {
+                return interaction.reply({ content: '🚫 You must be in a voice channel', flags: MessageFlags.Ephemeral });
+            }
+            try {
+                let queue = player.nodes.get(interaction.guildId);
+                if (!queue) {
+                    queue = player.nodes.create(interaction.guildId, {
+                        metadata: { channel: interaction.channel }
+                    });
+                }
+                if (!queue.connection) {
+                    queue.connect(interaction.member.voice.channel);
+                }
+                const result = await player.search(query, { requestedBy: interaction.user });
+                if (!result || !result.tracks.length) {
+                    return interaction.reply({ content: `❌ No songs found for: ${query}`, flags: MessageFlags.Ephemeral });
+                }
+                result.tracks.forEach(track => queue.addTrack(track));
+                return interaction.reply({ content: `✅ Added **${result.tracks[0].title}** to queue`, flags: MessageFlags.Ephemeral });
+            } catch (err) {
+                return interaction.reply({ content: `❌ Error: ${err.message}`, flags: MessageFlags.Ephemeral });
             }
         }
     }
