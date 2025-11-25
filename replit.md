@@ -206,16 +206,24 @@ changelog: `
 
 ## Automatic Version Increment System
 
-Every code edit increments the PATCH version automatically:
-- PATCH (last number): 0-99, increments with each edit
+**PATCH (Last Number) - Small Edits/Bug Fixes:**
+- Increments with every small code edit (1.0.12 → 1.0.13)
+- Ranges from 0-99
 - When PATCH reaches 100 → resets to 0, MINOR increments
-- MINOR (middle number): 0-4, increments when PATCH overflows
-- When MINOR reaches 5 → resets to 0, MAJOR increments
-- MAJOR (first number): increments when MINOR overflows
 
-**Progression Example:**
-- 1.0.11 → 1.0.12 → 1.0.13 → ... → 1.0.99 → 1.0.100 (becomes 1.1.0)
-- 1.4.99 → 1.5.0 → ... → 1.5.99 → 1.5.100 (becomes 2.0.0)
+**MINOR (Middle Number) - Big Features/Major Updates:**
+- Increments when adding significant new features or big updates (1.0.12 → 1.1.0)
+- Ranges from 0-4
+- When MINOR reaches 5 → resets to 0, MAJOR increments (1.4.99 → 2.0.0)
+
+**MAJOR (First Number) - Breaking Changes:**
+- Increments for major restructuring or breaking changes (1.x.x → 2.0.0)
+
+**Progression Examples:**
+- Small edits: 1.0.12 → 1.0.13 → 1.0.14 → ... → 1.0.99
+- Big update: 1.0.99 → 1.1.0 (MINOR increments, PATCH resets)
+- Continue: 1.1.0 → 1.2.0 → 1.3.0 → 1.4.0 → 1.5.0
+- Major update: 1.5.99 → 2.0.0 (MAJOR increments, MINOR resets)
 
 ## Current Version
 - **Version**: 1.0.12
