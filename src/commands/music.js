@@ -3,11 +3,11 @@ import { SlashCommandBuilder } from 'discord.js';
 export const musicCommands = [
     new SlashCommandBuilder()
         .setName('play')
-        .setDescription('Use !p prefix command with an audio file attachment instead')
-        .addStringOption(option => 
-            option.setName('info')
-                .setDescription('This command is disabled - use !p with attachment')
-                .setRequired(false)
+        .setDescription('Play music from an attached audio file')
+        .addAttachmentOption(option => 
+            option.setName('file')
+                .setDescription('Audio file to play (.mp3, .wav, .flac, .ogg, .m4a)')
+                .setRequired(true)
         )
 ];
 

@@ -1322,12 +1322,63 @@ client.on(Events.InteractionCreate, async interaction => {
         return interaction.reply(response);
     }
 
-    // PLAY - Slash command disabled (use !p with attachment instead)
+    // PLAY - Slash command with attachment
     if (commandName === 'play') {
-        return interaction.reply({ 
-            content: 'Use **!p** prefix command with an attached audio file instead.',
-            flags: MessageFlags.Ephemeral
-        });
+        if (!member.voice.channel) {
+            return interaction.reply({ 
+                content: '❌ You must be in a voice channel to play music.',
+                flags: MessageFlags.Ephemeral 
+            });
+        }
+
+        const attachment = interaction.options.getAttachment('file');
+        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+
+        try {
+            const validExtensions = ['.mp3', '.wav', '.flac', '.ogg', '.m4a'];
+            const isValidFile = validExtensions.some(ext => attachment.name.toLowerCase().endsWith(ext));
+
+            if (!isValidFile) {
+                throw new Error(`Invalid file format. Supported: ${validExtensions.join(', ')}`);
+            }
+
+            console.log('[PLAY] Playing attachment:', attachment.name);
+            const stream = await play.stream(attachment.url);
+            
+            const connection = joinVoiceChannel({
+                channelId: member.voice.channel.id,
+                guildId: interaction.guild.id,
+                adapterCreator: interaction.guild.voiceAdapterCreator,
+                selfDeaf: true,
+                selfMute: false
+            });
+
+            const player = createAudioPlayer();
+            const resource = createAudioResource(stream.stream, { 
+                inlineVolume: true, 
+                inputType: stream.type 
+            });
+            player.play(resource);
+            connection.subscribe(player);
+
+            player.on('error', (error) => {
+                console.error('[PLAY] Player error:', error);
+                connection.destroy();
+            });
+
+            const panel = createMusicControlPanel({
+                name: attachment.name,
+                url: attachment.url,
+                artist: 'Uploaded File',
+                length: '0:00',
+                thumbnail: ''
+            }, user, 100, '▶️ Now Playing');
+
+            await interaction.editReply(panel);
+        } catch (error) {
+            console.error('[PLAY] Error:', error.message);
+            await interaction.editReply({ content: '❌ ' + error.message, components: [] });
+        }
     }
 
     // ------------------------
