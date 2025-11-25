@@ -90,24 +90,44 @@ async function playYouTubeTrack(guild, member, query, user) {
     try {
         console.log('[PLAY] Searching for:', query);
         
-        // Search YouTube using ytdl
+        // Search YouTube - try multiple videos to find one that works
         const searchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`;
-        let videoInfo;
+        const fetch_url = await fetch(searchUrl);
+        const html = await fetch_url.text();
         
-        try {
-            // Try to get info from search results
-            videoInfo = await ytdl.getInfo(searchUrl);
-        } catch (e) {
-            // Fallback: search for first video manually
-            const fetch_url = await fetch(`https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`);
-            const html = await fetch_url.text();
-            const videoIdMatch = html.match(/(?:\/watch\?v=|\")([a-zA-Z0-9_-]{11})/);
-            
-            if (!videoIdMatch || !videoIdMatch[1]) {
-                throw new Error('No videos found');
+        // Extract all video IDs from search results
+        const videoMatches = html.match(/(?:\/watch\?v=|\")([a-zA-Z0-9_-]{11})/g);
+        if (!videoMatches || videoMatches.length === 0) {
+            throw new Error('No videos found');
+        }
+        
+        // Extract unique video IDs
+        const videoIds = [...new Set(videoMatches.map(m => m.match(/([a-zA-Z0-9_-]{11})/)[1]))].slice(0, 5);
+        
+        let videoInfo;
+        let lastError;
+        
+        // Try each video until one works
+        for (const videoId of videoIds) {
+            try {
+                const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
+                console.log('[PLAY] Trying video:', videoId);
+                videoInfo = await ytdl.getInfo(videoUrl);
+                
+                // Check if video is available
+                if (videoInfo.videoDetails && videoInfo.videoDetails.videoId) {
+                    console.log('[PLAY] ✅ Found playable video:', videoInfo.videoDetails.title);
+                    break;
+                }
+            } catch (e) {
+                lastError = e;
+                console.log('[PLAY] Video unavailable:', videoId, '-', e.message);
+                continue;
             }
-            
-            videoInfo = await ytdl.getInfo(`https://www.youtube.com/watch?v=${videoIdMatch[1]}`);
+        }
+        
+        if (!videoInfo) {
+            throw lastError || new Error('Could not find a playable video');
         }
         
         const title = videoInfo.videoDetails.title;
