@@ -1,8 +1,8 @@
 export default {
-    version: "1.0.24",
-    releaseDate: "Nov 25, 2025 3:08 PM",
-    releaseDateTimestamp: 1764064117,
-    changesSummary: "Pending nickname queue system - applies offline requests when bot comes online",
+    version: "1.0.25",
+    releaseDate: "Nov 25, 2025 3:10 PM",
+    releaseDateTimestamp: 1764064220,
+    changesSummary: "Bot scans nickname channel on startup - auto-applies unapplied requests after coming online",
 
     versionGuide: `
 📌 Versioning Guide

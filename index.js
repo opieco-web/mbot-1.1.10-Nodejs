@@ -241,37 +241,100 @@ data.nickname.filter = data.nickname.filter || []; // [ word, word, ... ]
 data.autoresponse = data.autoresponse || {}; // { guildId: [{ id, title, content, created }, ...] }
 data.pendingNicknameRequests = data.pendingNicknameRequests || {}; // { userId: { guildId, nickname, timestamp } }
 
-// HELPER: Process pending nickname requests when bot comes online
+// HELPER: Process pending nickname requests by scanning the nickname channel
 async function processPendingNicknameRequests() {
-    if (!data.pendingNicknameRequests || Object.keys(data.pendingNicknameRequests).length === 0) {
-        console.log('[PENDING NICKNAMES] No pending requests to process');
+    if (!data.nickname.channelId) {
+        console.log('[PENDING NICKNAMES] No nickname channel configured');
         return;
     }
     
-    console.log(`[PENDING NICKNAMES] Processing ${Object.keys(data.pendingNicknameRequests).length} pending requests...`);
-    
-    for (const userId in data.pendingNicknameRequests) {
-        const request = data.pendingNicknameRequests[userId];
-        const { guildId, nickname } = request;
+    try {
+        const channel = await client.channels.fetch(data.nickname.channelId);
+        if (!channel || !channel.isTextBased()) {
+            console.log('[PENDING NICKNAMES] Nickname channel not found or not a text channel');
+            return;
+        }
         
-        try {
-            const guild = client.guilds.cache.get(guildId);
-            if (!guild) {
-                console.log(`[PENDING NICKNAMES] Guild ${guildId} not found, skipping user ${userId}`);
-                continue;
+        console.log('[PENDING NICKNAMES] Scanning nickname request channel for unapplied requests...');
+        
+        // Fetch messages from the channel (last 100 messages)
+        const messages = await channel.messages.fetch({ limit: 100 });
+        let processedCount = 0;
+        
+        for (const msg of messages.values()) {
+            // Skip bot messages and very old messages
+            if (msg.author.bot) continue;
+            
+            const nickname = msg.content.trim();
+            if (!nickname || nickname.toLowerCase() === 'reset') continue;
+            
+            // Check if bot already replied to this message
+            const replies = await msg.thread?.messages.fetch().catch(() => null);
+            const hasSuccessReply = msg.reactions?.some(reaction => 
+                reaction.me // Bot reacted
+            ) || msg.mentions?.has?.(client.user?.id);
+            
+            // More reliable: Check if there's a reply from the bot
+            let botReplied = false;
+            if (msg.hasThread) {
+                const threadMsgs = await msg.thread.messages.fetch().catch(() => []);
+                botReplied = Array.from(threadMsgs.values()).some(m => m.author.bot);
             }
             
-            const member = await guild.members.fetch(userId);
-            await member.setNickname(nickname);
-            console.log(`✅ [PENDING NICKNAMES] Applied nickname "${nickname}" to ${member.user.tag}`);
-            delete data.pendingNicknameRequests[userId];
-        } catch (err) {
-            console.error(`❌ [PENDING NICKNAMES] Failed to apply nickname for user ${userId}:`, err.message);
+            // If no bot reply found, apply the nickname now
+            if (!botReplied) {
+                try {
+                    const member = await channel.guild.members.fetch(msg.author.id);
+                    
+                    // Check banned words
+                    const bannedWord = data.nickname.filter?.some(word => 
+                        nickname.toLowerCase().includes(word.toLowerCase())
+                    );
+                    
+                    if (bannedWord) {
+                        await msg.reply({ 
+                            content: ' ', 
+                            components: [{ 
+                                type: 17, 
+                                components: [
+                                    { type: 10, content: '### <:Bin:1441777857205637254> Cannot Set' }, 
+                                    { type: 14, spacing: 1 }, 
+                                    { type: 10, content: `Word "**${bannedWord}**" is not allowed.` }
+                                ] 
+                            }], 
+                            flags: 32768 
+                        }).catch(() => {});
+                        continue;
+                    }
+                    
+                    const before = member.nickname || member.displayName;
+                    await member.setNickname(nickname);
+                    
+                    await msg.reply({ 
+                        content: ' ', 
+                        components: [{ 
+                            type: 17, 
+                            components: [
+                                { type: 10, content: `### <:Correct:1440296238305116223> Changed To ${nickname}` }, 
+                                { type: 14, spacing: 1 }, 
+                                { type: 10, content: `Your previous nickname was **${before}**` }
+                            ] 
+                        }], 
+                        flags: 32768 
+                    }).catch(() => {});
+                    
+                    console.log(`✅ [PENDING NICKNAMES] Applied nickname "${nickname}" to ${msg.author.tag}`);
+                    processedCount++;
+                } catch (err) {
+                    console.error(`❌ [PENDING NICKNAMES] Failed to apply nickname for ${msg.author.tag}:`, err.message);
+                }
+            }
         }
+        
+        console.log(`[PENDING NICKNAMES] Completed. Processed ${processedCount} pending requests.`);
+    } catch (err) {
+        console.error('[PENDING NICKNAMES] Error scanning channel:', err.message);
     }
-    
-    // Save updated data
-    fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
 }
 
 // HELPER: Check cooldown and warn user
