@@ -1324,22 +1324,6 @@ client.on(Events.InteractionCreate, async interaction => {
                 });
             }
 
-            result.tracks.forEach(track => queue.addTrack(track));
-            if (!queue.isPlaying()) {
-                try {
-                    console.log('[PLAY] Queue connection status:', queue.connection ? 'Connected' : 'Not connected');
-                    console.log('[PLAY] Current track:', result.tracks[0].title);
-                    console.log('[PLAY] Track extractor:', result.tracks[0].extractor?.name || 'Unknown');
-                    await queue.node.play();
-                    console.log('[PLAY] ✅ Successfully started playing');
-                } catch (playError) {
-                    console.error('[PLAY] ❌ Failed to start playback:', playError.message);
-                    throw playError;
-                }
-            } else {
-                console.log('[PLAY] Queue already playing, track added to queue');
-            }
-
             const track = result.tracks[0];
             const mockTrack = {
                 name: track.title,
@@ -1350,7 +1334,22 @@ client.on(Events.InteractionCreate, async interaction => {
             };
 
             const panel = createMusicControlPanel(mockTrack, user, 100, '▶️ Now Playing');
-            return interaction.reply(panel);
+            await interaction.reply(panel);
+
+            result.tracks.forEach(track => queue.addTrack(track));
+            if (!queue.isPlaying()) {
+                try {
+                    console.log('[PLAY] Queue connection status:', queue.connection ? 'Connected' : 'Not connected');
+                    console.log('[PLAY] Current track:', result.tracks[0].title);
+                    console.log('[PLAY] Track extractor:', result.tracks[0].extractor?.name || 'Unknown');
+                    await queue.node.play();
+                    console.log('[PLAY] ✅ Successfully started playing');
+                } catch (playError) {
+                    console.error('[PLAY] ❌ Failed to start playback:', playError.message);
+                }
+            } else {
+                console.log('[PLAY] Queue already playing, track added to queue');
+            }
         } catch (error) {
             console.error('[PLAY] Error:', error);
             return interaction.reply({ 
@@ -2527,22 +2526,6 @@ client.on(Events.MessageCreate, async msg => {
                     return msg.reply('❌ No songs found for: ' + query);
                 }
 
-                result.tracks.forEach(track => queue.addTrack(track));
-                if (!queue.isPlaying()) {
-                    try {
-                        console.log('[PLAY] Queue connection status:', queue.connection ? 'Connected' : 'Not connected');
-                        console.log('[PLAY] Current track:', result.tracks[0].title);
-                        console.log('[PLAY] Track extractor:', result.tracks[0].extractor?.name || 'Unknown');
-                        await queue.node.play();
-                        console.log('[PLAY] ✅ Successfully started playing');
-                    } catch (playError) {
-                        console.error('[PLAY] ❌ Failed to start playback:', playError.message);
-                        throw playError;
-                    }
-                } else {
-                    console.log('[PLAY] Queue already playing, track added to queue');
-                }
-
                 const track = result.tracks[0];
                 const mockTrack = {
                     name: track.title,
@@ -2553,7 +2536,22 @@ client.on(Events.MessageCreate, async msg => {
                 };
 
                 const panel = createMusicControlPanel(mockTrack, msg.author, 100, '▶️ Now Playing');
-                return msg.reply(panel);
+                await msg.reply(panel);
+
+                result.tracks.forEach(track => queue.addTrack(track));
+                if (!queue.isPlaying()) {
+                    try {
+                        console.log('[PLAY] Queue connection status:', queue.connection ? 'Connected' : 'Not connected');
+                        console.log('[PLAY] Current track:', result.tracks[0].title);
+                        console.log('[PLAY] Track extractor:', result.tracks[0].extractor?.name || 'Unknown');
+                        await queue.node.play();
+                        console.log('[PLAY] ✅ Successfully started playing');
+                    } catch (playError) {
+                        console.error('[PLAY] ❌ Failed to start playback:', playError.message);
+                    }
+                } else {
+                    console.log('[PLAY] Queue already playing, track added to queue');
+                }
             } catch (error) {
                 console.error('[PLAY] Error:', error);
                 return msg.reply('❌ Failed to play music: ' + error.message);
