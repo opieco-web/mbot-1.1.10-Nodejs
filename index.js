@@ -1349,9 +1349,15 @@ client.on(Events.InteractionCreate, async interaction => {
             });
 
             const player = createAudioPlayer();
-            const resource = createAudioResource(stream, { inputType: 'arbitrary' });
+            const resource = createAudioResource(stream, { 
+                inputType: 'arbitrary',
+                inlineVolume: true
+            });
             player.play(resource);
             connection.subscribe(player);
+
+            player.on('error', e => console.error('[AUDIO ERROR]', e));
+            connection.on('stateChange', state => console.log('[CONNECTION]', state.status));
 
             await interaction.editReply(`▶️ Now playing: **${attachment.name}**`);
         } catch (error) {
