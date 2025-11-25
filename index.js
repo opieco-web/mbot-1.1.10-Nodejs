@@ -1070,10 +1070,33 @@ client.on(Events.MessageCreate, async msg => {
             }).catch(() => {});
         }
 
-        // !av command (avatar)
+        // !av command (avatar prefix commands)
         if (cmd === 'av') {
-            const user = msg.mentions.has(msg.author) ? msg.mentions.first() : msg.author;
-            const avatarComponent = createAvatarComponent(user.username, user.displayAvatarURL(), null, 'both');
+            let user = msg.author;
+            let mode = 'server_only'; // default for !av is server avatar only
+            
+            // Parse arguments: !av, !av df, !av @user, !av @user df
+            if (args.length > 0) {
+                if (args[0] === 'df') {
+                    // !av df - your default account avatar
+                    mode = 'default_only';
+                } else if (msg.mentions.size > 0) {
+                    // !av @user or !av @user df
+                    user = msg.mentions.first();
+                    if (args[1] === 'df') {
+                        // !av @user df - user default account avatar
+                        mode = 'default_only';
+                    } else {
+                        // !av @user - user specific server avatar
+                        mode = 'server_only';
+                    }
+                }
+            }
+            
+            // Get server avatar if member has one
+            const member = await msg.guild.members.fetch(user.id).catch(() => null);
+            const serverAvatarUrl = member && member.avatar ? member.avatarURL() : null;
+            const avatarComponent = createAvatarComponent(user.username, user.displayAvatarURL(), serverAvatarUrl, mode);
             return msg.reply(avatarComponent).catch(() => {});
         }
 
