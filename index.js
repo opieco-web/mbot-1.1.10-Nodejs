@@ -85,9 +85,20 @@ const player = new Player(client, {
     leaveOnEmpty: true,
     leaveOnEnd: false,
     leaveOnStop: true,
-    connectionTimeout: 30000,
-    skipFFmpeg: false
+    connectionTimeout: 60000,
+    skipFFmpeg: false,
+    useSafeTimestampExtraction: true
 });
+
+// Load extractors immediately for YouTube, Spotify, SoundCloud, etc.
+(async () => {
+    try {
+        await player.extractors.loadMulti(DefaultExtractors);
+        console.log('[INIT] ✅ Extractors pre-loaded');
+    } catch (error) {
+        console.error('[INIT] ⚠️ Failed to pre-load extractors:', error.message);
+    }
+})();
 
 // Add comprehensive event handlers for player debugging
 player.events.on('error', (queue, error) => {
@@ -229,13 +240,8 @@ function applyBotStatus() {
 client.once(Events.ClientReady, async () => {
     console.log(`${client.user.tag} is online!`);
     
-    // Load extractors for music playback (YouTube, Spotify, etc.)
-    try {
-        await player.extractors.loadMulti(DefaultExtractors);
-        console.log('✅ Music extractors loaded (YouTube, Spotify, etc.)');
-    } catch (error) {
-        console.error('⚠️ Failed to load extractors:', error.message);
-    }
+    // Extractors pre-loaded on startup
+    console.log('✅ Bot ready - Extractors active');
     
     // Initialize topics
     await initializeTopics();
