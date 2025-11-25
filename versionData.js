@@ -1,8 +1,8 @@
 export default {
-    version: "1.0.33",
-    releaseDate: "Nov 25, 2025 3:18 PM",
-    releaseDateTimestamp: 1764064700,
-    changesSummary: "NEW: Interactive 3-page /botinfo with Full Description & Commands Guide buttons",
+    version: "1.0.34",
+    releaseDate: "Nov 25, 2025 3:19 PM",
+    releaseDateTimestamp: 1764064760,
+    changesSummary: "NEW: !bi prefix command now uses 3-page interactive system like /botinfo",
 
     versionGuide: `
 📌 Versioning Guide

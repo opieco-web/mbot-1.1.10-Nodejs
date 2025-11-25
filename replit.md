@@ -226,9 +226,9 @@ changelog: `
 - Major update: 1.5.99 → 2.0.0 (MAJOR increments, MINOR resets)
 
 ## Current Version
-- **Version**: 1.0.33
-- **Last Updated**: Nov 25, 2025 3:18 PM
-- **Status**: NEW: Interactive /botinfo with 3 pages - Main, Full Description, Commands Guide
+- **Version**: 1.0.34
+- **Last Updated**: Nov 25, 2025 3:19 PM
+- **Status**: NEW: Both /botinfo & !bi now use interactive 3-page system
 
 # Recent Changes (Nov 25, 2025)
 - **COMPLETED: Full Modularization**

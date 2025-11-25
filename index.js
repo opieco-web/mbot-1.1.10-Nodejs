@@ -2767,44 +2767,30 @@ client.on(Events.MessageCreate, async msg => {
             return msg.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '### <:Tails:1441153955412312134> Coin Flip' }, { type: 14, spacing: 1 }, { type: 10, content: `The coin landed on: **${result}**!` }] }], flags: 32768 });
         }
 
-        // Bot Info command
+        // Bot Info command - 3-page interactive system
         if (cmd === 'bi') {
-            const botName = client.user.username;
             const prefix = getPrefix(guildId);
             const wsLatency = client.ws.ping;
-            const responseTime = Date.now() - msg.createdTimestamp;
             const uptime = formatUptime(startTime);
-            const botAvatar = client.user.displayAvatarURL({ dynamic: true, size: 1024 });
             
-            const infoText = `**${packageJson.description}**\n\n**Prefix:** \`${prefix}\`\n**Ping:** ${wsLatency}ms\n**Response Time:** ${responseTime}ms\n**Uptime:** ${uptime}\n**Total Commands:** 15+`;
+            const shortSummary = `Smart Discord bot for Mining Bangladesh with nickname management, AFK system, welcome messages, auto-responses, and fun commands.\n\n**Ping:** ${wsLatency}ms | **Uptime:** ${uptime}`;
             
-            const payload = {
+            const page1Payload = {
                 content: ' ',
                 components: [
                     {
                         type: 17,
                         components: [
+                            { type: 10, content: `## ${BOT_NAME}│v${BOT_VERSION}` },
+                            { type: 14 },
+                            { type: 10, content: shortSummary },
+                            { type: 14, spacing: 1 },
                             {
-                                type: 10,
-                                content: `## ${BOT_NAME}│v${BOT_VERSION}`
-                            },
-                            {
-                                type: 14
-                            },
-                            {
-                                type: 9,
+                                type: 1,
                                 components: [
-                                    {
-                                        type: 10,
-                                        content: infoText
-                                    }
-                                ],
-                                accessory: {
-                                    type: 11,
-                                    media: {
-                                        url: botAvatar
-                                    }
-                                }
+                                    { type: 2, label: '📖 Full Description', custom_id: 'botinfo_description', style: 1 },
+                                    { type: 2, label: '📚 Commands Guide', custom_id: 'botinfo_commands', style: 1 }
+                                ]
                             }
                         ]
                     }
@@ -2812,7 +2798,7 @@ client.on(Events.MessageCreate, async msg => {
                 flags: 32768
             };
             
-            return msg.reply(payload);
+            return msg.reply(page1Payload);
         }
 
         // Search command
