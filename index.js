@@ -114,18 +114,6 @@ player.events.on('trackEnd', (queue, track) => {
 
 player.events.on('queueCreate', (queue) => {
     console.log('[QUEUE CREATE]', queue.guild.name);
-    
-    queue.dispatcher.on('start', () => {
-        console.log('[AUDIO START]', 'Audio stream started');
-    });
-    
-    queue.dispatcher.on('error', (err) => {
-        console.error('[DISPATCHER ERROR]', err);
-    });
-    
-    queue.dispatcher.on('finish', () => {
-        console.log('[AUDIO FINISH]', 'Audio stream finished');
-    });
 });
 
 client.commands = new Collection();
