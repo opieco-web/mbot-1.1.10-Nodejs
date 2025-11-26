@@ -1108,7 +1108,8 @@ ${prefix}afk [reason] - Set AFK
         const prefix = getPrefix(guildId);
         
         const pingEmoji = wsLatency < 100 ? '<:theconnectionisexcellent:1442982226437341355>' : wsLatency < 200 ? '<:theconnectionisgood:1442982222968918036>' : '<:theconnectionisbad:1442982216882720799>';
-        const shortSummary = `Smart Discord bot for Mining Bangladesh with nickname management, AFK system, welcome messages, auto-responses, and fun commands.\n\n${pingEmoji} **Ping:** ${wsLatency}ms | <:timetwentyfour:1442980732581580962> **Uptime:** ${uptime}`;
+        const botDescription = `Smart Discord bot for Mining Bangladesh with nickname management, AFK system, welcome messages, auto-responses, and fun commands.`;
+        const statsLine = `**Prefix:** \`${prefix}\` | **Slash:** \`/\`\n${pingEmoji} **Ping:** ${wsLatency}ms | <:timetwentyfour:1442980732581580962> **Uptime:** ${uptime}`;
         
         const mainPayload = {
             content: ' ',
@@ -1118,13 +1119,15 @@ ${prefix}afk [reason] - Set AFK
                     components: [
                         { type: 10, content: `## ${BOT_NAME}│v${BOT_VERSION}` },
                         { type: 14 },
-                        { type: 10, content: shortSummary },
+                        { type: 10, content: botDescription, accessory: { type: 11, media: { url: botAvatar } } },
+                        { type: 14 },
+                        { type: 10, content: statsLine },
                         { type: 14, spacing: 1 },
                         {
                             type: 1,
                             components: [
-                                { type: 2, label: '📖 Full Description', custom_id: 'botinfo_description', style: 1 },
-                                { type: 2, label: '📚 Commands Guide', custom_id: 'botinfo_commands', style: 1 }
+                                { type: 2, label: 'Full Description', custom_id: 'botinfo_description', style: 1, emoji: { id: '1441531934332424314', name: 'question' } },
+                                { type: 2, label: 'Commands Guide', custom_id: 'botinfo_commands', style: 2, emoji: { id: '1443008796111802500', name: 'commands' } }
                             ]
                         }
                     ]
@@ -1241,7 +1244,8 @@ ${prefix}afk [reason] - Set AFK
         
         // PAGE 1: MAIN (Short Summary + Buttons)
         const pingEmoji = wsLatency < 100 ? '<:theconnectionisexcellent:1442982226437341355>' : wsLatency < 200 ? '<:theconnectionisgood:1442982222968918036>' : '<:theconnectionisbad:1442982216882720799>';
-        const shortSummary = `Smart Discord bot for Mining Bangladesh with nickname management, AFK system, welcome messages, auto-responses, and fun commands.\n\n${pingEmoji} **Ping:** ${wsLatency}ms | <:timetwentyfour:1442980732581580962> **Uptime:** ${uptime}`;
+        const botDescription = `Smart Discord bot for Mining Bangladesh with nickname management, AFK system, welcome messages, auto-responses, and fun commands.`;
+        const statsLine = `**Prefix:** \`${prefix}\` | **Slash:** \`/\`\n${pingEmoji} **Ping:** ${wsLatency}ms | <:timetwentyfour:1442980732581580962> **Uptime:** ${uptime}`;
         
         const page1Payload = {
             content: ' ',
@@ -1251,13 +1255,15 @@ ${prefix}afk [reason] - Set AFK
                     components: [
                         { type: 10, content: `## ${BOT_NAME}│v${BOT_VERSION}` },
                         { type: 14 },
-                        { type: 10, content: shortSummary },
+                        { type: 10, content: botDescription, accessory: { type: 11, media: { url: botAvatar } } },
+                        { type: 14 },
+                        { type: 10, content: statsLine },
                         { type: 14, spacing: 1 },
                         {
                             type: 1,
                             components: [
-                                { type: 2, label: '📖 Full Description', custom_id: 'botinfo_description', style: 1 },
-                                { type: 2, label: '📚 Commands Guide', custom_id: 'botinfo_commands', style: 1 }
+                                { type: 2, label: 'Full Description', custom_id: 'botinfo_description', style: 1, emoji: { id: '1441531934332424314', name: 'question' } },
+                                { type: 2, label: 'Commands Guide', custom_id: 'botinfo_commands', style: 2, emoji: { id: '1443008796111802500', name: 'commands' } }
                             ]
                         }
                     ]
@@ -2795,9 +2801,11 @@ client.on(Events.MessageCreate, async msg => {
             const prefix = getPrefix(guildId);
             const wsLatency = client.ws.ping;
             const uptime = formatUptime(startTime);
+            const botAvatar = client.user.displayAvatarURL({ dynamic: true, size: 1024 });
             
             const pingEmoji = wsLatency < 100 ? '<:theconnectionisexcellent:1442982226437341355>' : wsLatency < 200 ? '<:theconnectionisgood:1442982222968918036>' : '<:theconnectionisbad:1442982216882720799>';
-            const shortSummary = `Smart Discord bot for Mining Bangladesh with nickname management, AFK system, welcome messages, auto-responses, and fun commands.\n\n${pingEmoji} **Ping:** ${wsLatency}ms | <:timetwentyfour:1442980732581580962> **Uptime:** ${uptime}`;
+            const botDescription = `Smart Discord bot for Mining Bangladesh with nickname management, AFK system, welcome messages, auto-responses, and fun commands.`;
+            const statsLine = `**Prefix:** \`${prefix}\` | **Slash:** \`/\`\n${pingEmoji} **Ping:** ${wsLatency}ms | <:timetwentyfour:1442980732581580962> **Uptime:** ${uptime}`;
             
             const page1Payload = {
                 content: ' ',
@@ -2807,13 +2815,15 @@ client.on(Events.MessageCreate, async msg => {
                         components: [
                             { type: 10, content: `## ${BOT_NAME}│v${BOT_VERSION}` },
                             { type: 14 },
-                            { type: 10, content: shortSummary },
+                            { type: 10, content: botDescription, accessory: { type: 11, media: { url: botAvatar } } },
+                            { type: 14 },
+                            { type: 10, content: statsLine },
                             { type: 14, spacing: 1 },
                             {
                                 type: 1,
                                 components: [
-                                    { type: 2, label: '📖 Full Description', custom_id: 'botinfo_description', style: 1 },
-                                    { type: 2, label: '📚 Commands Guide', custom_id: 'botinfo_commands', style: 1 }
+                                    { type: 2, label: 'Full Description', custom_id: 'botinfo_description', style: 1, emoji: { id: '1441531934332424314', name: 'question' } },
+                                    { type: 2, label: 'Commands Guide', custom_id: 'botinfo_commands', style: 2, emoji: { id: '1443008796111802500', name: 'commands' } }
                                 ]
                             }
                         ]
