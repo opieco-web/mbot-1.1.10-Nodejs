@@ -1,8 +1,8 @@
 export default {
-    version: "1.0.42",
-    releaseDate: "Nov 26, 2025 9:28 AM",
-    releaseDateTimestamp: 1764144480,
-    changesSummary: "Added bot avatar thumbnail to Full Description page",
+    version: "1.0.43",
+    releaseDate: "Nov 26, 2025 9:30 AM",
+    releaseDateTimestamp: 1764144600,
+    changesSummary: "Fixed bot avatar display in botinfo main page and full description",
 
     versionGuide: `
 📌 Versioning Guide
