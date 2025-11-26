@@ -996,22 +996,22 @@ client.on(Events.InteractionCreate, async interaction => {
     if (interaction.isButton() && interaction.customId === 'botinfo_description') {
         const fullDesc = `**m•bot** is a comprehensive Discord bot designed for Mining Bangladesh community.
 
-🎯 **Core Features:**
-📝 **Nickname Management** - Users request nicknames in a channel, bot processes them with smart anti-spam & offline support
-😴 **AFK System** - Set AFK status with reason, get notified when mentioned, auto-removes when you return
-👋 **Welcome Messages** - 60+ unique localized welcome messages with configurable delays
-💬 **Auto-Responses** - Create custom triggers that automatically reply with text or emoji
-🎮 **Fun Commands** - Truth or Dare, Coin Flip, Choice selector
-🛠️ **Utilities** - Avatar display, Bot info, Wikipedia search
+<a:7560:1443155963027652648> **Core Features:**
+<:editmessage:1443156335809007697> **Nickname Management** - Users request nicknames in a channel, bot processes them with smart anti-spam & offline support
+<:usebotsorapps:1443156331249930250> **AFK System** - Set AFK status with reason, get notified when mentioned, auto-removes when you return
+<:usebotsorapps:1443156331249930250> **Welcome Messages** - 60+ unique localized welcome messages with configurable delays
+<:usebotsorapps:1443156331249930250> **Auto-Responses** - Create custom triggers that automatically reply with text or emoji
+<:usebotsorapps:1443156331249930250> **Fun Commands** - Truth or Dare, Coin Flip, Choice selector
+<:usebotsorapps:1443156331249930250> **Utilities** - Avatar display, Bot info, Wikipedia search
 
-⚡ **Why Choose m•bot:**
-✅ Reliable offline processing - nicknames won't get lost
-✅ Prevents duplicate processing - won't reapply same nicknames
-✅ Beautiful Component V2 UI - modern Discord interface
-✅ Persistent data - survives bot restarts
-✅ Fully customizable - per-server settings
-✅ Community focused - designed for Mining Bangladesh
-✅ Clean modular code - fast updates and new features`;
+<:Bot1:1442980696078549062><:Bot2:1442980693453045912> **Ability Advantage**
+<:Success:1440296238305116223> Reliable offline processing - nicknames won't get lost
+<:Success:1440296238305116223> Prevents duplicate processing - won't reapply same nicknames
+<:Success:1440296238305116223> Beautiful Component V2 UI - modern Discord interface
+<:Success:1440296238305116223> Persistent data - survives bot restarts
+<:Success:1440296238305116223> Fully customizable - per-server settings
+<:Success:1440296238305116223> Community focused - designed for Mining Bangladesh
+<:Success:1440296238305116223> Clean modular code - fast updates and new features`;
 
         const backPayload = {
             content: ' ',
@@ -1026,7 +1026,7 @@ client.on(Events.InteractionCreate, async interaction => {
                         {
                             type: 1,
                             components: [
-                                { type: 2, label: '← Back to Main', custom_id: 'botinfo_main', style: 2 }
+                                { type: 2, label: 'Back to Main', custom_id: 'botinfo_main', style: 2, emoji: { id: '1442984948305887362', name: 'Page' } }
                             ]
                         }
                     ]
