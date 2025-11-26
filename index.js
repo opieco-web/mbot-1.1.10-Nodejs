@@ -2451,7 +2451,9 @@ client.on(Events.MessageCreate, async msg => {
         delete afkUsers[msg.author.id];
         delete data.afk[msg.author.id];
         fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
-        await msg.reply(`<:1_yes_correct:1439893200981721140> Welcome back ${msg.author}! You were AFK for ${duration}.`);
+        const welcomeEmojis = ['<a:snowmanhellokitty:1441834296804638800>', '<a:mymelody:1441834292400623646>', '<a:twirlingdonut:1441834290311598229>', '<a:orangeblossom:1441834288193605856>', '<a:musicrecordspin:1441834285517639841>', '<a:balloonpikachu:1441834282816377103>', '<a:croissant:1441783019139502112>', '<a:cherry:1441782972486516946>', '<:1210pixelhotcoffee:1443306092863029418>', '<a:scarf:1443306089738141760>', '<a:kittydance:1443306087125094533>', '<a:whitebutterfly:1443306083694280724>', '<a:703209tkkkk:1443306080636502147>', '<a:tkkkk:1443306075356004548>'];
+        const welcomeEmoji = welcomeEmojis[Math.floor(Math.random() * welcomeEmojis.length)];
+        await msg.reply(`${welcomeEmoji} Welcome back ${msg.author}! You were AFK for ${duration}.`);
     }
 
     // ----- Handle prefix commands -----

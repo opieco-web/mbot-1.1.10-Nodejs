@@ -1,8 +1,8 @@
 export default {
-    version: "1.0.44",
-    releaseDate: "Nov 26, 2025 9:32 AM",
-    releaseDateTimestamp: 1764144720,
-    changesSummary: "Updated AFK messages to 'since' format with quoted notes, added all custom emojis to fun commands",
+    version: "1.0.45",
+    releaseDate: "Nov 26, 2025 9:33 AM",
+    releaseDateTimestamp: 1764144780,
+    changesSummary: "Added randomized emoji to AFK welcome back message",
 
     versionGuide: `
 📌 Versioning Guide
