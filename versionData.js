@@ -1,8 +1,8 @@
 export default {
-    version: "1.0.44",
-    releaseDate: "Nov 26, 2025 9:32 AM",
-    releaseDateTimestamp: 1764144720,
-    changesSummary: "Fixed Component V2 validation error by removing invalid media component type",
+    version: "1.0.41",
+    releaseDate: "Nov 26, 2025 9:26 AM",
+    releaseDateTimestamp: 1764144360,
+    changesSummary: "Added prefix/slash info, bot avatar thumbnail, custom button emojis in botinfo",
 
     versionGuide: `
 📌 Versioning Guide

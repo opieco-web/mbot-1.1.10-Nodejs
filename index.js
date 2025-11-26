@@ -994,7 +994,6 @@ client.on(Events.InteractionCreate, async interaction => {
     // ===== HANDLE BUTTONS =====
     // BUTTON: botinfo_description - Full Bot Description
     if (interaction.isButton() && interaction.customId === 'botinfo_description') {
-        const botAvatar = client.user.displayAvatarURL({ dynamic: true, size: 1024 });
         const fullDesc = `**m•bot** is a comprehensive Discord bot designed for Mining Bangladesh community.
 
 🎯 **Core Features:**
@@ -1120,7 +1119,8 @@ ${prefix}afk [reason] - Set AFK
                     components: [
                         { type: 10, content: `## ${BOT_NAME}│v${BOT_VERSION}` },
                         { type: 14 },
-                        { type: 10, content: botDescription },
+                        { type: 10, content: botDescription, accessory: { type: 11, media: { url: botAvatar } } },
+                        { type: 14 },
                         { type: 10, content: statsLine },
                         { type: 14, spacing: 1 },
                         {
@@ -1255,7 +1255,8 @@ ${prefix}afk [reason] - Set AFK
                     components: [
                         { type: 10, content: `## ${BOT_NAME}│v${BOT_VERSION}` },
                         { type: 14 },
-                        { type: 10, content: botDescription },
+                        { type: 10, content: botDescription, accessory: { type: 11, media: { url: botAvatar } } },
+                        { type: 14 },
                         { type: 10, content: statsLine },
                         { type: 14, spacing: 1 },
                         {
@@ -2814,8 +2815,8 @@ client.on(Events.MessageCreate, async msg => {
                         components: [
                             { type: 10, content: `## ${BOT_NAME}│v${BOT_VERSION}` },
                             { type: 14 },
-                            { type: 10, content: botDescription },
-                            { type: 11, media: { url: botAvatar } },
+                            { type: 10, content: botDescription, accessory: { type: 11, media: { url: botAvatar } } },
+                            { type: 14 },
                             { type: 10, content: statsLine },
                             { type: 14, spacing: 1 },
                             {
