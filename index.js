@@ -1107,7 +1107,8 @@ ${prefix}afk [reason] - Set AFK
         const uptime = formatUptime(startTime);
         const prefix = getPrefix(guildId);
         
-        const shortSummary = `Smart Discord bot for Mining Bangladesh with nickname management, AFK system, welcome messages, auto-responses, and fun commands.\n\n**Ping:** ${wsLatency}ms | **Uptime:** ${uptime}`;
+        const pingEmoji = wsLatency < 100 ? '<:theconnectionisexcellent:1442982226437341355>' : wsLatency < 200 ? '<:theconnectionisgood:1442982222968918036>' : '<:theconnectionisbad:1442982216882720799>';
+        const shortSummary = `Smart Discord bot for Mining Bangladesh with nickname management, AFK system, welcome messages, auto-responses, and fun commands.\n\n${pingEmoji} **Ping:** ${wsLatency}ms | <:timetwentyfour:1442980732581580962> **Uptime:** ${uptime}`;
         
         const mainPayload = {
             content: ' ',
@@ -1239,7 +1240,8 @@ ${prefix}afk [reason] - Set AFK
         const botAvatar = client.user.displayAvatarURL({ dynamic: true, size: 1024 });
         
         // PAGE 1: MAIN (Short Summary + Buttons)
-        const shortSummary = `Smart Discord bot for Mining Bangladesh with nickname management, AFK system, welcome messages, auto-responses, and fun commands.\n\n**Ping:** ${wsLatency}ms | **Uptime:** ${uptime}`;
+        const pingEmoji = wsLatency < 100 ? '<:theconnectionisexcellent:1442982226437341355>' : wsLatency < 200 ? '<:theconnectionisgood:1442982222968918036>' : '<:theconnectionisbad:1442982216882720799>';
+        const shortSummary = `Smart Discord bot for Mining Bangladesh with nickname management, AFK system, welcome messages, auto-responses, and fun commands.\n\n${pingEmoji} **Ping:** ${wsLatency}ms | <:timetwentyfour:1442980732581580962> **Uptime:** ${uptime}`;
         
         const page1Payload = {
             content: ' ',
@@ -2794,7 +2796,8 @@ client.on(Events.MessageCreate, async msg => {
             const wsLatency = client.ws.ping;
             const uptime = formatUptime(startTime);
             
-            const shortSummary = `Smart Discord bot for Mining Bangladesh with nickname management, AFK system, welcome messages, auto-responses, and fun commands.\n\n**Ping:** ${wsLatency}ms | **Uptime:** ${uptime}`;
+            const pingEmoji = wsLatency < 100 ? '<:theconnectionisexcellent:1442982226437341355>' : wsLatency < 200 ? '<:theconnectionisgood:1442982222968918036>' : '<:theconnectionisbad:1442982216882720799>';
+            const shortSummary = `Smart Discord bot for Mining Bangladesh with nickname management, AFK system, welcome messages, auto-responses, and fun commands.\n\n${pingEmoji} **Ping:** ${wsLatency}ms | <:timetwentyfour:1442980732581580962> **Uptime:** ${uptime}`;
             
             const page1Payload = {
                 content: ' ',

@@ -1,8 +1,8 @@
 export default {
-    version: "1.0.39",
-    releaseDate: "Nov 26, 2025 9:14 AM",
-    releaseDateTimestamp: 1764143681,
-    changesSummary: "Updated cooldown messages with custom Timeout emoji",
+    version: "1.0.40",
+    releaseDate: "Nov 26, 2025 9:23 AM",
+    releaseDateTimestamp: 1764144181,
+    changesSummary: "Added dynamic ping emoji based on latency, uptime icon in botinfo",
 
     versionGuide: `
 📌 Versioning Guide
