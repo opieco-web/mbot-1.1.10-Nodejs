@@ -1,8 +1,8 @@
 export default {
-    version: "1.0.37",
-    releaseDate: "Nov 26, 2025 12:35 AM",
-    releaseDateTimestamp: 1764112500,
-    changesSummary: "Updated /config pages with custom emojis, dynamic visibility status display",
+    version: "1.0.38",
+    releaseDate: "Nov 26, 2025 9:11 AM",
+    releaseDateTimestamp: 1764143488,
+    changesSummary: "Coinflip command now shows Heads/Tails emoji based on result",
 
     versionGuide: `
 📌 Versioning Guide

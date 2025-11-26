@@ -55,15 +55,10 @@
       "timestamp": 1764067788408,
       "originalNickname": "N0ah✨"
     },
-    "1054967242497982476": {
-      "reason": "!afk",
-      "timestamp": 1764090315280,
-      "originalNickname": "uwuphobic"
-    },
-    "1108782022543032400": {
-      "reason": "I am currently AFK.",
-      "timestamp": 1764092670673,
-      "originalNickname": "Ruksa"
+    "1294699516955725890": {
+      "reason": "Diva Television 😴",
+      "timestamp": 1764112739660,
+      "originalNickname": "SHIT"
     }
   },
   "welcome": {
@@ -108,12 +103,7 @@
   "prefixes": {},
   "autoresponses": {},
   "status": {
-    "presence": "dnd",
-    "text": "m•bot│maintenance will continue indefinitely",
-    "emoji": "🛟",
-    "lastUpdatedBy": "1065350468928290828",
-    "lastUpdatedAt": "2025-11-24T18:28:02.555Z",
-    "type": "Competing"
+    "presence": "online"
   },
   "meme": {
     "templates": [
