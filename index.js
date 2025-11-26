@@ -994,6 +994,7 @@ client.on(Events.InteractionCreate, async interaction => {
     // ===== HANDLE BUTTONS =====
     // BUTTON: botinfo_description - Full Bot Description
     if (interaction.isButton() && interaction.customId === 'botinfo_description') {
+        const botAvatar = client.user.displayAvatarURL({ dynamic: true, size: 1024 });
         const fullDesc = `**m•bot** is a comprehensive Discord bot designed for Mining Bangladesh community.
 
 🎯 **Core Features:**
@@ -1021,7 +1022,7 @@ client.on(Events.InteractionCreate, async interaction => {
                     components: [
                         { type: 10, content: `## ${BOT_NAME}│About` },
                         { type: 14 },
-                        { type: 10, content: fullDesc },
+                        { type: 10, content: fullDesc, accessory: { type: 11, media: { url: botAvatar } } },
                         { type: 14, spacing: 1 },
                         {
                             type: 1,
