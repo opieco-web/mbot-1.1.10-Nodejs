@@ -1041,39 +1041,40 @@ client.on(Events.InteractionCreate, async interaction => {
     // BUTTON: botinfo_commands - User Commands Guide
     if (interaction.isButton() && interaction.customId === 'botinfo_commands') {
         const prefix = getPrefix(guildId);
-        const commandsGuide = `**📌 SLASH COMMANDS** (Use with /)
+        const commandsGuide = `A sleek collection of features designed for the Mining Bangladesh community.
 
-🎮 **Fun Commands:**
-/truthordare - Get random truth question or dare
-/coinflip - Flip a coin (Heads or Tails)
-/choose - Pick between 2-3 options
+## <:usebotsorapps:1443156331249930250> Slash \`/\` Commands
 
-🛠️ **Utility Commands:**
-/avatar [@user] [server: true/false] - Show avatar (default, server, or both)
-/afk [note] - Set AFK status with optional reason
-/botinfo - View this bot information
+<:startanactivitywhite:1443167981944176640> **Fun**
+</truthordare:1441060968632160378> — Generates a random truth or dare prompt
+</coinflip:1441066238200643810> — Flips a coin (Heads/Tails)
+</choose:1441785783953526804> — Selects one option from 2–3 choices
 
-💬 **Nickname System:**
-In the nickname channel, just type your desired nickname!
-Type "reset" to reset to default
-Examples: "Shadow", "Phoenix", "reset"
+<:20251126_151801:1443168966678810734> **Utilities**
+</avatar:1440916737221726253> [@user] [server: true/false] — Display a user's avatar in default, server, or combined mode
+</afk:1440916737221726252> [note] — Set your AFK status with an optional message
+</botinfo:1441916759421485266> — View detailed information about the bot
 
-**📌 PREFIX COMMANDS** (Use with ${prefix})
+<:markasreadwhite:1443167987422199913> **Nickname System**
+Set your nickname by simply typing it in the <#1305225655394242561>.
+Type \`reset\` to revert back to your original name. Examples: Shadow, Phoenix, reset
 
-🎮 **Fun:**
-${prefix}td - Truth or Dare
-${prefix}cf - Coin flip
-${prefix}choose - Choice selector
+## <:Prefix:1443170331383693312> Prefix \`${prefix}\` Commands
 
-🛠️ **Utility:**
-${prefix}av [@user] - Show avatar
-${prefix}afk [reason] - Set AFK
+<:startanactivitywhite:1443167981944176640> **Fun**
+\`${prefix}td\` — Truth or Dare (quick version)
+\`${prefix}cf\` — Coin Flip
+\`${prefix}cs A, B\` — Let the bot choose
 
-**💡 HOW TO USE:**
-1. Slash commands: Type / and select the command
-2. Prefix commands: Type ${prefix} then the command
-3. Nickname: Go to nickname channel and type your desired name
-4. AFK: Use /afk or ${prefix}afk with optional reason`;
+<:20251126_151801:1443168966678810734> **Utilities**
+\`${prefix}av @user\` — Display a user's avatar
+\`${prefix}afk reason\` — Activate AFK mode with an optional note
+
+### How To Use
+- Slash Commands: Type \`/\` and pick from the menu
+- Prefix Commands: Start with \`${prefix}\` followed by the command
+- Nicknames: Type your desired nickname directly in the **nick_swap** channel
+- AFK Mode: Use \`/afk\` or \`${prefix}afk\` with or without a reason`;
 
         const commandsPayload = {
             content: ' ',
@@ -1081,14 +1082,14 @@ ${prefix}afk [reason] - Set AFK
                 {
                     type: 17,
                     components: [
-                        { type: 10, content: `## ${BOT_NAME}│Commands` },
+                        { type: 10, content: `## ${BOT_NAME}│Command Directory` },
                         { type: 14 },
                         { type: 10, content: commandsGuide },
                         { type: 14, spacing: 1 },
                         {
                             type: 1,
                             components: [
-                                { type: 2, label: '← Back to Main', custom_id: 'botinfo_main', style: 2 }
+                                { type: 2, label: 'Back to Main', custom_id: 'botinfo_main', style: 2, emoji: { id: '1442984948305887362', name: 'Page' } }
                             ]
                         }
                     ]

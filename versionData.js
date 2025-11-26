@@ -1,8 +1,8 @@
 export default {
-    version: "1.0.42",
-    releaseDate: "Nov 26, 2025 9:28 AM",
-    releaseDateTimestamp: 1764144480,
-    changesSummary: "Updated full description page with custom emojis, added Page emoji to back button",
+    version: "1.0.43",
+    releaseDate: "Nov 26, 2025 9:30 AM",
+    releaseDateTimestamp: 1764144600,
+    changesSummary: "Redesigned command guide page with organized emoji sections and inline command emojis",
 
     versionGuide: `
 📌 Versioning Guide
