@@ -1045,6 +1045,7 @@ client.on(Events.InteractionCreate, async interaction => {
 
 ## <:usebotsorapps:1443156331249930250> Slash \`/\` Commands
 
+
 <:startanactivitywhite:1443167981944176640> **Fun**
 </truthordare:1441060968632160378> — Generates a random truth or dare prompt
 </coinflip:1441066238200643810> — Flips a coin (Heads/Tails)
@@ -1060,6 +1061,7 @@ Set your nickname by simply typing it in the <#1305225655394242561>.
 Type \`reset\` to revert back to your original name. Examples: Shadow, Phoenix, reset
 
 ## <:Prefix:1443170331383693312> Prefix \`${prefix}\` Commands
+
 
 <:startanactivitywhite:1443167981944176640> **Fun**
 \`${prefix}td\` — Truth or Dare (quick version)
@@ -2421,10 +2423,10 @@ client.on(Events.MessageCreate, async msg => {
             try {
                 const member = await msg.guild.members.fetch(user.id);
                 const displayName = `**${member.nickname || member.displayName}**`;
-                const replyMsg = await msg.reply(`<:mg_alert:1439893442065862698> ${displayName} is AFK for <t:${timestampSeconds}:R> — ${afkData.reason}.`);
+                const replyMsg = await msg.reply(`<:mg_alert:1439893442065862698> ${displayName} is AFK since <t:${timestampSeconds}:R> — "${afkData.reason}"`);
                 setTimeout(() => replyMsg.delete().catch(() => {}), 60000);
             } catch (e) {
-                const replyMsg = await msg.reply(`<:mg_alert:1439893442065862698> **${user.displayName}** is AFK for <t:${timestampSeconds}:R> — ${afkData.reason}.`);
+                const replyMsg = await msg.reply(`<:mg_alert:1439893442065862698> **${user.displayName}** is AFK since <t:${timestampSeconds}:R> — "${afkData.reason}"`);
                 setTimeout(() => replyMsg.delete().catch(() => {}), 60000);
             }
         }
@@ -2742,7 +2744,7 @@ client.on(Events.MessageCreate, async msg => {
                 "Explain what you think is underrated in your interests.",
                 "Tell us what you'd want to explore endlessly."
             ];
-            const tdEmojis = ['<a:cherry:1441782972486516946>', '<a:croissant:1441783019139502112>', '<a:balloonpikachu:1441834282816377103>', '<a:mymelody:1441834292400623646>', '<a:orangeblossom:1441834288193605856>', '<a:snowmanhellokitty:1441834296804638800>'];
+            const tdEmojis = ['<a:snowmanhellokitty:1441834296804638800>', '<a:mymelody:1441834292400623646>', '<a:twirlingdonut:1441834290311598229>', '<a:orangeblossom:1441834288193605856>', '<a:musicrecordspin:1441834285517639841>', '<a:balloonpikachu:1441834282816377103>', '<a:croissant:1441783019139502112>', '<a:cherry:1441782972486516946>', '<:1210pixelhotcoffee:1443306092863029418>', '<a:scarf:1443306089738141760>', '<a:kittydance:1443306087125094533>', '<a:whitebutterfly:1443306083694280724>', '<a:703209tkkkk:1443306080636502147>', '<a:tkkkk:1443306075356004548>'];
             const pick = Math.random() < 0.5 ? 'Truth' : 'Dare';
             const question = pick === 'Truth' ? truths[Math.floor(Math.random()*truths.length)] : dares[Math.floor(Math.random()*dares.length)];
             const emoji = tdEmojis[Math.floor(Math.random() * tdEmojis.length)];
@@ -2765,7 +2767,8 @@ client.on(Events.MessageCreate, async msg => {
             
             const styles = ['I choose…', 'I picked…', "I'll go for…", 'My decision is…', "I'm choosing…"];
             const style = styles[Math.floor(Math.random() * styles.length)];
-            const emoji = Math.random() < 0.5 ? '<a:croissant:1441783019139502112>' : '<a:cherry:1441782972486516946>';
+            const chooseEmojis = ['<a:snowmanhellokitty:1441834296804638800>', '<a:mymelody:1441834292400623646>', '<a:twirlingdonut:1441834290311598229>', '<a:orangeblossom:1441834288193605856>', '<a:musicrecordspin:1441834285517639841>', '<a:balloonpikachu:1441834282816377103>', '<a:croissant:1441783019139502112>', '<a:cherry:1441782972486516946>', '<:1210pixelhotcoffee:1443306092863029418>', '<a:scarf:1443306089738141760>', '<a:kittydance:1443306087125094533>', '<a:whitebutterfly:1443306083694280724>', '<a:703209tkkkk:1443306080636502147>', '<a:tkkkk:1443306075356004548>'];
+            const emoji = chooseEmojis[Math.floor(Math.random() * chooseEmojis.length)];
             const choice = subjects[Math.floor(Math.random() * subjects.length)];
             
             return msg.reply({

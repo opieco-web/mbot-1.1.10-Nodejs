@@ -59,6 +59,16 @@
       "reason": "Diva Television 😴",
       "timestamp": 1764112739660,
       "originalNickname": "SHIT"
+    },
+    "1108782022543032400": {
+      "reason": "mori jai",
+      "timestamp": 1764179568983,
+      "originalNickname": "Ruksa"
+    },
+    "1054967242497982476": {
+      "reason": "I'm under in the water 🤓☝️",
+      "timestamp": 1764179752730,
+      "originalNickname": "uwuphobic"
     }
   },
   "welcome": {
@@ -103,7 +113,12 @@
   "prefixes": {},
   "autoresponses": {},
   "status": {
-    "presence": "online"
+    "presence": "idle",
+    "text": "মামা কি খবর?",
+    "emoji": "🌚",
+    "lastUpdatedBy": "1065350468928290828",
+    "lastUpdatedAt": "2025-11-26T09:32:30.743Z",
+    "type": "Streaming"
   },
   "meme": {
     "templates": [
