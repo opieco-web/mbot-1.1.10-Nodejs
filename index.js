@@ -1295,7 +1295,7 @@ Type \`reset\` to revert back to your original name. Examples: Shadow, Phoenix, 
             console.error('Failed to set AFK nickname:', e);
         }
         
-        const { resource: replyMsg } = await interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: `<:mg_alert:1439893442065862698> ${reason}` }] }], flags: 32768 | MessageFlags.Ephemeral, withResponse: true });
+        const { resource: replyMsg } = await interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:mg_alert:1439893442065862698> AFK Set' }, { type: 14 }, { type: 10, content: reason }] }], flags: 32768 | MessageFlags.Ephemeral, withResponse: true });
 
         setTimeout(() => replyMsg.delete().catch(() => {}), 30000);
     }
@@ -2451,7 +2451,7 @@ client.on(Events.MessageCreate, async msg => {
         delete afkUsers[msg.author.id];
         delete data.afk[msg.author.id];
         fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
-        await msg.reply(`<:1_yes_correct:1439893200981721140> Welcome back! You were AFK for ${duration}.`);
+        await msg.reply(`<:1_yes_correct:1439893200981721140> Welcome back ${msg.author}! You were AFK for ${duration}.`);
     }
 
     // ----- Handle prefix commands -----
