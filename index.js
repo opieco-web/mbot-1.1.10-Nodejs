@@ -1023,7 +1023,6 @@ client.on(Events.InteractionCreate, async interaction => {
                         { type: 10, content: `## ${BOT_NAME}│About` },
                         { type: 14 },
                         { type: 10, content: fullDesc },
-                        { type: 11, media: { url: botAvatar } },
                         { type: 14, spacing: 1 },
                         {
                             type: 1,
@@ -1122,7 +1121,6 @@ ${prefix}afk [reason] - Set AFK
                         { type: 10, content: `## ${BOT_NAME}│v${BOT_VERSION}` },
                         { type: 14 },
                         { type: 10, content: botDescription },
-                        { type: 11, media: { url: botAvatar } },
                         { type: 10, content: statsLine },
                         { type: 14, spacing: 1 },
                         {
@@ -1258,7 +1256,6 @@ ${prefix}afk [reason] - Set AFK
                         { type: 10, content: `## ${BOT_NAME}│v${BOT_VERSION}` },
                         { type: 14 },
                         { type: 10, content: botDescription },
-                        { type: 11, media: { url: botAvatar } },
                         { type: 10, content: statsLine },
                         { type: 14, spacing: 1 },
                         {

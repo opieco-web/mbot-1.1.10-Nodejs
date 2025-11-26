@@ -1,8 +1,8 @@
 export default {
-    version: "1.0.43",
-    releaseDate: "Nov 26, 2025 9:30 AM",
-    releaseDateTimestamp: 1764144600,
-    changesSummary: "Fixed bot avatar display in botinfo main page and full description",
+    version: "1.0.44",
+    releaseDate: "Nov 26, 2025 9:32 AM",
+    releaseDateTimestamp: 1764144720,
+    changesSummary: "Fixed Component V2 validation error by removing invalid media component type",
 
     versionGuide: `
 📌 Versioning Guide
