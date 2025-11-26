@@ -1372,7 +1372,7 @@ ${prefix}afk [reason] - Set AFK
     if (commandName === 'truthordare') {
         const cooldownRemaining = checkAndWarnCooldown(user.id, 'truthordare', 5000);
         if (cooldownRemaining > 0) {
-            return interaction.reply({ content: `⏳ Slow down! You can use this command again in **${cooldownRemaining}s**.`, flags: MessageFlags.Ephemeral });
+            return interaction.reply({ content: `<:Timeout:1442980691561152612> Slow down! You can use this command again in **${cooldownRemaining}s**.`, flags: MessageFlags.Ephemeral });
         }
 
         const truths = [
@@ -2218,7 +2218,7 @@ ${prefix}afk [reason] - Set AFK
     if (commandName === 'coinflip') {
         const cooldownRemaining = checkAndWarnCooldown(user.id, 'coinflip', 5000);
         if (cooldownRemaining > 0) {
-            return interaction.reply({ content: `⏳ Slow down! You can use this command again in **${cooldownRemaining}s**.`, flags: MessageFlags.Ephemeral });
+            return interaction.reply({ content: `<:Timeout:1442980691561152612> Slow down! You can use this command again in **${cooldownRemaining}s**.`, flags: MessageFlags.Ephemeral });
         }
 
         const result = Math.random() < 0.5 ? 'Heads' : 'Tails';
@@ -2583,7 +2583,7 @@ client.on(Events.MessageCreate, async msg => {
         if (cmd === 'td') {
             const cooldownRemaining = checkAndWarnCooldown(msg.author.id, 'td', 5000);
             if (cooldownRemaining > 0) {
-                const warnMsg = await msg.reply({ content: `⏳ Slow down! You can use this command again in **${cooldownRemaining}s**.`, flags: MessageFlags.Ephemeral });
+                const warnMsg = await msg.reply({ content: `<:Timeout:1442980691561152612> Slow down! You can use this command again in **${cooldownRemaining}s**.`, flags: MessageFlags.Ephemeral });
                 setTimeout(() => warnMsg.delete().catch(() => {}), 5000);
                 return;
             }
@@ -2777,7 +2777,7 @@ client.on(Events.MessageCreate, async msg => {
         if (cmd === 'cf') {
             const cooldownRemaining = checkAndWarnCooldown(msg.author.id, 'cf', 5000);
             if (cooldownRemaining > 0) {
-                const warnMsg = await msg.reply({ content: `⏳ Slow down! You can use this command again in **${cooldownRemaining}s**.`, flags: MessageFlags.Ephemeral });
+                const warnMsg = await msg.reply({ content: `<:Timeout:1442980691561152612> Slow down! You can use this command again in **${cooldownRemaining}s**.`, flags: MessageFlags.Ephemeral });
                 setTimeout(() => warnMsg.delete().catch(() => {}), 5000);
                 return;
             }
