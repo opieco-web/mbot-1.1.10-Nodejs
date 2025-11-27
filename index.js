@@ -667,8 +667,7 @@ const welcomeMessages = [
     "Nice to have you {user} — hope you enjoy your time."
 ];
 
-// Initialize status data
-if (!data.status) data.status = { presence: 'online' };
+// Status data now loaded per-guild - Mining Bangladesh only
 
 // ------------------------
 // HANDLE SLASH COMMANDS & BUTTONS
@@ -681,22 +680,30 @@ client.on(Events.InteractionCreate, async interaction => {
         if (interaction.isStringSelectMenu()) {
             const customId = interaction.customId;
 
-            // Config: Online Status dropdown
+            // Config: Online Status dropdown (Mining Bangladesh only)
             if (customId === 'config_online_status') {
+                if (guildId !== MINING_BANGLADESH_GUILD) {
+                    return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> This command is only available in Mining Bangladesh.', flags: MessageFlags.Ephemeral });
+                }
                 const newStatus = interaction.values[0];
-                data.status = data.status || { presence: 'online' };
-                data.status.presence = newStatus;
-                fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
+                const miningData = miningBangladeshData;
+                miningData.status = miningData.status || { presence: 'online' };
+                miningData.status.presence = newStatus;
+                saveGuildData(guildId, miningData);
                 applyBotStatus();
                 return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:1_yes_correct:1439893200981721140> Online Status Updated' }, { type: 14 }, { type: 10, content: `Bot visibility set to: **${newStatus === 'dnd' ? 'Do Not Disturb' : newStatus.charAt(0).toUpperCase() + newStatus.slice(1)}**` }] }], flags: 32768 | MessageFlags.Ephemeral });
             }
 
-            // Config: Activity Type dropdown
+            // Config: Activity Type dropdown (Mining Bangladesh only)
             if (customId === 'config_activity_type') {
+                if (guildId !== MINING_BANGLADESH_GUILD) {
+                    return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> This command is only available in Mining Bangladesh.', flags: MessageFlags.Ephemeral });
+                }
                 const newType = interaction.values[0];
-                data.status = data.status || { presence: 'online' };
-                data.status.type = newType;
-                fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
+                const miningData = miningBangladeshData;
+                miningData.status = miningData.status || { presence: 'online' };
+                miningData.status.type = newType;
+                saveGuildData(guildId, miningData);
                 applyBotStatus();
                 return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:1_yes_correct:1439893200981721140> Activity Type Updated' }, { type: 14 }, { type: 10, content: `Activity type set to: **${newType}**` }] }], flags: 32768 | MessageFlags.Ephemeral });
             }
@@ -775,10 +782,14 @@ client.on(Events.InteractionCreate, async interaction => {
             return interaction.showModal(modal);
         }
 
-            // Config: Status Reset button
+            // Config: Status Reset button (Mining Bangladesh only)
         if (customId === 'config_status_reset') {
-            data.status = { presence: 'online' };
-            fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
+            if (guildId !== MINING_BANGLADESH_GUILD) {
+                return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> This command is only available in Mining Bangladesh.', flags: MessageFlags.Ephemeral });
+            }
+            const miningData = miningBangladeshData;
+            miningData.status = { presence: 'online' };
+            saveGuildData(guildId, miningData);
             applyBotStatus();
 
             return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:1_yes_correct:1439893200981721140> Status Cleared' }, { type: 14 }, { type: 10, content: 'Bot status reset to online.' }] }], flags: 32768 | MessageFlags.Ephemeral });
@@ -976,8 +987,9 @@ client.on(Events.InteractionCreate, async interaction => {
     if (interaction.isModalSubmit()) {
         if (interaction.customId === 'modal_set_prefix') {
             const newPrefix = interaction.fields.getTextInputValue('prefix_input');
-            data.prefix[guildId] = newPrefix;
-            fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
+            const guildData = getGuildData(guildId);
+            guildData.prefix = newPrefix;
+            saveGuildData(guildId, guildData);
 
             return interaction.reply({
                 content: ' ',
@@ -994,24 +1006,28 @@ client.on(Events.InteractionCreate, async interaction => {
         }
 
         if (interaction.customId === 'modal_status_set') {
+            if (guildId !== MINING_BANGLADESH_GUILD) {
+                return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> This command is only available in Mining Bangladesh.', flags: MessageFlags.Ephemeral });
+            }
             try {
                 const activityText = interaction.fields.getTextInputValue('status_activity_text');
                 const streamUrl = interaction.fields.getTextInputValue('status_stream_url');
                 const emoji = interaction.fields.getTextInputValue('status_emoji') || null;
 
-                data.status = data.status || { presence: 'online' };
+                const miningData = miningBangladeshData;
+                miningData.status = miningData.status || { presence: 'online' };
                 if (activityText) {
-                    data.status.text = activityText;
+                    miningData.status.text = activityText;
                 }
                 if (streamUrl) {
-                    data.status.streamUrl = streamUrl;
+                    miningData.status.streamUrl = streamUrl;
                 }
                 if (emoji) {
-                    data.status.emoji = emoji;
+                    miningData.status.emoji = emoji;
                 }
-                data.status.lastUpdatedBy = interaction.user.id;
-                data.status.lastUpdatedAt = new Date().toISOString();
-                fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
+                miningData.status.lastUpdatedBy = interaction.user.id;
+                miningData.status.lastUpdatedAt = new Date().toISOString();
+                saveGuildData(guildId, miningData);
                 applyBotStatus();
 
                 let msg = 'Status info updated: ';
@@ -1188,6 +1204,9 @@ Type \`reset\` to revert back to your original name. Examples: Shadow, Phoenix, 
         const subcommand = interaction.options.getSubcommand();
 
         if (subcommand === 'setup') {
+            if (guildId !== MINING_BANGLADESH_GUILD) {
+                return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> Nickname system is only available in Mining Bangladesh.', flags: MessageFlags.Ephemeral });
+            }
             if (!member.permissions.has(PermissionsBitField.Flags.ManageNicknames))
                 return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> You cannot use this command.', flags: MessageFlags.Ephemeral });
 
@@ -1197,9 +1216,10 @@ Type \`reset\` to revert back to your original name. Examples: Shadow, Phoenix, 
             if (!['auto', 'approval'].includes(mode))
                 return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> Mode must be auto or approval', flags: MessageFlags.Ephemeral });
 
-            data.nickname.channelId = channel.id;
-            data.nickname.mode = mode;
-            fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
+            const miningData = miningBangladeshData;
+            miningData.nickname.channelId = channel.id;
+            miningData.nickname.mode = mode;
+            saveGuildData(guildId, miningData);
 
             return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## ✅ Setup Complete' }, { type: 14, spacing: 1 }, { type: 10, content: `Channel: ${channel}\nMode: **${mode}**` }] }], flags: 32768 | MessageFlags.Ephemeral });
         }
@@ -1214,21 +1234,25 @@ Type \`reset\` to revert back to your original name. Examples: Shadow, Phoenix, 
         }
     }
 
-    // NICKNAME FILTER - Component V2 Container
+    // NICKNAME FILTER - Component V2 Container (Mining Bangladesh only)
     // type 17 = Container | type 10 = TextDisplay | type 14 = Separator
     if (commandName === 'nicknamefilter') {
+        if (guildId !== MINING_BANGLADESH_GUILD) {
+            return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> Nickname filter is only available in Mining Bangladesh.', flags: MessageFlags.Ephemeral });
+        }
         const action = interaction.options.getString('action');
         const word = interaction.options.getString('word')?.toLowerCase();
+        const miningData = miningBangladeshData;
 
         if (action === 'add') {
             if (!word)
                 return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:Error:1440296241090265088> Error' }, { type: 14, spacing: 1 }, { type: 10, content: 'Please provide a word to ban.' }] }], flags: 32768 | MessageFlags.Ephemeral });
 
-            if (data.nickname.filter.includes(word))
+            if (miningData.nickname.filter.includes(word))
                 return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:Error:1440296241090265088> Error' }, { type: 14, spacing: 1 }, { type: 10, content: `Word "**${word}**" is already banned.` }] }], flags: 32768 | MessageFlags.Ephemeral });
 
-            data.nickname.filter.push(word);
-            fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
+            miningData.nickname.filter.push(word);
+            saveGuildData(guildId, miningData);
             return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:Bin:1441777857205637254> Word Added' }, { type: 14, spacing: 1 }, { type: 10, content: `"**${word}**" added to ban list.` }] }], flags: 32768 | MessageFlags.Ephemeral });
         }
 
@@ -1236,20 +1260,20 @@ Type \`reset\` to revert back to your original name. Examples: Shadow, Phoenix, 
             if (!word)
                 return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:Error:1440296241090265088> Error' }, { type: 14, spacing: 1 }, { type: 10, content: 'Please provide a word to unban.' }] }], flags: 32768 | MessageFlags.Ephemeral });
 
-            const index = data.nickname.filter.indexOf(word);
+            const index = miningData.nickname.filter.indexOf(word);
             if (index === -1)
                 return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:Error:1440296241090265088> Error' }, { type: 14, spacing: 1 }, { type: 10, content: `No ban found for "**${word}**".` }] }], flags: 32768 | MessageFlags.Ephemeral });
 
-            data.nickname.filter.splice(index, 1);
-            fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
+            miningData.nickname.filter.splice(index, 1);
+            saveGuildData(guildId, miningData);
             return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:Correct:1440296238305116223> Word Removed' }, { type: 14, spacing: 1 }, { type: 10, content: `"**${word}**" removed from ban list.` }] }], flags: 32768 | MessageFlags.Ephemeral });
         }
 
         if (action === 'list') {
-            if (data.nickname.filter.length === 0)
+            if (miningData.nickname.filter.length === 0)
                 return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## 📋 Banned Words' }, { type: 14, spacing: 1 }, { type: 10, content: 'No words configured yet.' }] }], flags: 32768 | MessageFlags.Ephemeral });
 
-            const list = data.nickname.filter.map((w, i) => `${i+1}. **${w}**`).join('\n');
+            const list = miningData.nickname.filter.map((w, i) => `${i+1}. **${w}**`).join('\n');
             return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## 🚫 Banned Words' }, { type: 14, spacing: 1 }, { type: 10, content: list }] }], flags: 32768 | MessageFlags.Ephemeral });
         }
     }
@@ -1258,8 +1282,9 @@ Type \`reset\` to revert back to your original name. Examples: Shadow, Phoenix, 
     // type 17 = Container | type 10 = TextDisplay | type 14 = Separator
     if (commandName === 'setprefix') {
         const newPrefix = interaction.options.getString('prefix');
-        data.prefix[guildId] = newPrefix;
-        fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
+        const guildData = getGuildData(guildId);
+        guildData.prefix = newPrefix;
+        saveGuildData(guildId, guildData);
         return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:1_yes_correct:1439893200981721140> Prefix Updated' }, { type: 14 }, { type: 10, content: `New prefix: **${newPrefix}**` }] }], flags: 32768 | MessageFlags.Ephemeral });
     }
 
@@ -1313,16 +1338,20 @@ Type \`reset\` to revert back to your original name. Examples: Shadow, Phoenix, 
         return interaction.reply(page1Payload);
     }
 
-    // AFK - Component V2 Container
+    // AFK - Component V2 Container (Mining Bangladesh only)
     // type 17 = Container | type 10 = TextDisplay | type 14 = Separator
     if (commandName === 'afk') {
+        if (guildId !== MINING_BANGLADESH_GUILD) {
+            return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> AFK system is only available in Mining Bangladesh.', flags: MessageFlags.Ephemeral });
+        }
         const reason = interaction.options.getString('note') || 'I am currently AFK.';
         const originalNickname = member.nickname || user.displayName;
         const newNickname = `AFK - ${originalNickname}`;
         
         afkUsers[user.id] = { reason, timestamp: Date.now(), originalNickname };
-        data.afk[user.id] = afkUsers[user.id];
-        fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
+        const miningData = miningBangladeshData;
+        miningData.afk[user.id] = afkUsers[user.id];
+        saveGuildData(guildId, miningData);
         
         try {
             await member.setNickname(newNickname);
@@ -2007,15 +2036,16 @@ Type \`reset\` to revert back to your original name. Examples: Shadow, Phoenix, 
             let pageTitle = null;
 
             if (searchLocal) {
-                // Local search - lookup stored topics with cached content
+                // Local search - lookup stored topics with cached content (Mining Bangladesh only)
                 const searchResults = [];
                 const queryLower = query.toLowerCase();
                 
                 // Check if query matches a topic
+                const miningData = miningBangladeshData;
                 let foundTopic = null;
                 let matchedTopicName = '';
-                if (data.topics) {
-                    for (const [topicName, topicData] of Object.entries(data.topics)) {
+                if (guildId === MINING_BANGLADESH_GUILD && miningData.topics) {
+                    for (const [topicName, topicData] of Object.entries(miningData.topics)) {
                         if (topicName.toLowerCase().includes(queryLower) || queryLower.includes(topicName.toLowerCase())) {
                             foundTopic = topicData;
                             matchedTopicName = topicName;
@@ -2033,9 +2063,10 @@ Type \`reset\` to revert back to your original name. Examples: Shadow, Phoenix, 
                         resultText = `Topic "${query}" not found.`;
                     }
                 } else {
-                    // Search in autoresponses
-                    if (data.autoresponse[guildId]) {
-                        data.autoresponse[guildId].forEach(ar => {
+                    // Search in autoresponses (guild-specific)
+                    const guildData = getGuildData(guildId);
+                    if (guildData.autoresponse) {
+                        guildData.autoresponse.forEach(ar => {
                             if (ar.trigger.toLowerCase().includes(queryLower) || ar.response.toLowerCase().includes(queryLower)) {
                                 searchResults.push(`**${ar.trigger}** → ${ar.response}`);
                             }
@@ -2045,7 +2076,7 @@ Type \`reset\` to revert back to your original name. Examples: Shadow, Phoenix, 
                     if (searchResults.length > 0) {
                         resultText = searchResults.slice(0, 5).join('\n');
                     } else {
-                        const availableTopics = Object.keys(data.topics || {}).join(', ');
+                        const availableTopics = guildId === MINING_BANGLADESH_GUILD ? Object.keys(miningData.topics || {}).join(', ') : 'None (topics only available in Mining Bangladesh)';
                         resultText = `No topic or auto-response found for "${query}".\n\nAvailable topics: ${availableTopics}`;
                     }
                 }
@@ -2509,8 +2540,11 @@ client.on(Events.MessageCreate, async msg => {
         }
         
         delete afkUsers[msg.author.id];
-        delete data.afk[msg.author.id];
-        fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
+        if (msg.guildId === MINING_BANGLADESH_GUILD) {
+            const miningData = miningBangladeshData;
+            delete miningData.afk[msg.author.id];
+            saveGuildData(msg.guildId, miningData);
+        }
         const welcomeEmojis = ['<a:snowmanhellokitty:1441834296804638800>', '<a:mymelody:1441834292400623646>', '<a:twirlingdonut:1441834290311598229>', '<a:orangeblossom:1441834288193605856>', '<a:musicrecordspin:1441834285517639841>', '<a:balloonpikachu:1441834282816377103>', '<a:croissant:1441783019139502112>', '<a:cherry:1441782972486516946>', '<:1210pixelhotcoffee:1443306092863029418>', '<a:scarf:1443306089738141760>', '<a:kittydance:1443306087125094533>', '<a:whitebutterfly:1443306083694280724>', '<a:703209tkkkk:1443306080636502147>', '<a:tkkkk:1443306075356004548>'];
         const welcomeEmoji = welcomeEmojis[Math.floor(Math.random() * welcomeEmojis.length)];
         await msg.reply(`${welcomeEmoji} Welcome back ${msg.author}! You were AFK for ${duration}.`);
@@ -2528,8 +2562,11 @@ client.on(Events.MessageCreate, async msg => {
             const newNickname = `AFK - ${originalNickname}`;
             
             afkUsers[msg.author.id] = { reason, timestamp: Date.now(), originalNickname };
-            data.afk[msg.author.id] = afkUsers[msg.author.id];
-            fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
+            if (msg.guildId === MINING_BANGLADESH_GUILD) {
+                const miningData = miningBangladeshData;
+                miningData.afk[msg.author.id] = afkUsers[msg.author.id];
+                saveGuildData(msg.guildId, miningData);
+            }
 
             try {
                 await msg.member.setNickname(newNickname);
