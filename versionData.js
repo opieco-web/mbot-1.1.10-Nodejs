@@ -1,8 +1,8 @@
 export default {
-    version: "1.0.46",
+    version: "1.0.56",
     releaseDate: "Nov 27, 2025 12:00 AM",
     releaseDateTimestamp: 1764230400,
-    changesSummary: "Multi-server data isolation complete - 9 critical fixes",
+    changesSummary: "Complete multi-server data isolation - 11 critical changes",
 
     changes: [
         "1. Fixed AFK system - now guild-specific with isolated data per server",
@@ -13,7 +13,9 @@ export default {
         "6. Fixed prefix command - guild-specific prefix storage per server",
         "7. Fixed search functionality - searches only current server's data",
         "8. Fixed nickname handler - Mining Bangladesh-only with proper data isolation",
-        "9. Fixed duplicate variable declarations - removed guildData redeclaration error"
+        "9. Fixed duplicate variable declarations - removed guildData redeclaration error",
+        "10. Fixed config command - displays guild-specific settings and configurations",
+        "11. Fixed bot startup - eliminated all global data references for true multi-server support"
     ],
 
     versionGuide: `
