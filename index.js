@@ -860,11 +860,11 @@ client.on(Events.InteractionCreate, async interaction => {
                         const buffer = Buffer.from(arrayBuffer);
                         await client.user.setAvatar(buffer);
 
-                        // Save server-specific header to data.json
-                        data.config = data.config || {};
-                        data.config[guildId] = data.config[guildId] || {};
-                        data.config[guildId].headerAttachment = attachment.url;
-                        fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
+                        // Save server-specific header to guild data
+                        const guildData = getGuildData(guildId);
+                        guildData.config = guildData.config || {};
+                        guildData.config.headerAttachment = attachment.url;
+                        saveGuildData(guildId, guildData);
 
                         await msg.reply({
                             content: ' ',
@@ -934,11 +934,11 @@ client.on(Events.InteractionCreate, async interaction => {
                         const buffer = Buffer.from(arrayBuffer);
                         await interaction.guild.setBanner(buffer);
 
-                        // Save server-specific background to data.json
-                        data.config = data.config || {};
-                        data.config[guildId] = data.config[guildId] || {};
-                        data.config[guildId].bgAttachment = attachment.url;
-                        fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
+                        // Save server-specific background to guild data
+                        const guildData = getGuildData(guildId);
+                        guildData.config = guildData.config || {};
+                        guildData.config.bgAttachment = attachment.url;
+                        saveGuildData(guildId, guildData);
 
                         await msg.reply({
                             content: ' ',
@@ -1338,20 +1338,17 @@ Type \`reset\` to revert back to your original name. Examples: Shadow, Phoenix, 
         return interaction.reply(page1Payload);
     }
 
-    // AFK - Component V2 Container (Mining Bangladesh only)
+    // AFK - Component V2 Container (GUILD-SPECIFIC - WORKS ON ALL SERVERS)
     // type 17 = Container | type 10 = TextDisplay | type 14 = Separator
     if (commandName === 'afk') {
-        if (guildId !== MINING_BANGLADESH_GUILD) {
-            return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> AFK system is only available in Mining Bangladesh.', flags: MessageFlags.Ephemeral });
-        }
         const reason = interaction.options.getString('note') || 'I am currently AFK.';
         const originalNickname = member.nickname || user.displayName;
         const newNickname = `AFK - ${originalNickname}`;
         
         afkUsers[user.id] = { reason, timestamp: Date.now(), originalNickname };
-        const miningData = miningBangladeshData;
-        miningData.afk[user.id] = afkUsers[user.id];
-        saveGuildData(guildId, miningData);
+        const guildData = getGuildData(guildId);
+        guildData.afk[user.id] = afkUsers[user.id];
+        saveGuildData(guildId, guildData);
         
         try {
             await member.setNickname(newNickname);
@@ -2562,18 +2559,16 @@ client.on(Events.MessageCreate, async msg => {
         const args = msg.content.slice(prefix.length).trim().split(/ +/);
         const cmd = args.shift().toLowerCase();
 
-        // AFK
+        // AFK (GUILD-SPECIFIC - WORKS ON ALL SERVERS)
         if (cmd === 'afk') {
             const reason = args.join(' ') || 'I am currently AFK.';
             const originalNickname = msg.member.nickname || msg.author.displayName;
             const newNickname = `AFK - ${originalNickname}`;
             
             afkUsers[msg.author.id] = { reason, timestamp: Date.now(), originalNickname };
-            if (msg.guildId === MINING_BANGLADESH_GUILD) {
-                const miningData = miningBangladeshData;
-                miningData.afk[msg.author.id] = afkUsers[msg.author.id];
-                saveGuildData(msg.guildId, miningData);
-            }
+            const guildData = getGuildData(msg.guildId);
+            guildData.afk[msg.author.id] = afkUsers[msg.author.id];
+            saveGuildData(msg.guildId, guildData);
 
             try {
                 await msg.member.setNickname(newNickname);
@@ -2969,45 +2964,43 @@ client.on(Events.MessageCreate, async msg => {
                     const searchResults = [];
                     
                     // Search in autoresponses
-                    if (data.autoresponse[guildId]) {
-                        data.autoresponse[guildId].forEach(ar => {
+                    const guildData = getGuildData(guildId);
+                    if (guildData.autoresponse) {
+                        guildData.autoresponse.forEach(ar => {
                             if (ar.trigger.toLowerCase().includes(query.toLowerCase()) || ar.response.toLowerCase().includes(query.toLowerCase())) {
                                 searchResults.push(`**AR:** ${ar.trigger} → ${ar.response}`);
                             }
                         });
                     }
 
-                    // Search in banned words
-                    if (data.nickname.filter && data.nickname.filter.length > 0) {
-                        data.nickname.filter.forEach(word => {
-                            if (word.toLowerCase().includes(query.toLowerCase())) {
-                                searchResults.push(`**Filter:** ${word}`);
-                            }
-                        });
+                    // Search in banned words (Mining Bangladesh only)
+                    if (guildId === MINING_BANGLADESH_GUILD) {
+                        const miningData = miningBangladeshData;
+                        if (miningData.nickname.filter && miningData.nickname.filter.length > 0) {
+                            miningData.nickname.filter.forEach(word => {
+                                if (word.toLowerCase().includes(query.toLowerCase())) {
+                                    searchResults.push(`**Filter:** ${word}`);
+                                }
+                            });
+                        }
                     }
 
                     // Search in AFK data
-                    for (const [userId, afkData] of Object.entries(data.afk || {})) {
+                    for (const [userId, afkData] of Object.entries(guildData.afk || {})) {
                         if (afkData.reason.toLowerCase().includes(query.toLowerCase())) {
                             searchResults.push(`**AFK:** <@${userId}> - ${afkData.reason}`);
                         }
                     }
 
                     // Search in welcome data
-                    for (const [guildIdKey, welcomeData] of Object.entries(data.welcome || {})) {
-                        if (guildIdKey === guildId) {
-                            if (query.toLowerCase().includes('welcome') || query.toLowerCase().includes('join')) {
-                                searchResults.push(`**Welcome:** <#${welcomeData.channelId}> (${welcomeData.enabled ? 'Enabled' : 'Disabled'})`);
-                            }
-                        }
+                    if (guildData.welcome && query.toLowerCase().includes('welcome') || query.toLowerCase().includes('join')) {
+                        searchResults.push(`**Welcome:** <#${guildData.welcome.channelId}> (${guildData.welcome.enabled ? 'Enabled' : 'Disabled'})`);
                     }
 
                     // Search in prefix data
-                    if (data.prefix[guildId]) {
-                        const prefixChar = data.prefix[guildId];
-                        if (query.toLowerCase().includes('prefix')) {
-                            searchResults.push(`**Prefix:** \`${prefixChar}\``);
-                        }
+                    const prefix = getPrefix(guildId);
+                    if (query.toLowerCase().includes('prefix')) {
+                        searchResults.push(`**Prefix:** \`${prefix}\``);
                     }
 
                     // Search in bot status
@@ -3117,14 +3110,15 @@ client.on(Events.MessageCreate, async msg => {
 
     }
 
-    // ----- Auto-response triggers -----
-    if (data.autoresponse[guildId]) {
-        for (const ar of data.autoresponse[guildId]) {
+    // ----- Auto-response triggers (GUILD-SPECIFIC) -----
+    const guildData = getGuildData(guildId);
+    if (guildData.autoresponse) {
+        for (const ar of guildData.autoresponse) {
             if (msg.content.includes(ar.trigger)) {
                 if (ar.type === 'text') {
                     if (ar.isFromBackup) {
                         // Text response from saved custom message
-                        const customMsg = data.autoresponse[guildId]?.find(m => m.title === ar.response);
+                        const customMsg = guildData.autoresponse?.find(m => m.title === ar.response);
                         if (customMsg) {
                             // Reconstruct Component V2 message from saved data
                             const container = new ContainerBuilder();
@@ -3164,7 +3158,10 @@ client.on(Events.MessageCreate, async msg => {
 // ------------------------
 client.on(Events.MessageCreate, async msg => {
     if (msg.author.bot) return;
-    if (!data.nickname.channelId || msg.channel.id !== data.nickname.channelId) return;
+    if (msg.guildId !== MINING_BANGLADESH_GUILD) return;
+    
+    const miningData = miningBangladeshData;
+    if (!miningData.nickname.channelId || msg.channel.id !== miningData.nickname.channelId) return;
 
     const nickname = msg.content.trim();
     if (nickname.toLowerCase() === 'reset') {
@@ -3173,7 +3170,7 @@ client.on(Events.MessageCreate, async msg => {
         return;
     }
 
-    if (data.nickname.mode === 'auto') {
+    if (miningData.nickname.mode === 'auto') {
         const bannedWord = containsBannedWord(nickname);
         if (bannedWord) {
             await msg.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '### <:Bin:1441777857205637254> Cannot Set' }, { type: 14, spacing: 1 }, { type: 10, content: `Word "**${bannedWord}**" is not allowed.` }] }], flags: 32768 });
@@ -3186,15 +3183,15 @@ client.on(Events.MessageCreate, async msg => {
             await msg.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: `### <:Correct:1440296238305116223> Changed To ${nickname}` }, { type: 14, spacing: 1 }, { type: 10, content: `Your previous nickname was **${before}**` }] }], flags: 32768 }).catch(() => {});
         } catch {
             // Queue the pending request for when bot comes back online
-            data.pendingNicknameRequests[msg.author.id] = {
+            miningData.pendingNicknameRequests[msg.author.id] = {
                 guildId: msg.guildId,
                 nickname: nickname,
                 timestamp: Date.now()
             };
-            fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
+            saveGuildData(msg.guildId, miningData);
             await msg.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '### ⏳ Queued For Later' }, { type: 14, spacing: 1 }, { type: 10, content: `Your nickname request for "**${nickname}**" has been queued. It will be applied as soon as the bot is fully ready.` }] }], flags: 32768 }).catch(() => {});
         }
-    } else if (data.nickname.mode === 'approval') {
+    } else if (miningData.nickname.mode === 'approval') {
         const bannedWord = containsBannedWord(nickname);
         if (bannedWord) {
             await msg.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '### <:Bin:1441777857205637254> Cannot Set' }, { type: 14, spacing: 1 }, { type: 10, content: `Word "**${bannedWord}**" is not allowed.` }] }], flags: 32768 });
