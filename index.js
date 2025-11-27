@@ -159,9 +159,7 @@ async function initializeTopics() {
 // Initialize topics when bot is ready (moved to Events.ClientReady handler below)
 
 // Auto-reconnection on disconnect
-client.on('disconnect', () => {
-    console.log('⚠️ Bot disconnected, attempting to reconnect...');
-});
+client.on('disconnect', () => {});
 
 // Handle connection errors
 client.on('error', (error) => {
@@ -169,9 +167,7 @@ client.on('error', (error) => {
 });
 
 // Handle warnings
-client.on('warn', (info) => {
-    console.warn('⚠️ Discord warning:', info);
-});
+client.on('warn', (info) => {});
 
 // ------------------------
 // COMMAND REGISTRATION
@@ -225,19 +221,11 @@ function applyBotStatus() {
 // BOT READY
 // ------------------------
 client.once(Events.ClientReady, async () => {
-    console.log(`${client.user.tag} is online!`);
-    
     // Initialize topics
     await initializeTopics();
     
     // Apply custom status from saved data
     applyBotStatus();
-    
-    // Load AFK data from storage (Mining Bangladesh only)
-    const miningData = miningBangladeshData;
-    if (miningData.afk) {
-        afkUsers = { ...miningData.afk };
-    }
     
     // Process pending nickname requests
     await processPendingNicknameRequests();
@@ -249,15 +237,11 @@ client.once(Events.ClientReady, async () => {
             try {
                 const botRole = guild.roles.cache.find(role => role.name === `${BOT_NAME}` || role.name.includes(BOT_NAME));
                 if (botRole && botRole.managed) {
-                    // Only update if role name is different
                     if (botRole.name !== botRoleName) {
                         await botRole.setName(botRoleName).catch(() => {});
-                        console.log(`✅ Updated bot role in ${guild.name} to: ${botRoleName}`);
                     }
                 }
-            } catch (guildError) {
-                // Skip this guild if error occurs
-            }
+            } catch (guildError) {}
         }
     } catch (error) {
         console.error('Error updating bot role names:', error);
@@ -268,25 +252,16 @@ client.once(Events.ClientReady, async () => {
 // PREFIX / AFK / AUTORESPONSE
 // ------------------------
 const defaultPrefix = '!';
-let afkUsers = {}; // { userId: { reason: string, timestamp: number } }
-const commandCooldowns = new Map(); // { userId: { commandName: timestamp } }
+const commandCooldowns = new Map();
 
 // HELPER: Process pending nickname requests by scanning the nickname channel (Mining Bangladesh only)
 async function processPendingNicknameRequests() {
     const miningData = miningBangladeshData;
-    if (!miningData.nickname || !miningData.nickname.channelId) {
-        console.log('[PENDING NICKNAMES] No nickname channel configured');
-        return;
-    }
+    if (!miningData.nickname || !miningData.nickname.channelId) return;
     
     try {
         const channel = await client.channels.fetch(miningData.nickname.channelId);
-        if (!channel || !channel.isTextBased()) {
-            console.log('[PENDING NICKNAMES] Nickname channel not found or not a text channel');
-            return;
-        }
-        
-        console.log('[PENDING NICKNAMES] Scanning nickname request channel for unapplied requests...');
+        if (!channel || !channel.isTextBased()) return;
         
         // Fetch messages from the channel (last 100 messages)
         const messages = await channel.messages.fetch({ limit: 100 });
@@ -330,10 +305,7 @@ async function processPendingNicknameRequests() {
             }
             
             // Skip this message if it already has a bot reply
-            if (msgHasBotReply) {
-                console.log(`[PENDING NICKNAMES] ⏭️ Skipping message from ${msg.author.tag} (already processed)`);
-                continue;
-            }
+            if (msgHasBotReply) continue;
             
             try {
                 const member = await channel.guild.members.fetch(msg.author.id);
