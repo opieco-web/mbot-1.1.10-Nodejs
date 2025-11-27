@@ -1,0 +1,153 @@
+{
+  "bot": {
+    "status": {
+      "text": "মিনিং বাংলা│m•bot v1.0.87",
+      "type": "Competing",
+      "emoji": "🗯️",
+      "presence": "dnd"
+    }
+  },
+
+  "nickname": {
+    "channelId": "1305225655394242561",
+    "mode": "auto",
+    "filter": [
+      "gay",
+      "pron star"
+    ]
+  },
+
+  "prefix": "!",
+
+  "autoresponse": [
+    {
+      "trigger": "<@1065350468928290828>",
+      "type": "react",
+      "response": "<a:mg_pixel_walking_fries:1439874950755258520>"
+    },
+    {
+      "trigger": "<@1108782022543032400>",
+      "type": "react",
+      "response": "<a:mg_heart_flowers:1318077522897928223>"
+    },
+    {
+      "trigger": "<@1272065508367138902>",
+      "type": "react",
+      "response": "<:mg_h_hug:1439960872473854065>"
+    },
+    {
+      "trigger": "Vanity",
+      "type": "text",
+      "response": "https://discord.gg/mining-bangladesh-1296783492989980682"
+    },
+    {
+      "trigger": "!cr",
+      "type": "text",
+      "response": "**BEFORE PROCEEDING,** kindly review our requirements.\n-# * You can find the details here https://discord.com/channels/1296783492989980682/1326457194144595970\n**ONCE YOU'RE FAMILIAR WITH THEM,**\n-# * submit your application through here <#1322327013490561126>.\n-# Please ensure you understand them fully before we move forward.",
+      "isFromBackup": false
+    }
+  ],
+
+  "afk": {
+    "1438571852581699696": {
+      "reason": "I am currently AFK.",
+      "timestamp": 1764067788408,
+      "originalNickname": "N0ah✨"
+    },
+    "1294699516955725890": {
+      "reason": "Diva Television 😴",
+      "timestamp": 1764112739660,
+      "originalNickname": "SHIT"
+    },
+    "1108782022543032400": {
+      "reason": "mori jai",
+      "timestamp": 1764179568983,
+      "originalNickname": "Ruksa"
+    },
+    "1054967242497982476": {
+      "reason": "I'm under in the water 🤓☝️",
+      "timestamp": 1764179752730,
+      "originalNickname": "uwuphobic"
+    }
+  },
+
+  "welcome": {
+    "channelId": "1296783493430513747",
+    "delay": 120000,
+    "enabled": true
+  },
+
+  "topics": {
+    "rules": {
+      "channelId": "1296784800547602494",
+      "messageId": "1426049059977953392",
+      "content": "Our server is all about being respectful, safe, and friendly. No drama, no hate, no NSFW, and no spamming. Pick your roles, follow Discord rules, and use help or tickets if you need support. Keep everything clean, don't advertise, and treat everyone properly.",
+      "link": "https://discord.com/channels/1296783492989980682/1296784800547602494/1426049059977953392"
+    },
+    "about roles": {
+      "channelId": "1296968925191475211",
+      "messageId": "1428355188216827955",
+      "content": "Our server offers special roles for boosters, long-time supporters, helpers, and talented members. Boosting gives perks like nickname change, media access, XP boost, exclusive channels, and even the chance to create your own gang. Other roles reward support, talent, achievements, or activity in chat and VC.",
+      "link": "https://discord.com/channels/1296783492989980682/1296968925191475211/1428355188216827955"
+    },
+    "about us": {
+      "channelId": "1296794666611511308",
+      "messageId": "1312080094583328809",
+      "content": "In personal voice channels, keep things respectful and comfortable for everyone. Don't lock channels with music bots, honor the host's requests, and keep private conversations private. Minimize noise, stream responsibly, stay focused on the server, and moderators may step in to ensure fun and safety.",
+      "link": "https://discord.com/channels/1296783492989980682/1296794666611511308/1312080094583328809"
+    },
+    "mining": {
+      "channelId": "1296794666611511308",
+      "messageId": "1312080094583328809",
+      "content": "In personal voice channels, keep things respectful and comfortable for everyone. Don't lock channels with music bots, honor the host's requests, and keep private conversations private. Minimize noise, stream responsibly, stay focused on the server, and moderators may step in to ensure fun and safety.",
+      "link": "https://discord.com/channels/1296783492989980682/1296794666611511308/1312080094583328809"
+    },
+    "server info": {
+      "channelId": "1296794666611511308",
+      "messageId": "1312080094583328809",
+      "content": "In personal voice channels, keep things respectful and comfortable for everyone. Don't lock channels with music bots, honor the host's requests, and keep private conversations private. Minimize noise, stream responsibly, stay focused on the server, and moderators may step in to ensure fun and safety.",
+      "link": "https://discord.com/channels/1296783492989980682/1296794666611511308/1312080094583328809"
+    }
+  },
+
+  "meme": {
+    "templates": [
+      {
+        "name": "Distracted Boyfriend",
+        "url": "https://i.imgflip.com/1ur9b0.jpg"
+      },
+      {
+        "name": "Drake",
+        "url": "https://i.imgflip.com/44gqj2.jpg"
+      },
+      {
+        "name": "Gru's Plan",
+        "url": "https://i.imgflip.com/3xz6me.jpg"
+      },
+      {
+        "name": "Doge",
+        "url": "https://i.imgflip.com/2ep9l2.jpg"
+      },
+      {
+        "name": "Change My Mind",
+        "url": "https://i.imgflip.com/355g3z.jpg"
+      }
+    ]
+  },
+
+  "config": {
+    "headerAttachment": "https://cdn.discordapp.com/attachments/1429390306670805142/1442243184217428040/Screenshot_2025_1120_234854.png?ex=6924b922&is=692367a2&hm=cbed03b856ba661f2d7d7dc9252dd5fe7789d7eaac85b0a7cc980f80ddf3da45&",
+    "bgAttachment": "https://cdn.discordapp.com/attachments/1429390306670805142/1442243258796478604/5f6b67489ef05a8c8c7e2bdd5e09a1ee.jpg?ex=6924b934&is=692367b4&hm=c58aeeffd162581da503e344cdc4111c1aeb61002b9651c48565fb93c196fc5a&"
+  },
+
+  "status": {
+    "presence": "idle",
+    "text": "মামা কি খবর?",
+    "emoji": "🌚",
+    "lastUpdatedBy": "1065350468928290828",
+    "lastUpdatedAt": "2025-11-26T09:32:30.743Z",
+    "type": "Streaming"
+  },
+
+  "pendingNicknameRequests": {}
+}

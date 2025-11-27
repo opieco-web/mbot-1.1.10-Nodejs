@@ -10,8 +10,39 @@ const packageJson = JSON.parse(fs.readFileSync('./package.json', 'utf8'));
 const BOT_NAME = packageJson.name;
 const BOT_VERSION = versionData.version;
 
-const dataFile = './data.json';
-let data = JSON.parse(fs.readFileSync(dataFile, 'utf8'));
+// GUILD IDs
+const MINING_BANGLADESH_GUILD = '1296783492989980682';
+
+// Data file paths
+const miningBangladeshDataFile = './data/mining-bangladesh.json';
+const otherServersDataFile = './data/other-servers.json';
+
+// Load data from separate files
+let miningBangladeshData = JSON.parse(fs.readFileSync(miningBangladeshDataFile, 'utf8'));
+let otherServersData = JSON.parse(fs.readFileSync(otherServersDataFile, 'utf8'));
+
+// Helper function to get data for a specific guild
+function getGuildData(guildId) {
+  if (guildId === MINING_BANGLADESH_GUILD) {
+    return miningBangladeshData;
+  } else {
+    return otherServersData;
+  }
+}
+
+// Helper function to save data for a specific guild
+function saveGuildData(guildId, dataToSave) {
+  if (guildId === MINING_BANGLADESH_GUILD) {
+    miningBangladeshData = dataToSave;
+    fs.writeFileSync(miningBangladeshDataFile, JSON.stringify(miningBangladeshData, null, 2));
+  } else {
+    otherServersData = dataToSave;
+    fs.writeFileSync(otherServersDataFile, JSON.stringify(otherServersData, null, 2));
+  }
+}
+
+// Backward compatibility - data variable for global operations
+let data = miningBangladeshData;
 
 // Helper: Try to parse response as JSON and send as Component V2
 function tryParseAndSendComponent(msg, responseText) {
@@ -1780,15 +1811,34 @@ Type \`reset\` to revert back to your original name. Examples: Shadow, Phoenix, 
 
     // Helper function to build config pages
     function buildConfigPage(pageNum, guildId) {
+        const isMiningBangladesh = guildId === MINING_BANGLADESH_GUILD;
+        const guildData = getGuildData(guildId);
         const prefix = getPrefix(guildId);
-        const serverConfig = data.config?.[guildId] || {};
-        const headerUrl = serverConfig.headerAttachment;
-        const bgUrl = serverConfig.bgAttachment;
+        
+        let serverConfig = {};
+        let headerUrl = null;
+        let bgUrl = null;
+        
+        // For Mining Bangladesh, get config from guildData.config
+        if (isMiningBangladesh) {
+            serverConfig = guildData.config || {};
+            headerUrl = serverConfig.headerAttachment;
+            bgUrl = serverConfig.bgAttachment;
+        } else {
+            // For other servers, get from guildData.config (if exists)
+            serverConfig = guildData.config || {};
+            headerUrl = serverConfig.headerAttachment;
+            bgUrl = serverConfig.bgAttachment;
+        }
         
         let pageComponents = [];
         
-        // Page indicator at the top (stored in content for tracking, but not used in Components V2 display)
-        let pageIndicator = `Page ${pageNum}/3`;
+        // For non-Mining Bangladesh servers, max pages = 2 (no page 2 status settings)
+        const maxPages = isMiningBangladesh ? 3 : 2;
+        
+        // Adjust page number for non-Mining Bangladesh servers
+        let displayPageNum = pageNum;
+        let pageIndicator = `Page ${displayPageNum}/${maxPages}`;
         
         if (pageNum === 1) {
             // Page 1: Prefix Settings
@@ -1805,9 +1855,9 @@ Type \`reset\` to revert back to your original name. Examples: Shadow, Phoenix, 
                     ]
                 }
             ];
-        } else if (pageNum === 2) {
-            // Page 2: Bot Status
-            // Visibility emoji mapping
+        } else if (pageNum === 2 && isMiningBangladesh) {
+            // Page 2: Bot Status (ONLY FOR MINING BANGLADESH)
+            const statusData = guildData.status || {};
             const visibilityEmojis = {
                 'online': '<:online:1442982229688189153>',
                 'idle': '<:idle:1442982232083005634>',
@@ -1822,17 +1872,17 @@ Type \`reset\` to revert back to your original name. Examples: Shadow, Phoenix, 
             };
             
             let statusText = '';
-            const currentPresence = data.status?.presence || 'online';
+            const currentPresence = statusData.presence || 'online';
             const currentVisibilityEmoji = visibilityEmojis[currentPresence] || visibilityEmojis['online'];
             const currentVisibilityLabel = visibilityLabels[currentPresence] || 'online';
             
-            if (!data.status?.text || !data.status?.type) {
+            if (!statusData.text || !statusData.type) {
                 statusText = `${currentVisibilityEmoji}│${currentVisibilityLabel} - No custom activity set.`;
             } else {
-                const displayName = data.status.emoji ? `${data.status.emoji} ${data.status.text}` : data.status.text;
-                statusText = `**Activity:** ${data.status.type} ${displayName}\n`;
-                if (data.status.type === 'Streaming' && data.status.streamUrl) {
-                    statusText += `**Stream:** ${data.status.streamUrl}\n`;
+                const displayName = statusData.emoji ? `${statusData.emoji} ${statusData.text}` : statusData.text;
+                statusText = `**Activity:** ${statusData.type} ${displayName}\n`;
+                if (statusData.type === 'Streaming' && statusData.streamUrl) {
+                    statusText += `**Stream:** ${statusData.streamUrl}\n`;
                 }
                 statusText += `**Visibility:** ${currentVisibilityEmoji}│${currentVisibilityLabel}`;
             }
@@ -1859,10 +1909,10 @@ Type \`reset\` to revert back to your original name. Examples: Shadow, Phoenix, 
                             custom_id: 'config_online_status',
                             placeholder: 'Select Online Status',
                             options: [
-                                { label: 'Online', value: 'online', default: (data.status?.presence || 'online') === 'online' },
-                                { label: 'Idle', value: 'idle', default: data.status?.presence === 'idle' },
-                                { label: 'Do Not Disturb', value: 'dnd', default: data.status?.presence === 'dnd' },
-                                { label: 'Invisible', value: 'invisible', default: data.status?.presence === 'invisible' }
+                                { label: 'Online', value: 'online', default: (statusData.presence || 'online') === 'online' },
+                                { label: 'Idle', value: 'idle', default: statusData.presence === 'idle' },
+                                { label: 'Do Not Disturb', value: 'dnd', default: statusData.presence === 'dnd' },
+                                { label: 'Invisible', value: 'invisible', default: statusData.presence === 'invisible' }
                             ]
                         }
                     ]
@@ -1875,11 +1925,11 @@ Type \`reset\` to revert back to your original name. Examples: Shadow, Phoenix, 
                             custom_id: 'config_activity_type',
                             placeholder: 'Select Activity Type',
                             options: [
-                                { label: 'Playing', value: 'Playing', default: data.status?.type === 'Playing' },
-                                { label: 'Watching', value: 'Watching', default: data.status?.type === 'Watching' },
-                                { label: 'Listening', value: 'Listening', default: data.status?.type === 'Listening' },
-                                { label: 'Competing', value: 'Competing', default: data.status?.type === 'Competing' },
-                                { label: 'Streaming', value: 'Streaming', default: data.status?.type === 'Streaming' }
+                                { label: 'Playing', value: 'Playing', default: statusData.type === 'Playing' },
+                                { label: 'Watching', value: 'Watching', default: statusData.type === 'Watching' },
+                                { label: 'Listening', value: 'Listening', default: statusData.type === 'Listening' },
+                                { label: 'Competing', value: 'Competing', default: statusData.type === 'Competing' },
+                                { label: 'Streaming', value: 'Streaming', default: statusData.type === 'Streaming' }
                             ]
                         }
                     ]
@@ -1893,11 +1943,12 @@ Type \`reset\` to revert back to your original name. Examples: Shadow, Phoenix, 
                     ]
                 }
             ];
-        } else if (pageNum === 3) {
-            // Page 3: Bot Version & Latest Changes
+        } else if ((pageNum === 3 && isMiningBangladesh) || (pageNum === 2 && !isMiningBangladesh)) {
+            // Page 3 for Mining Bangladesh OR Page 2 for other servers: Bot Version & Latest Changes
+            const versionPageNum = isMiningBangladesh ? 3 : 2;
             pageComponents = [
                 { type: 10, content: `## <:settingsinfo:1442985524204802230> ${BOT_NAME} Configuration` },
-                { type: 10, content: `**<:Page:1442984948305887362> Page 3/3**` },
+                { type: 10, content: `**<:Page:1442984948305887362> Page ${versionPageNum}/${maxPages}**` },
                 { type: 14, spacing: 1 },
                 { type: 10, content: '### <:Bot1:1442980696078549062><:Bot2:1442980693453045912> Version & Changes' },
                 { type: 10, content: `**<:new1:1442980719755399280><:new2:1442980717079298139> Version:** v${versionData.version}` },
@@ -1914,7 +1965,7 @@ Type \`reset\` to revert back to your original name. Examples: Shadow, Phoenix, 
             type: 1,
             components: [
                 { type: 2, style: 2, label: '◀ Previous', custom_id: 'config_prev', disabled: pageNum === 1 },
-                { type: 2, style: 2, label: 'Next ▶', custom_id: 'config_next', disabled: pageNum === 3 }
+                { type: 2, style: 2, label: 'Next ▶', custom_id: 'config_next', disabled: pageNum === maxPages }
             ]
         });
         
