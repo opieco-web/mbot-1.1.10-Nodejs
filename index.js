@@ -3111,7 +3111,6 @@ client.on(Events.MessageCreate, async msg => {
     }
 
     // ----- Auto-response triggers (GUILD-SPECIFIC) -----
-    const guildData = getGuildData(guildId);
     if (guildData.autoresponse) {
         for (const ar of guildData.autoresponse) {
             if (msg.content.includes(ar.trigger)) {
