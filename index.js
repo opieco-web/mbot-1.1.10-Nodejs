@@ -1364,20 +1364,24 @@ Type \`reset\` to revert back to your original name. Examples: Shadow, Phoenix, 
         setTimeout(() => replyMsg.delete().catch(() => {}), 30000);
     }
 
-    // AFKLIST - Component V2 Container
+    // AFKLIST - Component V2 Container (GUILD-SPECIFIC AFK DATA ONLY)
     // type 17 = Container | type 10 = TextDisplay | type 14 = Separator
     if (commandName === 'afklist') {
         if (!member.permissions.has(PermissionsBitField.Flags.ManageGuild) && !member.permissions.has(PermissionsBitField.Flags.Administrator)) {
             return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## 🚫 Permission Denied' }, { type: 14, spacing: 1 }, { type: 10, content: 'You need ManageGuild permission.' }] }], flags: 32768 | MessageFlags.Ephemeral });
         }
 
-        if (Object.keys(afkUsers).length === 0) {
-            return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## ⏱️ AFK Status' }, { type: 14, spacing: 1 }, { type: 10, content: 'No users are currently AFK.' }] }], flags: 32768 | MessageFlags.Ephemeral });
+        // Load AFK data from THIS GUILD ONLY
+        const guildData = getGuildData(guildId);
+        const guildAfkData = guildData.afk || {};
+        
+        if (Object.keys(guildAfkData).length === 0) {
+            return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## ⏱️ AFK Status' }, { type: 14, spacing: 1 }, { type: 10, content: 'No users are currently AFK in this server.' }] }], flags: 32768 | MessageFlags.Ephemeral });
         }
 
         let afkList = '';
-        for (const userId in afkUsers) {
-            const afkData = afkUsers[userId];
+        for (const userId in guildAfkData) {
+            const afkData = guildAfkData[userId];
             const duration = calculateDuration(afkData.timestamp);
             
             try {
@@ -1394,7 +1398,7 @@ Type \`reset\` to revert back to your original name. Examples: Shadow, Phoenix, 
             }
         }
 
-        const afkCount = Object.keys(afkUsers).length;
+        const afkCount = Object.keys(guildAfkData).length;
         return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: `## 🚫 Currently AFK - ${afkCount}` }, { type: 14, spacing: 1 }, { type: 10, content: afkList }] }], flags: 32768 | MessageFlags.Ephemeral });
     }
 
@@ -2505,10 +2509,14 @@ client.on(Events.MessageCreate, async msg => {
     const guildId = msg.guildId;
     const prefix = getPrefix(guildId);
 
-    // ----- Check mentions for AFK -----
+    // ----- Check mentions for AFK (GUILD-SPECIFIC ONLY) -----
     msg.mentions.users.forEach(async user => {
-        if (afkUsers[user.id]) {
-            const afkData = afkUsers[user.id];
+        // Only show AFK from THIS guild's data
+        const guildData = getGuildData(guildId);
+        const guildAfkData = guildData.afk || {};
+        
+        if (guildAfkData[user.id]) {
+            const afkData = guildAfkData[user.id];
             const timestampSeconds = Math.floor(afkData.timestamp / 1000);
             
             try {
@@ -2523,9 +2531,12 @@ client.on(Events.MessageCreate, async msg => {
         }
     });
 
-    // ----- Reset AFK on any message -----
-    if (afkUsers[msg.author.id]) {
-        const afkData = afkUsers[msg.author.id];
+    // ----- Reset AFK on any message (GUILD-SPECIFIC) -----
+    const guildData = getGuildData(guildId);
+    const guildAfkData = guildData.afk || {};
+    
+    if (guildAfkData[msg.author.id]) {
+        const afkData = guildAfkData[msg.author.id];
         const duration = calculateDuration(afkData.timestamp);
         
         try {
@@ -2539,12 +2550,8 @@ client.on(Events.MessageCreate, async msg => {
             console.error('Failed to restore nickname:', e);
         }
         
-        delete afkUsers[msg.author.id];
-        if (msg.guildId === MINING_BANGLADESH_GUILD) {
-            const miningData = miningBangladeshData;
-            delete miningData.afk[msg.author.id];
-            saveGuildData(msg.guildId, miningData);
-        }
+        delete guildAfkData[msg.author.id];
+        saveGuildData(guildId, guildData);
         const welcomeEmojis = ['<a:snowmanhellokitty:1441834296804638800>', '<a:mymelody:1441834292400623646>', '<a:twirlingdonut:1441834290311598229>', '<a:orangeblossom:1441834288193605856>', '<a:musicrecordspin:1441834285517639841>', '<a:balloonpikachu:1441834282816377103>', '<a:croissant:1441783019139502112>', '<a:cherry:1441782972486516946>', '<:1210pixelhotcoffee:1443306092863029418>', '<a:scarf:1443306089738141760>', '<a:kittydance:1443306087125094533>', '<a:whitebutterfly:1443306083694280724>', '<a:703209tkkkk:1443306080636502147>', '<a:tkkkk:1443306075356004548>'];
         const welcomeEmoji = welcomeEmojis[Math.floor(Math.random() * welcomeEmojis.length)];
         await msg.reply(`${welcomeEmoji} Welcome back ${msg.author}! You were AFK for ${duration}.`);

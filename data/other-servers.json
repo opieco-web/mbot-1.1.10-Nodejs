@@ -1,17 +1,11 @@
 {
   "====== SERVER: 1440196646490214422 ======": {},
-
-  "prefix": ".",
-
+  "prefix": "M",
   "autoresponse": [],
-
   "welcome": {
     "enabled": false
   },
-
   "config": {},
-
   "afk": {},
-
   "pendingNicknameRequests": {}
 }
