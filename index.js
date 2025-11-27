@@ -527,7 +527,8 @@ function formatUptime(time) {
 // HELPER: get prefix per guild
 // ------------------------
 function getPrefix(guildId) {
-    return data.prefix[guildId] || defaultPrefix;
+    const guildData = getGuildData(guildId);
+    return guildData.prefix || defaultPrefix;
 }
 
 // HELPER: Check if nickname contains banned words
@@ -2328,14 +2329,15 @@ Type \`reset\` to revert back to your original name. Examples: Shadow, Phoenix, 
                 finalResponse = response;
             }
 
-            data.autoresponse[guildId] = data.autoresponse[guildId] || [];
-            data.autoresponse[guildId].push({ 
+            const guildData = getGuildData(guildId);
+            guildData.autoresponse = guildData.autoresponse || [];
+            guildData.autoresponse.push({ 
                 trigger, 
                 type, 
                 response: finalResponse,
                 isFromBackup: isFromBackup
             });
-            fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
+            saveGuildData(guildId, guildData);
 
             const displayText = type === 'text' 
                 ? (isFromBackup ? `Saved Message: ${finalResponse}` : `Custom Text: ${finalResponse.substring(0, 50)}${finalResponse.length > 50 ? '...' : ''}`)
@@ -2349,30 +2351,32 @@ Type \`reset\` to revert back to your original name. Examples: Shadow, Phoenix, 
             if (!trigger)
                 return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:Error:1440296241090265088> Error' }, { type: 14 }, { type: 10, content: 'Trigger is required.' }] }], flags: 32768 | MessageFlags.Ephemeral });
 
-            if (!data.autoresponse[guildId] || data.autoresponse[guildId].length === 0) {
+            const guildData = getGuildData(guildId);
+            if (!guildData.autoresponse || guildData.autoresponse.length === 0) {
                 return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:Error:1440296241090265088> Error' }, { type: 14 }, { type: 10, content: 'No auto-responses configured.' }] }], flags: 32768 | MessageFlags.Ephemeral });
             }
 
-            const initialLength = data.autoresponse[guildId].length;
-            data.autoresponse[guildId] = data.autoresponse[guildId].filter(ar => ar.trigger !== trigger);
+            const initialLength = guildData.autoresponse.length;
+            guildData.autoresponse = guildData.autoresponse.filter(ar => ar.trigger !== trigger);
 
-            if (data.autoresponse[guildId].length === initialLength) {
+            if (guildData.autoresponse.length === initialLength) {
                 return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:Error:1440296241090265088> Error' }, { type: 14 }, { type: 10, content: `No response found for "${trigger}".` }] }], flags: 32768 | MessageFlags.Ephemeral });
             }
 
-            fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
+            saveGuildData(guildId, guildData);
             const removeTitle = `## <:Correct:1440296238305116223> Auto-Response Removed`;
             const removeContent = `**Trigger:** ${trigger}\n\nThis auto-response has been successfully removed from your server.`;
             return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: removeTitle }, { type: 14, spacing: 1 }, { type: 10, content: removeContent }] }], flags: 32768 | MessageFlags.Ephemeral });
         }
 
         if (action === 'list') {
-            if (!data.autoresponse[guildId] || data.autoresponse[guildId].length === 0) {
+            const guildData = getGuildData(guildId);
+            if (!guildData.autoresponse || guildData.autoresponse.length === 0) {
                 return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## 🔄 Auto-Responses' }, { type: 14 }, { type: 10, content: 'None configured yet.' }] }], flags: 32768 | MessageFlags.Ephemeral });
             }
 
             let list = '';
-            data.autoresponse[guildId].forEach((ar, index) => {
+            guildData.autoresponse.forEach((ar, index) => {
                 let responseDisplay = '';
                 if (ar.type === 'text') {
                     responseDisplay = ar.isFromBackup ? `📦 Saved: ${ar.response}` : `✏️ Text: ${ar.response.substring(0, 40)}${ar.response.length > 40 ? '...' : ''}`;
@@ -2383,7 +2387,7 @@ Type \`reset\` to revert back to your original name. Examples: Shadow, Phoenix, 
             });
 
             const listTitle = `## 🔄 Auto-Responses Configured`;
-            const listContent = `${list}\n**Total:** ${data.autoresponse[guildId].length} response(s) active`;
+            const listContent = `${list}\n**Total:** ${guildData.autoresponse.length} response(s) active`;
             return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: listTitle }, { type: 14, spacing: 1 }, { type: 10, content: listContent }] }], flags: 32768 | MessageFlags.Ephemeral });
         }
     }
@@ -2398,11 +2402,12 @@ Type \`reset\` to revert back to your original name. Examples: Shadow, Phoenix, 
             const delayStr = interaction.options.getString('delaytime');
             const showList = interaction.options.getBoolean('list');
 
-            data.welcome[guildId] = data.welcome[guildId] || {};
-            data.welcome[guildId].channelId = channel.id;
-            data.welcome[guildId].delay = parseDelayString(delayStr);
-            data.welcome[guildId].enabled = true;
-            fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
+            const guildData = getGuildData(guildId);
+            guildData.welcome = guildData.welcome || {};
+            guildData.welcome.channelId = channel.id;
+            guildData.welcome.delay = parseDelayString(delayStr);
+            guildData.welcome.enabled = true;
+            saveGuildData(guildId, guildData);
 
             if (showList) {
                 const sampleList = welcomeMessages.slice(0, 10).map((msg, i) => `${i + 1}. ${msg}`).join('\n');
@@ -2439,9 +2444,10 @@ Type \`reset\` to revert back to your original name. Examples: Shadow, Phoenix, 
         }
 
         if (subcommand === 'disable') {
-            data.welcome[guildId] = data.welcome[guildId] || {};
-            data.welcome[guildId].enabled = false;
-            fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
+            const guildData = getGuildData(guildId);
+            guildData.welcome = guildData.welcome || {};
+            guildData.welcome.enabled = false;
+            saveGuildData(guildId, guildData);
 
             return interaction.reply({ 
                 content: ' ', 
