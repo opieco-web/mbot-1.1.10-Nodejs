@@ -2536,15 +2536,19 @@ client.on(Events.MessageCreate, async msg => {
         const afkData = guildAfkData[msg.author.id];
         const duration = calculateDuration(afkData.timestamp);
         
-        try {
-            const member = await msg.guild.members.fetch(msg.author.id);
-            if (afkData.originalNickname) {
-                await member.setNickname(afkData.originalNickname);
-            } else {
-                await member.setNickname(null);
+        // Only attempt nickname restoration if bot has permission
+        const botHasPermission = msg.guild.members.me?.permissions.has(PermissionsBitField.Flags.ManageNicknames);
+        if (botHasPermission) {
+            try {
+                const member = await msg.guild.members.fetch(msg.author.id);
+                if (afkData.originalNickname) {
+                    await member.setNickname(afkData.originalNickname);
+                } else {
+                    await member.setNickname(null);
+                }
+            } catch (e) {
+                console.error('Failed to restore nickname:', e);
             }
-        } catch (e) {
-            console.error('Failed to restore nickname:', e);
         }
         
         delete guildAfkData[msg.author.id];
@@ -2570,10 +2574,14 @@ client.on(Events.MessageCreate, async msg => {
             guildData.afk[msg.author.id] = afkUsers[msg.author.id];
             saveGuildData(msg.guildId, guildData);
 
-            try {
-                await msg.member.setNickname(newNickname);
-            } catch (e) {
-                console.error('Failed to set AFK nickname:', e);
+            // Only attempt nickname change if bot has permission
+            const botHasPermission = msg.guild.members.me?.permissions.has(PermissionsBitField.Flags.ManageNicknames);
+            if (botHasPermission) {
+                try {
+                    await msg.member.setNickname(newNickname);
+                } catch (e) {
+                    console.error('Failed to set AFK nickname:', e);
+                }
             }
 
             const replyMsg = await msg.reply(`<:mg_alert:1439893442065862698> AFK set: ${reason}`);
