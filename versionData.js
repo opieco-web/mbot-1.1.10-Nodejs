@@ -1,8 +1,8 @@
 export default {
-    version: "1.0.45",
-    releaseDate: "Nov 26, 2025 9:33 AM",
-    releaseDateTimestamp: 1764144780,
-    changesSummary: "Added randomized emoji to AFK welcome back message",
+    version: "1.0.46",
+    releaseDate: "Nov 27, 2025 12:00 AM",
+    releaseDateTimestamp: 1764230400,
+    changesSummary: "Fixed multi-server data isolation: Guild-specific autoresponse, welcome, prefix; Fixed duplicate variable declarations; Secured Mining Bangladesh-only features (nickname system, status settings)",
 
     versionGuide: `
 📌 Versioning Guide
