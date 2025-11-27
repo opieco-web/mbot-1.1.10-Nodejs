@@ -44,8 +44,7 @@ function saveGuildData(guildId, dataToSave) {
   }
 }
 
-// Backward compatibility - data variable points to Mining Bangladesh (primary)
-let data = miningBangladeshData;
+// NO GLOBAL DATA - Each command must use getGuildData(guildId) based on which server it's running from
 
 // Helper: Try to parse response as JSON and send as Component V2
 function tryParseAndSendComponent(msg, responseText) {
@@ -114,9 +113,12 @@ const client = new Client({
 client.commands = new Collection();
 const startTime = Date.now();
 
-// Function to initialize topic messages on bot startup
+// Function to initialize topic messages on bot startup (Mining Bangladesh only)
 async function initializeTopics() {
-    for (const [topicName, topicData] of Object.entries(data.topics || {})) {
+    const miningData = miningBangladeshData;
+    if (!miningData.topics) return;
+    
+    for (const [topicName, topicData] of Object.entries(miningData.topics || {})) {
         if (topicData && topicData.channelId && topicData.messageId && !topicData.content) {
             try {
                 let channel = await client.channels.fetch(topicData.channelId);
@@ -142,8 +144,8 @@ async function initializeTopics() {
                     }
                     
                     // Store the content (even if empty for Component V2, the link will direct them to the full message)
-                    data.topics[topicName].content = content || '[Component V2 Message - See full message for formatted content]';
-                    data.topics[topicName].link = `https://discord.com/channels/${message.guildId}/${topicData.channelId}/${topicData.messageId}`;
+                    miningData.topics[topicName].content = content || '[Component V2 Message - See full message for formatted content]';
+                    miningData.topics[topicName].link = `https://discord.com/channels/${message.guildId}/${topicData.channelId}/${topicData.messageId}`;
                 }
             } catch (err) {
                 console.error(`Failed to fetch topic "${topicName}":`, err.message);
@@ -151,7 +153,7 @@ async function initializeTopics() {
         }
     }
     // Save updated data with cached content
-    fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
+    fs.writeFileSync(miningBangladeshDataFile, JSON.stringify(miningData, null, 2));
 }
 
 // Initialize topics when bot is ready (moved to Events.ClientReady handler below)
@@ -180,10 +182,11 @@ const rest = new REST({ version: '10' }).setToken(TOKEN);
 await rest.put(Routes.applicationCommands(CLIENT_ID), { body: commands });
 
 // ------------------------
-// HELPER: Apply saved status
+// HELPER: Apply saved status (Mining Bangladesh only)
 // ------------------------
 function applyBotStatus() {
-    const statusData = data.status || {};
+    const miningData = miningBangladeshData;
+    const statusData = miningData.status || {};
     const presenceData = {
         status: statusData.presence || 'online',
         activities: []
@@ -230,9 +233,10 @@ client.once(Events.ClientReady, async () => {
     // Apply custom status from saved data
     applyBotStatus();
     
-    // Load AFK data from storage
-    if (data.afk) {
-        afkUsers = { ...data.afk };
+    // Load AFK data from storage (Mining Bangladesh only)
+    const miningData = miningBangladeshData;
+    if (miningData.afk) {
+        afkUsers = { ...miningData.afk };
     }
     
     // Process pending nickname requests
@@ -261,29 +265,22 @@ client.once(Events.ClientReady, async () => {
 });
 
 // ------------------------
-// DATA / PREFIX / AFK / AUTORESPONSE
+// PREFIX / AFK / AUTORESPONSE
 // ------------------------
 const defaultPrefix = '!';
 let afkUsers = {}; // { userId: { reason: string, timestamp: number } }
 const commandCooldowns = new Map(); // { userId: { commandName: timestamp } }
-data.prefixes = data.prefixes || {}; // { guildId: prefix }
-data.autoresponses = data.autoresponses || {}; // { guildId: [{trigger, type, response}] }
-data.status = data.status || {}; // { type, text, emoji, streamUrl, presence, lastUpdatedBy, lastUpdatedAt }
-data.welcome = data.welcome || {}; // { guildId: { channelId, delay, enabled } }
-data.afk = data.afk || {}; // { userId: { reason: string, timestamp: number } }
-data.nickname.filter = data.nickname.filter || []; // [ word, word, ... ]
-data.autoresponse = data.autoresponse || {}; // { guildId: [{ id, title, content, created }, ...] }
-data.pendingNicknameRequests = data.pendingNicknameRequests || {}; // { userId: { guildId, nickname, timestamp } }
 
-// HELPER: Process pending nickname requests by scanning the nickname channel
+// HELPER: Process pending nickname requests by scanning the nickname channel (Mining Bangladesh only)
 async function processPendingNicknameRequests() {
-    if (!data.nickname.channelId) {
+    const miningData = miningBangladeshData;
+    if (!miningData.nickname || !miningData.nickname.channelId) {
         console.log('[PENDING NICKNAMES] No nickname channel configured');
         return;
     }
     
     try {
-        const channel = await client.channels.fetch(data.nickname.channelId);
+        const channel = await client.channels.fetch(miningData.nickname.channelId);
         if (!channel || !channel.isTextBased()) {
             console.log('[PENDING NICKNAMES] Nickname channel not found or not a text channel');
             return;
@@ -362,7 +359,8 @@ async function processPendingNicknameRequests() {
                 }
                 
                 // Check banned words for nickname
-                const bannedWord = data.nickname.filter?.some(word => 
+                const miningData = miningBangladeshData;
+                const bannedWord = miningData.nickname?.filter?.some(word => 
                     nickname.toLowerCase().includes(word.toLowerCase())
                 );
                 
@@ -531,10 +529,12 @@ function getPrefix(guildId) {
     return guildData.prefix || defaultPrefix;
 }
 
-// HELPER: Check if nickname contains banned words
+// HELPER: Check if nickname contains banned words (Mining Bangladesh only)
 function containsBannedWord(nickname) {
+    const miningData = miningBangladeshData;
     const lowerNickname = nickname.toLowerCase();
-    for (const word of data.nickname.filter) {
+    const filter = miningData.nickname?.filter || [];
+    for (const word of filter) {
         if (lowerNickname.includes(word.toLowerCase())) {
             return word;
         }
