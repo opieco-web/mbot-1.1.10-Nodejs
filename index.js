@@ -21,6 +21,9 @@ const otherServersDataFile = './data/other-servers.json';
 let miningBangladeshData = JSON.parse(fs.readFileSync(miningBangladeshDataFile, 'utf8'));
 let otherServersData = JSON.parse(fs.readFileSync(otherServersDataFile, 'utf8'));
 
+// Backward compatibility - dataFile points to mining-bangladesh.json (primary file)
+const dataFile = miningBangladeshDataFile;
+
 // Helper function to get data for a specific guild
 function getGuildData(guildId) {
   if (guildId === MINING_BANGLADESH_GUILD) {
@@ -41,7 +44,7 @@ function saveGuildData(guildId, dataToSave) {
   }
 }
 
-// Backward compatibility - data variable for global operations
+// Backward compatibility - data variable points to Mining Bangladesh (primary)
 let data = miningBangladeshData;
 
 // Helper: Try to parse response as JSON and send as Component V2
