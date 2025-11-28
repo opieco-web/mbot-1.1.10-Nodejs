@@ -4,19 +4,8 @@ import { SlashCommandBuilder } from 'discord.js';
 const setupPages = {
   1: [
     {
-      "type": 9,
-      "components": [
-        {
-          "type": 10,
-          "content": "# <:Lines3:1443008801509740646> Set Up Menu"
-        }
-      ],
-      "accessory": {
-        "type": 11,
-        "media": {
-          "url": "<bot-avatar:url>"
-        }
-      }
+      "type": 10,
+      "content": "# <:Lines3:1443008801509740646> Set Up Menu"
     },
     {
       "type": 14

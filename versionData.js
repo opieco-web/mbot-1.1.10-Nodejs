@@ -1,15 +1,14 @@
 export default {
-    version: "1.0.79",
-    releaseDate: "Nov 28, 2025 07:55 AM",
-    releaseDateTimestamp: 1764323700,
-    changesSummary: "Restructured setup.js to store page components directly - now works exactly like config command",
+    version: "1.0.80",
+    releaseDate: "Nov 28, 2025 08:00 AM",
+    releaseDateTimestamp: 1764324000,
+    changesSummary: "Fixed setup page 1 - removed invalid URL placeholder from accessory",
 
     changes: [
-        "1. Rewrote setup.js to store page components as direct arrays (not wrapped)",
-        "2. Removed unnecessary nesting - pageComponents ready to use immediately",
-        "3. Setup command now uses identical format to config: components: [{ type: 17, components: pageComponents }]",
-        "4. All page navigation uses same structure as working config command",
-        "5. No manipulation needed - components used directly as provided"
+        "1. Removed invalid accessory URL placeholder from page 1",
+        "2. Simplified page 1 header to just text display",
+        "3. Setup command now responds without Discord validation errors",
+        "4. All 3 pages now ready to display properly"
     ],
 
     versionGuide: `
