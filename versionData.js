@@ -1,14 +1,11 @@
 export default {
-    version: "1.0.58",
-    releaseDate: "Nov 28, 2025 06:00 AM",
-    releaseDateTimestamp: 1764316800,
-    changesSummary: "Code cleanup and structural refinement - 4 critical changes",
+    version: "1.0.59",
+    releaseDate: "Nov 28, 2025 06:15 AM",
+    releaseDateTimestamp: 1764317700,
+    changesSummary: "Nickname system UI improvement - 1 change",
 
     changes: [
-        "1. Removed all debug console.log/warn statements - cleaner production logs",
-        "2. Deleted redundant afkUsers global variable - data now purely guild-isolated",
-        "3. Cleaned project structure - removed legacy folders (events/, src/config/, src/database/, src/utils/) and unused root files",
-        "4. Fixed afkUsers reference error in slash and prefix AFK commands - direct guild data assignment"
+        "1. Enhanced nickname approval/rejection/failure messages with better formatting, more context, and beautiful visual design"
     ],
 
     versionGuide: `
