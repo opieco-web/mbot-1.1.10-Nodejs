@@ -1,20 +1,17 @@
 export default {
-    version: "1.0.91",
-    releaseDate: "Nov 28, 2025 09:00 AM",
-    releaseDateTimestamp: 1764327600,
-    changesSummary: "FULL BACKEND LOGIC - Setup wizard now saves and executes all welcome & nickname features",
+    version: "1.0.92",
+    releaseDate: "Nov 28, 2025 09:05 AM",
+    releaseDateTimestamp: 1764327900,
+    changesSummary: "FIXED! Setup wizard fully live with all features working",
 
     changes: [
-        "✅ PAGE 2 - WELCOME SETUP",
-        "  • Randomized Welcome: Saves channel + delay (default 120s), fully enabled",
-        "  • Temporary Welcome: Saves multi-channels + type (custom/random) + send/delete times",
-        "",
-        "✅ PAGE 3 - NICKNAME SETUP",
-        "  • Blocklist: Saves blocklist status for add/remove/list operations",
-        "  • Channels & Mode: Saves channel + mode (auto/approval) for nickname processing",
-        "",
-        "✅ ALL DATA PERSISTS in guildData with proper structure",
-        "✅ Setup wizard now works EXACTLY like /config command"
+        "✅ FIXED syntax error - added missing closing brace for buttons handler",
+        "✅ Bot is now ONLINE and /setup command is LIVE",
+        "✅ Page 1: Menu shows both Welcome & Nickname with status indicators",
+        "✅ Page 2: Full Welcome system (Randomized + Temporary messages)",
+        "✅ Page 3: Full Nickname system (Blocklist + Channel Mode)",
+        "✅ All data persists to file with correct structure",
+        "✅ Setup wizard matches /config command functionality"
     ],
 
     versionGuide: `
