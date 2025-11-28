@@ -807,7 +807,8 @@ client.on(Events.InteractionCreate, async interaction => {
                     
                     return interaction.update({
                         content: ' ',
-                        components: [{ type: 1, components: pageData.components }]
+                        components: pageData.components,
+                        flags: MessageFlags.Ephemeral | MessageFlags.IsComponentsV2
                     });
                 }
                 
@@ -827,17 +828,14 @@ client.on(Events.InteractionCreate, async interaction => {
                     return interaction.update({
                         content: ' ',
                         components: [{
-                            type: 1,
-                            components: [{
-                                type: 17,
-                                components: [
-                                    { type: 10, content: '# <:Correct:1440296238305116223> Setup Complete!' },
-                                    { type: 14 },
-                                    { type: 10, content: 'All your settings have been saved successfully. The bot is now configured for your server.' }
-                                ]
-                            }]
+                            type: 17,
+                            components: [
+                                { type: 10, content: '# <:Correct:1440296238305116223> Setup Complete!' },
+                                { type: 14 },
+                                { type: 10, content: 'All your settings have been saved successfully. The bot is now configured for your server.' }
+                            ]
                         }],
-                        flags: MessageFlags.Ephemeral
+                        flags: MessageFlags.Ephemeral | MessageFlags.IsComponentsV2
                     });
                 }
             }
@@ -1338,8 +1336,8 @@ Type \`reset\` to revert back to your original name. Examples: Shadow, Phoenix, 
         
         return interaction.reply({
             content: ' ',
-            components: [{ type: 1, components: pageData.components }],
-            flags: MessageFlags.Ephemeral
+            components: pageData.components,
+            flags: MessageFlags.Ephemeral | MessageFlags.IsComponentsV2
         });
     }
 

@@ -1,14 +1,14 @@
 export default {
-    version: "1.0.76",
-    releaseDate: "Nov 28, 2025 07:40 AM",
-    releaseDateTimestamp: 1764322800,
-    changesSummary: "Fixed Component V2 structure - wrapped type 17 containers in type 1 ActionRow",
+    version: "1.0.77",
+    releaseDate: "Nov 28, 2025 07:45 AM",
+    releaseDateTimestamp: 1764323100,
+    changesSummary: "Fixed Component V2 structure - use IsComponentsV2 flag instead of wrapping in type 1",
 
     changes: [
-        "1. Fixed setup command - wrapped Components in proper type 1 ActionRow",
-        "2. Fixed setup page updates - all navigation now properly wraps type 17 in type 1",
-        "3. Fixed completion page - wrapped completion message in proper structure",
-        "4. Component V2 format preserved exactly - only fixed Discord.js structure requirement"
+        "1. Removed incorrect type 1 wrapping around Component V2",
+        "2. Added MessageFlags.IsComponentsV2 flag to all setup responses",
+        "3. Setup pages now send Component V2 directly with proper flag",
+        "4. Navigation and completion messages use correct Component V2 format"
     ],
 
     versionGuide: `
