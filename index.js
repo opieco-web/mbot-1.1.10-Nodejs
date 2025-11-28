@@ -230,6 +230,15 @@ function applyBotStatus() {
 // BOT READY
 // ------------------------
 client.once(Events.ClientReady, async () => {
+    // Bot startup message
+    console.log('\n');
+    console.log(`<:Correct:1440296238305116223> ${BOT_NAME} is now Online`);
+    console.log(`Bot version: ${BOT_VERSION}`);
+    console.log(`User: ${client.user.tag}`);
+    console.log(`Guilds: ${client.guilds.cache.size}`);
+    console.log(`Uptime: ${Math.floor((Date.now() - startTime) / 1000)}s`);
+    console.log('\n');
+    
     // Initialize topics
     await initializeTopics();
     
