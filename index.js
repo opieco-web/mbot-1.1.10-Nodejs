@@ -795,15 +795,15 @@ client.on(Events.InteractionCreate, async interaction => {
                     return interaction.reply({ content: 'Session expired. Use `/setup` to start again.', flags: MessageFlags.Ephemeral });
                 }
                 
-                const { getSetupPage, handleSetupInteraction } = await import('./src/commands/setup.js');
+                const { getSetupPage, handleSetupInteraction, toggleFeature } = await import('./src/commands/setup.js');
                 const action = handleSetupInteraction(customId);
                 
-                if (!action) return;
+                if (!action) return interaction.deferUpdate();
                 
-                if (action.nextPage) {
-                    session.page = action.nextPage;
-                    setupSessions.set(userId, session);
-                    const pageComponents = getSetupPage(action.nextPage);
+                // Handle toggle buttons
+                if (action.action === 'toggle') {
+                    toggleFeature(userId, action.toggleId);
+                    const pageComponents = getSetupPage(session.page, userId);
                     
                     const setupPanel = {
                         content: ' ',
@@ -817,7 +817,42 @@ client.on(Events.InteractionCreate, async interaction => {
                     return interaction.update(setupPanel);
                 }
                 
-                if (action.save) {
+                // Handle mode selections
+                if (action.action === 'mode') {
+                    session.settings.nickname = session.settings.nickname || {};
+                    session.settings.nickname.mode = action.mode;
+                    setupSessions.set(userId, session);
+                    return interaction.deferUpdate();
+                }
+                
+                // Handle welcome type
+                if (action.action === 'welcome_type') {
+                    session.settings.welcome = session.settings.welcome || {};
+                    session.settings.welcome.type = action.type;
+                    setupSessions.set(userId, session);
+                    return interaction.deferUpdate();
+                }
+                
+                // Handle navigation
+                if (action.action === 'navigate') {
+                    session.page = action.nextPage;
+                    setupSessions.set(userId, session);
+                    const pageComponents = getSetupPage(action.nextPage, userId);
+                    
+                    const setupPanel = {
+                        content: ' ',
+                        components: [{
+                            type: 17,
+                            components: pageComponents
+                        }],
+                        flags: 32768 | MessageFlags.Ephemeral
+                    };
+                    
+                    return interaction.update(setupPanel);
+                }
+                
+                // Handle save
+                if (action.action === 'save') {
                     const guildData = getGuildData(guildId);
                     
                     if (session.settings.welcome) {
@@ -845,6 +880,9 @@ client.on(Events.InteractionCreate, async interaction => {
                     
                     return interaction.update(completePanel);
                 }
+                
+                // Default: defer any other setup interaction
+                return interaction.deferUpdate();
             }
 
             // Config: Set Prefix button
@@ -1338,7 +1376,7 @@ Type \`reset\` to revert back to your original name. Examples: Shadow, Phoenix, 
         setupSessions.set(userId, { page: 1, settings: {} });
         
         const { getSetupPage } = await import('./src/commands/setup.js');
-        const pageComponents = getSetupPage(1);
+        const pageComponents = getSetupPage(1, userId);
         const botAvatar = client.user.displayAvatarURL({ dynamic: true, size: 1024 });
         
         // Add bot avatar to page 1 header

@@ -1,13 +1,16 @@
 export default {
-    version: "1.0.81",
-    releaseDate: "Nov 28, 2025 08:05 AM",
-    releaseDateTimestamp: 1764324300,
-    changesSummary: "Added real bot avatar to setup wizard page 1",
+    version: "1.0.82",
+    releaseDate: "Nov 28, 2025 08:10 AM",
+    releaseDateTimestamp: 1764324600,
+    changesSummary: "Fixed all setup wizard interactions, added toggle state tracking, improved button styling, dynamic status display",
 
     changes: [
-        "1. Setup command now fetches bot avatar URL dynamically",
-        "2. Bot avatar injected into page 1 header with proper accessory structure",
-        "3. Page 1 now displays bot profile picture alongside menu title"
+        "1. ALL interactions now respond properly with deferUpdate()",
+        "2. Toggle buttons track state: enabled (green), disabled (red) - toggle with each click",
+        "3. Previous/Next buttons improved: '◀ Previous' and 'Next ▶' with better styling",
+        "4. Page 1 & 3 show real-time status: ✅ active or ❌ inactive based on enabled features",
+        "5. Toggle states persist across navigation within same session",
+        "6. All dropdown, mode buttons, and selections now respond"
     ],
 
     versionGuide: `

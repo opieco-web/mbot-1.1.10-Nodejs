@@ -1,5 +1,8 @@
 import { SlashCommandBuilder } from 'discord.js';
 
+// Toggle button states per session
+export const toggleStates = new Map();
+
 // Setup Wizard Pages - Direct JSON structure ready to use
 const setupPages = {
   1: [
@@ -12,14 +15,14 @@ const setupPages = {
     },
     {
       "type": 10,
-      "content": "### <:20251126_151801:1443168966678810734> Welcome Setup\non page 2  •  Status  <active/inactive>"
+      "content": "### <:20251126_151801:1443168966678810734> Welcome Setup\non page 2  •  Status: <status_welcome>"
     },
     {
       "type": 14
     },
     {
       "type": 10,
-      "content": "### <:20251126_151801:1443168966678810734> Nickname Setup\non page 3  •  Status <active/inactive>"
+      "content": "### <:20251126_151801:1443168966678810734> Nickname Setup\non page 3  •  Status: <status_nickname>"
     },
     {
       "type": 14
@@ -36,10 +39,7 @@ const setupPages = {
             "name": "Page",
             "animated": false
           },
-          "custom_id": "setup_page_next_1",
-          "flow": {
-            "actions": []
-          }
+          "custom_id": "setup_page_next_1"
         }
       ]
     }
@@ -54,7 +54,7 @@ const setupPages = {
     },
     {
       "type": 10,
-      "content": "<:Page:1442984948305887362> page 2/3\nStatus - <active>"
+      "content": "<:Page:1442984948305887362> page 2/3\nStatus: <status_welcome>"
     },
     {
       "type": 14
@@ -71,10 +71,7 @@ const setupPages = {
         "style": 1,
         "type": 2,
         "label": "Enable/Disable",
-        "custom_id": "setup_welcome_randomized_toggle",
-        "flow": {
-          "actions": []
-        }
+        "custom_id": "setup_welcome_randomized_toggle"
       }
     },
     {
@@ -104,10 +101,7 @@ const setupPages = {
         "style": 1,
         "type": 2,
         "label": "Enable/Disable",
-        "custom_id": "setup_welcome_temporary_toggle",
-        "flow": {
-          "actions": []
-        }
+        "custom_id": "setup_welcome_temporary_toggle"
       }
     },
     {
@@ -158,13 +152,13 @@ const setupPages = {
         {
           "style": 1,
           "type": 2,
-          "label": "Previous",
+          "label": "◀ Previous",
           "custom_id": "setup_page_prev_2"
         },
         {
-          "style": 1,
+          "style": 3,
           "type": 2,
-          "label": "Next",
+          "label": "Next ▶",
           "custom_id": "setup_page_next_2"
         }
       ]
@@ -180,7 +174,7 @@ const setupPages = {
     },
     {
       "type": 10,
-      "content": "<:Page:1442984948305887362> page 3/3\nStatus - <active>"
+      "content": "<:Page:1442984948305887362> page 3/3\nStatus: <status_nickname>"
     },
     {
       "type": 14
@@ -307,7 +301,7 @@ const setupPages = {
         {
           "style": 1,
           "type": 2,
-          "label": "Previous",
+          "label": "◀ Previous",
           "custom_id": "setup_page_prev_3"
         },
         {
@@ -332,15 +326,70 @@ export const setupCommand = [
     .setDescription('Start the server configuration wizard (Menu → Welcome → Nickname)')
 ];
 
-export function getSetupPage(pageNum) {
-  return setupPages[pageNum] || setupPages[1];
+export function getSetupPage(pageNum, userId) {
+  const page = setupPages[pageNum] || setupPages[1];
+  const userState = toggleStates.get(userId) || {};
+  
+  // Replace status placeholders with actual status
+  const welcomeStatus = userState.welcome_enabled ? '✅ active' : '❌ inactive';
+  const nicknameStatus = userState.nickname_enabled ? '✅ active' : '❌ inactive';
+  
+  return JSON.parse(JSON.stringify(page)).map(component => {
+    if (component.type === 10 && component.content) {
+      component.content = component.content
+        .replace('<status_welcome>', welcomeStatus)
+        .replace('<status_nickname>', nicknameStatus);
+    }
+    return component;
+  });
 }
 
 export function handleSetupInteraction(customId) {
-  if (customId === 'setup_page_next_1') return { nextPage: 2 };
-  if (customId === 'setup_page_next_2') return { nextPage: 3 };
-  if (customId === 'setup_page_prev_2') return { nextPage: 1 };
-  if (customId === 'setup_page_prev_3') return { nextPage: 2 };
-  if (customId === 'setup_page_save_3') return { save: true };
-  return null;
+  // Navigation
+  if (customId === 'setup_page_next_1') return { action: 'navigate', nextPage: 2 };
+  if (customId === 'setup_page_next_2') return { action: 'navigate', nextPage: 3 };
+  if (customId === 'setup_page_prev_2') return { action: 'navigate', nextPage: 1 };
+  if (customId === 'setup_page_prev_3') return { action: 'navigate', nextPage: 2 };
+  if (customId === 'setup_page_save_3') return { action: 'save' };
+  
+  // Toggles - all toggle interactions are valid
+  if (customId.includes('_toggle')) return { action: 'toggle', toggleId: customId };
+  
+  // Mode selections
+  if (customId === 'setup_nickname_auto_mode') return { action: 'mode', mode: 'auto' };
+  if (customId === 'setup_nickname_approval_mode') return { action: 'mode', mode: 'approval' };
+  if (customId === 'setup_welcome_customized') return { action: 'welcome_type', type: 'customized' };
+  if (customId === 'setup_welcome_randomized') return { action: 'welcome_type', type: 'randomized' };
+  
+  // All other interactions are valid (dropdowns, etc)
+  return { action: 'interaction', customId };
+}
+
+export function toggleFeature(userId, toggleId) {
+  const userState = toggleStates.get(userId) || {};
+  
+  if (toggleId === 'setup_welcome_randomized_toggle') {
+    userState.welcome_randomized = !userState.welcome_randomized;
+    if (!userState.welcome_randomized && !userState.welcome_temporary) {
+      userState.welcome_enabled = false;
+    } else if (userState.welcome_randomized || userState.welcome_temporary) {
+      userState.welcome_enabled = true;
+    }
+  } else if (toggleId === 'setup_welcome_temporary_toggle') {
+    userState.welcome_temporary = !userState.welcome_temporary;
+    if (!userState.welcome_temporary && !userState.welcome_randomized) {
+      userState.welcome_enabled = false;
+    } else if (userState.welcome_temporary || userState.welcome_randomized) {
+      userState.welcome_enabled = true;
+    }
+  } else if (toggleId === 'setup_nickname_blocklist_toggle') {
+    userState.nickname_blocklist = !userState.nickname_blocklist;
+    userState.nickname_enabled = userState.nickname_blocklist || userState.nickname_channel;
+  } else if (toggleId === 'setup_nickname_channel_toggle') {
+    userState.nickname_channel = !userState.nickname_channel;
+    userState.nickname_enabled = userState.nickname_blocklist || userState.nickname_channel;
+  }
+  
+  toggleStates.set(userId, userState);
+  return userState;
 }
