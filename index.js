@@ -122,6 +122,9 @@ const client = new Client({
 client.commands = new Collection();
 const startTime = Date.now();
 
+// ===== SETUP WIZARD SESSION STORAGE =====
+const setupSessions = new Map();
+
 // Function to initialize topic messages on bot startup (Mining Bangladesh only)
 async function initializeTopics() {
     const miningData = miningBangladeshData;
@@ -740,11 +743,101 @@ client.on(Events.InteractionCreate, async interaction => {
                 applyBotStatus();
                 return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:Correct:1440296238305116223> Activity Type Updated' }, { type: 14 }, { type: 10, content: `Activity type set to: **${newType}**` }] }], flags: 32768 | MessageFlags.Ephemeral });
             }
+
+            // ===== SETUP WIZARD DROPDOWNS =====
+            if (customId.startsWith('setup_')) {
+                const userId = interaction.user.id;
+                const session = setupSessions.get(userId);
+                
+                if (!session) return;
+                
+                if (customId === 'setup_welcome_randomized_channel') {
+                    session.settings.welcome = session.settings.welcome || {};
+                    session.settings.welcome.randomizedChannel = interaction.values[0];
+                    setupSessions.set(userId, session);
+                    return interaction.deferUpdate();
+                }
+                
+                if (customId === 'setup_welcome_temporary_channel') {
+                    session.settings.welcome = session.settings.welcome || {};
+                    session.settings.welcome.temporaryChannel = interaction.values[0];
+                    setupSessions.set(userId, session);
+                    return interaction.deferUpdate();
+                }
+                
+                if (customId === 'setup_nickname_blocklist_action') {
+                    const action = interaction.values[0];
+                    session.settings.nickname = session.settings.nickname || {};
+                    session.settings.nickname.blocklistAction = action;
+                    setupSessions.set(userId, session);
+                    return interaction.deferUpdate();
+                }
+                
+                if (customId === 'setup_nickname_channel_select') {
+                    session.settings.nickname = session.settings.nickname || {};
+                    session.settings.nickname.channelId = interaction.values[0];
+                    setupSessions.set(userId, session);
+                    return interaction.deferUpdate();
+                }
+            }
         }
 
         // ===== HANDLE BUTTONS =====
         if (interaction.isButton()) {
             const customId = interaction.customId;
+
+            // ===== SETUP WIZARD NAVIGATION & SAVE =====
+            if (customId.startsWith('setup_')) {
+                const userId = interaction.user.id;
+                const session = setupSessions.get(userId);
+                
+                if (!session) {
+                    return interaction.reply({ content: 'Session expired. Use `/setup` to start again.', flags: MessageFlags.Ephemeral });
+                }
+                
+                const { getSetupPage, handleSetupInteraction } = await import('./src/commands/setup.js');
+                const action = handleSetupInteraction(customId);
+                
+                if (!action) return;
+                
+                if (action.nextPage) {
+                    session.page = action.nextPage;
+                    setupSessions.set(userId, session);
+                    const pageData = getSetupPage(action.nextPage);
+                    
+                    return interaction.update({
+                        content: ' ',
+                        components: pageData.components
+                    });
+                }
+                
+                if (action.save) {
+                    const guildData = getGuildData(guildId);
+                    
+                    if (session.settings.welcome) {
+                        guildData.welcome = { ...guildData.welcome, ...session.settings.welcome };
+                    }
+                    if (session.settings.nickname) {
+                        guildData.nickname = { ...guildData.nickname, ...session.settings.nickname };
+                    }
+                    
+                    saveGuildData(guildId, guildData);
+                    setupSessions.delete(userId);
+                    
+                    return interaction.update({
+                        content: ' ',
+                        components: [{
+                            type: 17,
+                            components: [
+                                { type: 10, content: '# <:Correct:1440296238305116223> Setup Complete!' },
+                                { type: 14 },
+                                { type: 10, content: 'All your settings have been saved successfully. The bot is now configured for your server.' }
+                            ]
+                        }],
+                        flags: MessageFlags.Ephemeral
+                    });
+                }
+            }
 
             // Config: Set Prefix button
             if (customId === 'config_set_prefix') {
@@ -1230,6 +1323,22 @@ Type \`reset\` to revert back to your original name. Examples: Shadow, Phoenix, 
     if (!interaction.isChatInputCommand()) return;
 
     const { commandName, member, user } = interaction;
+
+    // ===== SETUP WIZARD COMMAND =====
+    if (commandName === 'setup') {
+        const userId = interaction.user.id;
+        
+        setupSessions.set(userId, { page: 1, settings: {} });
+        
+        const { getSetupPage } = await import('./src/commands/setup.js');
+        const pageData = getSetupPage(1);
+        
+        return interaction.reply({
+            content: ' ',
+            components: pageData.components,
+            flags: MessageFlags.Ephemeral
+        });
+    }
 
     // NICKNAME SYSTEM - Component V2 Container
     // type 17 = Container | type 10 = TextDisplay | type 14 = Separator
