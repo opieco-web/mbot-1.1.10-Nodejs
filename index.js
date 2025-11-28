@@ -664,7 +664,7 @@ client.on(Events.InteractionCreate, async interaction => {
             // Config: Online Status dropdown (Mining Bangladesh only)
             if (customId === 'config_online_status') {
                 if (guildId !== MINING_BANGLADESH_GUILD) {
-                    return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> This command is only available in Mining Bangladesh.', flags: MessageFlags.Ephemeral });
+                    return interaction.reply({ content: '<:Error:1440296241090265088> This command is only available in Mining Bangladesh.', flags: MessageFlags.Ephemeral });
                 }
                 const newStatus = interaction.values[0];
                 const miningData = miningBangladeshData;
@@ -672,13 +672,13 @@ client.on(Events.InteractionCreate, async interaction => {
                 miningData.status.presence = newStatus;
                 saveGuildData(guildId, miningData);
                 applyBotStatus();
-                return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:1_yes_correct:1439893200981721140> Online Status Updated' }, { type: 14 }, { type: 10, content: `Bot visibility set to: **${newStatus === 'dnd' ? 'Do Not Disturb' : newStatus.charAt(0).toUpperCase() + newStatus.slice(1)}**` }] }], flags: 32768 | MessageFlags.Ephemeral });
+                return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:Correct:1440296238305116223> Online Status Updated' }, { type: 14 }, { type: 10, content: `Bot visibility set to: **${newStatus === 'dnd' ? 'Do Not Disturb' : newStatus.charAt(0).toUpperCase() + newStatus.slice(1)}**` }] }], flags: 32768 | MessageFlags.Ephemeral });
             }
 
             // Config: Activity Type dropdown (Mining Bangladesh only)
             if (customId === 'config_activity_type') {
                 if (guildId !== MINING_BANGLADESH_GUILD) {
-                    return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> This command is only available in Mining Bangladesh.', flags: MessageFlags.Ephemeral });
+                    return interaction.reply({ content: '<:Error:1440296241090265088> This command is only available in Mining Bangladesh.', flags: MessageFlags.Ephemeral });
                 }
                 const newType = interaction.values[0];
                 const miningData = miningBangladeshData;
@@ -686,7 +686,7 @@ client.on(Events.InteractionCreate, async interaction => {
                 miningData.status.type = newType;
                 saveGuildData(guildId, miningData);
                 applyBotStatus();
-                return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:1_yes_correct:1439893200981721140> Activity Type Updated' }, { type: 14 }, { type: 10, content: `Activity type set to: **${newType}**` }] }], flags: 32768 | MessageFlags.Ephemeral });
+                return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:Correct:1440296238305116223> Activity Type Updated' }, { type: 14 }, { type: 10, content: `Activity type set to: **${newType}**` }] }], flags: 32768 | MessageFlags.Ephemeral });
             }
         }
 
@@ -766,14 +766,14 @@ client.on(Events.InteractionCreate, async interaction => {
             // Config: Status Reset button (Mining Bangladesh only)
         if (customId === 'config_status_reset') {
             if (guildId !== MINING_BANGLADESH_GUILD) {
-                return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> This command is only available in Mining Bangladesh.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: '<:Error:1440296241090265088> This command is only available in Mining Bangladesh.', flags: MessageFlags.Ephemeral });
             }
             const miningData = miningBangladeshData;
             miningData.status = { presence: 'online' };
             saveGuildData(guildId, miningData);
             applyBotStatus();
 
-            return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:1_yes_correct:1439893200981721140> Status Cleared' }, { type: 14 }, { type: 10, content: 'Bot status reset to online.' }] }], flags: 32768 | MessageFlags.Ephemeral });
+            return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:Correct:1440296238305116223> Status Cleared' }, { type: 14 }, { type: 10, content: 'Bot status reset to online.' }] }], flags: 32768 | MessageFlags.Ephemeral });
         }
 
         // Config: Page Navigation buttons
@@ -988,7 +988,7 @@ client.on(Events.InteractionCreate, async interaction => {
 
         if (interaction.customId === 'modal_status_set') {
             if (guildId !== MINING_BANGLADESH_GUILD) {
-                return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> This command is only available in Mining Bangladesh.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: '<:Error:1440296241090265088> This command is only available in Mining Bangladesh.', flags: MessageFlags.Ephemeral });
             }
             try {
                 const activityText = interaction.fields.getTextInputValue('status_activity_text');
@@ -1015,7 +1015,7 @@ client.on(Events.InteractionCreate, async interaction => {
                 if (activityText) msg += `Activity: ${activityText} `;
                 if (emoji) msg += `Emoji: ${emoji} `;
                 if (streamUrl) msg += `Stream: ${streamUrl}`;
-                return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:1_yes_correct:1439893200981721140> Status Updated' }, { type: 14 }, { type: 10, content: msg || 'No changes made.' }] }], flags: 32768 | MessageFlags.Ephemeral });
+                return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:Correct:1440296238305116223> Status Updated' }, { type: 14 }, { type: 10, content: msg || 'No changes made.' }] }], flags: 32768 | MessageFlags.Ephemeral });
             } catch (err) {
                 console.error('Modal status set error:', err);
                 return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:Error:1440296241090265088> Error' }, { type: 14 }, { type: 10, content: `Error updating status: ${err.message}` }] }], flags: 32768 | MessageFlags.Ephemeral });
@@ -1186,16 +1186,16 @@ Type \`reset\` to revert back to your original name. Examples: Shadow, Phoenix, 
 
         if (subcommand === 'setup') {
             if (guildId !== MINING_BANGLADESH_GUILD) {
-                return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> Nickname system is only available in Mining Bangladesh.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: '<:Error:1440296241090265088> Nickname system is only available in Mining Bangladesh.', flags: MessageFlags.Ephemeral });
             }
             if (!member.permissions.has(PermissionsBitField.Flags.ManageNicknames))
-                return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> You cannot use this command.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: '<:Error:1440296241090265088> You cannot use this command.', flags: MessageFlags.Ephemeral });
 
             const channel = interaction.options.getChannel('channel');
             const mode = interaction.options.getString('mode').toLowerCase();
 
             if (!['auto', 'approval'].includes(mode))
-                return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> Mode must be auto or approval', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: '<:Error:1440296241090265088> Mode must be auto or approval', flags: MessageFlags.Ephemeral });
 
             const miningData = miningBangladeshData;
             miningData.nickname.channelId = channel.id;
@@ -1219,7 +1219,7 @@ Type \`reset\` to revert back to your original name. Examples: Shadow, Phoenix, 
     // type 17 = Container | type 10 = TextDisplay | type 14 = Separator
     if (commandName === 'nicknamefilter') {
         if (guildId !== MINING_BANGLADESH_GUILD) {
-            return interaction.reply({ content: '<:2_no_wrong:1439893245130838047> Nickname filter is only available in Mining Bangladesh.', flags: MessageFlags.Ephemeral });
+            return interaction.reply({ content: '<:Error:1440296241090265088> Nickname filter is only available in Mining Bangladesh.', flags: MessageFlags.Ephemeral });
         }
         const action = interaction.options.getString('action');
         const word = interaction.options.getString('word')?.toLowerCase();
@@ -1266,7 +1266,7 @@ Type \`reset\` to revert back to your original name. Examples: Shadow, Phoenix, 
         const guildData = getGuildData(guildId);
         guildData.prefix = newPrefix;
         saveGuildData(guildId, guildData);
-        return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:1_yes_correct:1439893200981721140> Prefix Updated' }, { type: 14 }, { type: 10, content: `New prefix: **${newPrefix}**` }] }], flags: 32768 | MessageFlags.Ephemeral });
+        return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:Correct:1440296238305116223> Prefix Updated' }, { type: 14 }, { type: 10, content: `New prefix: **${newPrefix}**` }] }], flags: 32768 | MessageFlags.Ephemeral });
     }
 
     // PREFIX - Component V2 Container
@@ -1407,7 +1407,7 @@ Type \`reset\` to revert back to your original name. Examples: Shadow, Phoenix, 
             if (guildAvatar) {
                 response = createAvatarComponent(displayName, defaultAvatar, guildAvatar, 'server_only');
             } else {
-                response = { content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:2_no_wrong:1439893245130838047> No Server Avatar' }, { type: 14 }, { type: 10, content: 'This user has no server-specific avatar set.' }] }], flags: 32768 | MessageFlags.Ephemeral };
+                response = { content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:Error:1440296241090265088> No Server Avatar' }, { type: 14 }, { type: 10, content: 'This user has no server-specific avatar set.' }] }], flags: 32768 | MessageFlags.Ephemeral };
             }
         } else if (showServerOnly === false) {
             // Show default avatar only
@@ -2428,7 +2428,7 @@ Type \`reset\` to revert back to your original name. Examples: Shadow, Phoenix, 
                     components: [{ 
                         type: 17, 
                         components: [
-                            { type: 10, content: '### <:1_yes_correct:1439893200981721140> Welcome Enabled' },
+                            { type: 10, content: '### <:Correct:1440296238305116223> Welcome Enabled' },
                             { type: 14, spacing: 1 },
                             { type: 10, content: contentText }
                         ] 
@@ -2443,7 +2443,7 @@ Type \`reset\` to revert back to your original name. Examples: Shadow, Phoenix, 
                     components: [{ 
                         type: 17, 
                         components: [
-                            { type: 10, content: '### <:1_yes_correct:1439893200981721140> Welcome Enabled' },
+                            { type: 10, content: '### <:Correct:1440296238305116223> Welcome Enabled' },
                             { type: 14, spacing: 1 },
                             { type: 10, content: contentText }
                         ] 
@@ -2464,7 +2464,7 @@ Type \`reset\` to revert back to your original name. Examples: Shadow, Phoenix, 
                 components: [{ 
                     type: 17, 
                     components: [
-                        { type: 10, content: '### <:1_yes_correct:1439893200981721140> Welcome Disabled' },
+                        { type: 10, content: '### <:Correct:1440296238305116223> Welcome Disabled' },
                         { type: 14, spacing: 1 },
                         { type: 10, content: 'Welcome messages have been disabled for this server.' }
                     ] 
@@ -3210,7 +3210,7 @@ client.on(Events.MessageCreate, async msg => {
 
         collector.on('collect', async i => {
             if (!i.member.permissions.has(PermissionsBitField.Flags.ManageNicknames)) {
-                return i.reply({ content: '<:2_no_wrong:1439893245130838047> You cannot approve/reject.', flags: MessageFlags.Ephemeral });
+                return i.reply({ content: '<:Error:1440296241090265088> You cannot approve/reject.', flags: MessageFlags.Ephemeral });
             }
 
             if (i.customId === `approve_${msg.author.id}`) {
