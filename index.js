@@ -715,6 +715,7 @@ client.on(Events.InteractionCreate, async interaction => {
         // ===== HANDLE SELECT MENUS (DROPDOWNS) =====
         if (interaction.isStringSelectMenu()) {
             const customId = interaction.customId;
+            console.log(`[SETUP] Dropdown interaction: ${customId}`);
 
             // Config: Online Status dropdown (Mining Bangladesh only)
             if (customId === 'config_online_status') {
@@ -787,6 +788,7 @@ client.on(Events.InteractionCreate, async interaction => {
         // ===== HANDLE BUTTONS =====
         if (interaction.isButton()) {
             const customId = interaction.customId;
+            console.log(`[SETUP] Button interaction: ${customId}`);
 
             // ===== SETUP WIZARD NAVIGATION & SAVE =====
             if (customId.startsWith('setup_')) {
