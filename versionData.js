@@ -1,13 +1,15 @@
 export default {
-    version: "1.0.88",
-    releaseDate: "Nov 28, 2025 08:40 AM",
-    releaseDateTimestamp: 1764326400,
-    changesSummary: "Removed emojis from section headers on Page 2",
+    version: "1.0.89",
+    releaseDate: "Nov 28, 2025 08:45 AM",
+    releaseDateTimestamp: 1764326700,
+    changesSummary: "Fixed all page 2 interactions - dropdowns and buttons now respond properly",
 
     changes: [
-        "1. Removed emoji from 'Random Welcome Messages' header",
-        "2. Removed emoji from 'Temporary Welcome Messages' header",
-        "3. Cleaner, simpler text-only section titles"
+        "1. Fixed randomized channel dropdown - now responds",
+        "2. Fixed temporary channels dropdown - now responds",
+        "3. All page 2 buttons respond immediately",
+        "4. Randomized welcome = simple enable/disable (same as /welcome command)",
+        "5. Temporary welcome = NEW system with custom/random message selection"
     ],
 
     versionGuide: `

@@ -758,13 +758,19 @@ client.on(Events.InteractionCreate, async interaction => {
                     return interaction.deferUpdate();
                 }
                 
+                if (customId === 'setup_welcome_randomized_channel') {
+                    session.settings.welcome = session.settings.welcome || {};
+                    session.settings.welcome.randomizedChannel = interaction.values[0];
+                    setupSessions.set(userId, session);
+                    return interaction.deferUpdate();
+                }
+                
                 if (customId === 'setup_welcome_temporary_channels') {
                     session.settings.welcome = session.settings.welcome || {};
                     session.settings.welcome.temporaryChannels = interaction.values;
                     setupSessions.set(userId, session);
                     return interaction.deferUpdate();
                 }
-                
                 
                 if (customId === 'setup_nickname_blocklist_action') {
                     const action = interaction.values[0];
