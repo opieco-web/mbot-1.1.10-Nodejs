@@ -163,7 +163,7 @@ client.on('disconnect', () => {});
 
 // Handle connection errors
 client.on('error', (error) => {
-    console.error('❌ Discord client error:', error);
+    console.error('<:Error:1440296241090265088> Discord client error:', error);
 });
 
 // Handle warnings
@@ -325,7 +325,7 @@ async function processPendingNicknameRequests() {
                         }], 
                         flags: 32768 
                     }).catch(() => {});
-                    console.log(`✅ [PENDING NICKNAMES] Reset nickname for ${msg.author.tag}`);
+                    console.log(`<:Correct:1440296238305116223> [PENDING NICKNAMES] Reset nickname for ${msg.author.tag}`);
                     processedCount++;
                     continue;
                 }
@@ -368,10 +368,10 @@ async function processPendingNicknameRequests() {
                     flags: 32768 
                 }).catch(() => {});
                 
-                console.log(`✅ [PENDING NICKNAMES] Applied nickname "${nickname}" to ${msg.author.tag}`);
+                console.log(`<:Correct:1440296238305116223> [PENDING NICKNAMES] Applied nickname "${nickname}" to ${msg.author.tag}`);
                 processedCount++;
             } catch (err) {
-                console.error(`❌ [PENDING NICKNAMES] Failed to apply nickname for ${msg.author.tag}:`, err.message);
+                console.error(`<:Error:1440296241090265088> [PENDING NICKNAMES] Failed to apply nickname for ${msg.author.tag}:`, err.message);
             }
         }
         
@@ -537,7 +537,7 @@ function parseDelayString(delayStr) {
 // ------------------------
 const welcomeMessages = [
     "Hey {user}! Welcome to the squad! 🎉",
-    "Yo {user}! Glad you're here, let's vibe! ✨",
+    "Yo {user}! Glad you're here, let's vibe! <:Correct:1440296238305116223>",
     "{user} just joined! Ekdom perfect timing! 🔥",
     "Welcome {user}! Amra wait korchilam! 💫",
     "{user} has entered the chat! Let's goooo! 🚀",
@@ -812,7 +812,7 @@ client.on(Events.InteractionCreate, async interaction => {
                     components: [
                         { type: 10, content: '### 📎 Header Attachment' },
                         { type: 14, spacing: 1 },
-                        { type: 10, content: '**Upload a header image for your server profile**\n\nRecommended size: **1920x480px**\n\n⏳ Waiting for file... (60 seconds)' }
+                        { type: 10, content: '**Upload a header image for your server profile**\n\nRecommended size: **1920x480px**\n\n<:warning:1441531830607151195> Waiting for file... (60 seconds)' }
                     ]
                 }],
                 flags: 32768 | MessageFlags.Ephemeral
@@ -845,7 +845,7 @@ client.on(Events.InteractionCreate, async interaction => {
                                 components: [
                                     { type: 10, content: '## <:Correct:1440296238305116223> Bot Avatar Updated (This Server)' },
                                     { type: 14, spacing: 1 },
-                                    { type: 10, content: `✅ Bot avatar changed for this server!\n\n[View Image](${attachment.url})` }
+                                    { type: 10, content: `<:Correct:1440296238305116223> Bot avatar changed for this server!\n\n[View Image](${attachment.url})` }
                                 ]
                             }],
                             flags: 32768
@@ -858,7 +858,7 @@ client.on(Events.InteractionCreate, async interaction => {
                                 components: [
                                     { type: 10, content: '## <:Error:1440296241090265088> Failed' },
                                     { type: 14, spacing: 1 },
-                                    { type: 10, content: `❌ Error updating avatar: ${error.message}` }
+                                    { type: 10, content: `<:Error:1440296241090265088> Error updating avatar: ${error.message}` }
                                 ]
                             }],
                             flags: 32768
@@ -886,7 +886,7 @@ client.on(Events.InteractionCreate, async interaction => {
                     components: [
                         { type: 10, content: '### 🎨 BG Attachment' },
                         { type: 14, spacing: 1 },
-                        { type: 10, content: '**Upload a background image for your server**\n\nRecommended size: **1200x300px**\n\n⏳ Waiting for file... (60 seconds)' }
+                        { type: 10, content: '**Upload a background image for your server**\n\nRecommended size: **1200x300px**\n\n<:warning:1441531830607151195> Waiting for file... (60 seconds)' }
                     ]
                 }],
                 flags: 32768 | MessageFlags.Ephemeral
@@ -919,7 +919,7 @@ client.on(Events.InteractionCreate, async interaction => {
                                 components: [
                                     { type: 10, content: '## <:Correct:1440296238305116223> Server Banner Updated' },
                                     { type: 14, spacing: 1 },
-                                    { type: 10, content: `✅ Server banner changed!\n\n[View Image](${attachment.url})` }
+                                    { type: 10, content: `<:Correct:1440296238305116223> Server banner changed!\n\n[View Image](${attachment.url})` }
                                 ]
                             }],
                             flags: 32768
@@ -932,7 +932,7 @@ client.on(Events.InteractionCreate, async interaction => {
                                 components: [
                                     { type: 10, content: '## <:Error:1440296241090265088> Failed' },
                                     { type: 14, spacing: 1 },
-                                    { type: 10, content: `❌ Error updating banner: ${error.message}` }
+                                    { type: 10, content: `<:Error:1440296241090265088> Error updating banner: ${error.message}` }
                                 ]
                             }],
                             flags: 32768
@@ -1193,7 +1193,7 @@ Type \`reset\` to revert back to your original name. Examples: Shadow, Phoenix, 
             miningData.nickname.mode = mode;
             saveGuildData(guildId, miningData);
 
-            return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## ✅ Setup Complete' }, { type: 14, spacing: 1 }, { type: 10, content: `Channel: ${channel}\nMode: **${mode}**` }] }], flags: 32768 | MessageFlags.Ephemeral });
+            return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:Correct:1440296238305116223> Setup Complete' }, { type: 14, spacing: 1 }, { type: 10, content: `Channel: ${channel}\nMode: **${mode}**` }] }], flags: 32768 | MessageFlags.Ephemeral });
         }
 
         if (subcommand === 'reset') {
@@ -1246,7 +1246,7 @@ Type \`reset\` to revert back to your original name. Examples: Shadow, Phoenix, 
                 return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## 📋 Banned Words' }, { type: 14, spacing: 1 }, { type: 10, content: 'No words configured yet.' }] }], flags: 32768 | MessageFlags.Ephemeral });
 
             const list = miningData.nickname.filter.map((w, i) => `${i+1}. **${w}**`).join('\n');
-            return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## 🚫 Banned Words' }, { type: 14, spacing: 1 }, { type: 10, content: list }] }], flags: 32768 | MessageFlags.Ephemeral });
+            return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:Error:1440296241090265088> Banned Words' }, { type: 14, spacing: 1 }, { type: 10, content: list }] }], flags: 32768 | MessageFlags.Ephemeral });
         }
     }
 
@@ -1334,7 +1334,7 @@ Type \`reset\` to revert back to your original name. Examples: Shadow, Phoenix, 
     // type 17 = Container | type 10 = TextDisplay | type 14 = Separator
     if (commandName === 'afklist') {
         if (!member.permissions.has(PermissionsBitField.Flags.ManageGuild) && !member.permissions.has(PermissionsBitField.Flags.Administrator)) {
-            return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## 🚫 Permission Denied' }, { type: 14, spacing: 1 }, { type: 10, content: 'You need ManageGuild permission.' }] }], flags: 32768 | MessageFlags.Ephemeral });
+            return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:Error:1440296241090265088> Permission Denied' }, { type: 14, spacing: 1 }, { type: 10, content: 'You need ManageGuild permission.' }] }], flags: 32768 | MessageFlags.Ephemeral });
         }
 
         // Load AFK data from THIS GUILD ONLY
@@ -1365,7 +1365,7 @@ Type \`reset\` to revert back to your original name. Examples: Shadow, Phoenix, 
         }
 
         const afkCount = Object.keys(guildAfkData).length;
-        return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: `## 🚫 Currently AFK - ${afkCount}` }, { type: 14, spacing: 1 }, { type: 10, content: afkList }] }], flags: 32768 | MessageFlags.Ephemeral });
+        return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: `## <:Error:1440296241090265088> Currently AFK - ${afkCount}` }, { type: 14, spacing: 1 }, { type: 10, content: afkList }] }], flags: 32768 | MessageFlags.Ephemeral });
     }
 
     // AVATAR - Component V2 Container (via createAvatarComponent)
@@ -2155,7 +2155,7 @@ Type \`reset\` to revert back to your original name. Examples: Shadow, Phoenix, 
         
         try {
             let imageUrl = imageAttachment?.url || data.meme?.templates?.[Math.floor(Math.random() * data.meme.templates.length)]?.url;
-            if (!imageUrl) return interaction.editReply('❌ No image found');
+            if (!imageUrl) return interaction.editReply('<:Error:1440296241090265088> No image found');
             
             const buffer = await (await fetch(imageUrl)).arrayBuffer();
             const img = new (await import('canvas')).Image();
@@ -2206,7 +2206,7 @@ Type \`reset\` to revert back to your original name. Examples: Shadow, Phoenix, 
             
             return interaction.editReply(payload);
         } catch (error) {
-            return interaction.editReply(`❌ Failed: ${error.message}`);
+            return interaction.editReply(`<:Error:1440296241090265088> Failed: ${error.message}`);
         }
     }
 
@@ -2607,12 +2607,12 @@ client.on(Events.MessageCreate, async msg => {
         // Prefix Meme - Component V2 Container
         if (cmd === 'meme') {
             const [topText, bottomText] = args.join(' ').split(',').map(p => p.trim());
-            if (!topText) return msg.reply('❌ Usage: `!meme <top text>, <bottom text>`');
+            if (!topText) return msg.reply('<:Error:1440296241090265088> Usage: `!meme <top text>, <bottom text>`');
             
             const wait = await msg.reply('🎨 Generating...');
             try {
                 const imageUrl = data.meme?.templates?.[Math.floor(Math.random() * data.meme.templates.length)]?.url;
-                if (!imageUrl) return wait.edit('❌ No templates found');
+                if (!imageUrl) return wait.edit('<:Error:1440296241090265088> No templates found');
                 
                 const buffer = await (await fetch(imageUrl)).arrayBuffer();
                 const img = new (await import('canvas')).Image();
@@ -2663,7 +2663,7 @@ client.on(Events.MessageCreate, async msg => {
                 await wait.delete();
                 return msg.reply(payload);
             } catch (error) {
-                return wait.edit(`❌ Failed: ${error.message}`);
+                return wait.edit(`<:Error:1440296241090265088> Failed: ${error.message}`);
             }
         }
 
@@ -3164,7 +3164,7 @@ client.on(Events.MessageCreate, async msg => {
                 timestamp: Date.now()
             };
             saveGuildData(msg.guildId, miningData);
-            await msg.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '### ⏳ Queued For Later' }, { type: 14, spacing: 1 }, { type: 10, content: `Your nickname request for "**${nickname}**" has been queued. It will be applied as soon as the bot is fully ready.` }] }], flags: 32768 }).catch(() => {});
+            await msg.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '### <:warning:1441531830607151195> Queued For Later' }, { type: 14, spacing: 1 }, { type: 10, content: `Your nickname request for "**${nickname}**" has been queued. It will be applied as soon as the bot is fully ready.` }] }], flags: 32768 }).catch(() => {});
         }
     } else if (miningData.nickname.mode === 'approval') {
         const bannedWord = containsBannedWord(nickname);

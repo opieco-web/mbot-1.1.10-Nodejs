@@ -1,11 +1,15 @@
 export default {
-    version: "1.0.63",
-    releaseDate: "Nov 28, 2025 06:35 AM",
-    releaseDateTimestamp: 1764318900,
-    changesSummary: "Nickname system - updated request message to Component V2 format",
+    version: "1.0.64",
+    releaseDate: "Nov 28, 2025 06:40 AM",
+    releaseDateTimestamp: 1764319200,
+    changesSummary: "Global emoji standardization across all commands and responses",
 
     changes: [
-        "1. Updated nickname request message to use Component V2 raw structure with separators, Page emoji, and integrated Approve/Reject buttons"
+        "1. Standardized ALL emoji usage across entire codebase for consistent aesthetic",
+        "2. Success responses: <:Correct:1440296238305116223>",
+        "3. Error responses: <:Error:1440296241090265088>",
+        "4. Warning responses: <:warning:1441531830607151195>",
+        "5. Applied to 50+ response messages, commands, and status messages"
     ],
 
     versionGuide: `
