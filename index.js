@@ -746,216 +746,22 @@ client.on(Events.InteractionCreate, async interaction => {
                 return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:Correct:1440296238305116223> Activity Type Updated' }, { type: 14 }, { type: 10, content: `Activity type set to: **${newType}**` }] }], flags: 32768 | MessageFlags.Ephemeral });
             }
 
-            // ===== SETUP WIZARD DROPDOWNS =====
-            if (customId.startsWith('setup_')) {
-                const userId = interaction.user.id;
-                const session = setupSessions.get(userId);
-                
-                if (!session) {
-                    console.log(`[SETUP] No session for user ${userId}, custom_id: ${customId}`);
-                    return interaction.reply({ content: '❌ Session expired. Use `/setup` to start again.', flags: MessageFlags.Ephemeral });
-                }
-                
-                if (customId === 'setup_welcome_randomized_channel') {
-                    console.log(`[SETUP] Randomized channel selected: ${interaction.values[0]}`);
-                    session.settings.welcome = session.settings.welcome || {};
-                    session.settings.welcome.randomizedChannel = interaction.values[0];
-                    setupSessions.set(userId, session);
-                    return interaction.deferUpdate();
-                }
-                
-                if (customId === 'setup_welcome_temporary_channels') {
-                    console.log(`[SETUP] Temporary channels selected: ${interaction.values.join(', ')}`);
-                    session.settings.welcome = session.settings.welcome || {};
-                    session.settings.welcome.temporaryChannels = interaction.values;
-                    setupSessions.set(userId, session);
-                    return interaction.deferUpdate();
-                }
-                
-                if (customId === 'setup_nickname_blocklist_action') {
-                    const action = interaction.values[0];
-                    console.log(`[SETUP] Blocklist action: ${action}`);
-                    session.settings.nickname = session.settings.nickname || {};
-                    session.settings.nickname.blocklistAction = action;
-                    setupSessions.set(userId, session);
-                    return interaction.deferUpdate();
-                }
-                
-                if (customId === 'setup_nickname_channel_select') {
-                    console.log(`[SETUP] Nickname channel selected: ${interaction.values[0]}`);
-                    session.settings.nickname = session.settings.nickname || {};
-                    session.settings.nickname.channelId = interaction.values[0];
-                    setupSessions.set(userId, session);
-                    return interaction.deferUpdate();
-                }
-                
-                console.log(`[SETUP] Unhandled dropdown: ${customId}`);
-                return interaction.deferUpdate();
+            // ===== SETUP WIZARD DROPDOWNS DISABLED - Handled by collector =====
+            if (customId.startsWith('setup_') && interaction.isStringSelectMenu()) {
+                return; // Let collector handle
             }
         }
 
-        // ===== HANDLE BUTTONS =====
+        // ===== HANDLE BUTTONS (NON-SETUP) =====
         if (interaction.isButton()) {
             const customId = interaction.customId;
             console.log(`[BUTTON] Clicked: ${customId}`);
 
-            // ===== SETUP WIZARD NAVIGATION & SAVE =====
+            // ===== SETUP WIZARD BUTTONS DISABLED - Handled by collector =====
             if (customId.startsWith('setup_')) {
-                console.log(`[SETUP-BUTTON] Processing setup button: ${customId}`);
-                const userId = interaction.user.id;
-                const session = setupSessions.get(userId);
-                console.log(`[SETUP] Session exists: ${!!session}, Action will be determined...`);
-                
-                if (!session) {
-                    console.log(`[SETUP] Session expired for user ${userId}`);
-                    return interaction.reply({ content: '❌ Session expired. Use `/setup` to start again.', flags: MessageFlags.Ephemeral });
-                }
-                
-                const { getSetupPage, handleSetupInteraction, toggleFeature } = await import('./src/commands/setup.js');
-                const action = handleSetupInteraction(customId);
-                console.log(`[SETUP] Action handled:`, action);
-                
-                if (!action) {
-                    console.log(`[SETUP] No action returned for: ${customId}`);
-                    return interaction.deferUpdate();
-                }
-                
-                // Handle toggle buttons
-                if (action.action === 'toggle') {
-                    toggleFeature(userId, action.toggleId);
-                    const pageComponents = getSetupPage(session.page, userId);
-                    
-                    const setupPanel = {
-                        content: ' ',
-                        components: [{
-                            type: 17,
-                            components: pageComponents
-                        }],
-                        flags: 32768 | MessageFlags.Ephemeral
-                    };
-                    
-                    return interaction.update(setupPanel);
-                }
-                
-                // Handle mode selections
-                if (action.action === 'mode') {
-                    session.settings.nickname = session.settings.nickname || {};
-                    session.settings.nickname.mode = action.mode;
-                    setupSessions.set(userId, session);
-                    return interaction.deferUpdate();
-                }
-                
-                // Handle welcome type
-                if (action.action === 'welcome_type') {
-                    session.settings.welcome = session.settings.welcome || {};
-                    session.settings.welcome.type = action.type;
-                    setupSessions.set(userId, session);
-                    return interaction.deferUpdate();
-                }
-                
-                // Handle navigation
-                if (action.action === 'navigate') {
-                    session.page = action.nextPage;
-                    setupSessions.set(userId, session);
-                    const pageComponents = getSetupPage(action.nextPage, userId);
-                    
-                    const setupPanel = {
-                        content: ' ',
-                        components: [{
-                            type: 17,
-                            components: pageComponents
-                        }],
-                        flags: 32768 | MessageFlags.Ephemeral
-                    };
-                    
-                    return interaction.update(setupPanel);
-                }
-                
-                // Handle save
-                if (action.action === 'save') {
-                    const guildData = getGuildData(guildId);
-                    
-                    // ===== WELCOME SETTINGS =====
-                    if (session.settings.welcome) {
-                        const welcomeSettings = session.settings.welcome;
-                        
-                        // Initialize welcome object
-                        guildData.welcome = guildData.welcome || {};
-                        
-                        // Handle randomized welcome
-                        if (welcomeSettings.randomizedChannel) {
-                            guildData.welcome.randomized = guildData.welcome.randomized || {};
-                            guildData.welcome.randomized.channelId = welcomeSettings.randomizedChannel;
-                            guildData.welcome.randomized.delay = welcomeSettings.randomizedDelay || 120000;
-                            guildData.welcome.randomized.enabled = true;
-                        }
-                        
-                        // Handle temporary welcome
-                        if (welcomeSettings.temporaryChannels && welcomeSettings.temporaryChannels.length > 0) {
-                            guildData.welcome.temporary = guildData.welcome.temporary || {};
-                            guildData.welcome.temporary.channelIds = welcomeSettings.temporaryChannels;
-                            guildData.welcome.temporary.type = welcomeSettings.type || 'random'; // 'custom' or 'random'
-                            guildData.welcome.temporary.sendDelay = welcomeSettings.temporaryDelay || 120000;
-                            guildData.welcome.temporary.deleteTime = welcomeSettings.temporaryDeleteTime || 300000;
-                            guildData.welcome.temporary.enabled = true;
-                        }
-                        
-                        // Set overall welcome enabled if either randomized or temporary is enabled
-                        guildData.welcome.enabled = !!(guildData.welcome.randomized?.enabled || guildData.welcome.temporary?.enabled);
-                    }
-                    
-                    // ===== NICKNAME SETTINGS =====
-                    if (session.settings.nickname) {
-                        const nicknameSettings = session.settings.nickname;
-                        
-                        // Initialize nickname object
-                        guildData.nickname = guildData.nickname || {};
-                        
-                        // Handle blocklist
-                        if (nicknameSettings.blocklistAction) {
-                            guildData.nickname.filter = guildData.nickname.filter || [];
-                            
-                            if (nicknameSettings.blocklistAction === 'add') {
-                                // Add action will be triggered by user input later
-                                guildData.nickname.blocklist_enabled = true;
-                            } else if (nicknameSettings.blocklistAction === 'remove') {
-                                // Remove action will be triggered by user input later
-                                guildData.nickname.blocklist_enabled = true;
-                            } else if (nicknameSettings.blocklistAction === 'list') {
-                                guildData.nickname.blocklist_enabled = true;
-                            }
-                        }
-                        
-                        // Handle channel & mode
-                        if (nicknameSettings.channelId && nicknameSettings.mode) {
-                            guildData.nickname.channelId = nicknameSettings.channelId;
-                            guildData.nickname.mode = nicknameSettings.mode; // 'auto' or 'approval'
-                            guildData.nickname.enabled = true;
-                        }
-                    }
-                    
-                    saveGuildData(guildId, guildData);
-                    setupSessions.delete(userId);
-                    
-                    const completePanel = {
-                        content: ' ',
-                        components: [{
-                            type: 17,
-                            components: [
-                                { type: 10, content: '# <:Correct:1440296238305116223> Setup Complete!' },
-                                { type: 14 },
-                                { type: 10, content: 'All your settings have been saved successfully. The bot is now configured for your server.' }
-                            ]
-                        }],
-                        flags: 32768 | MessageFlags.Ephemeral
-                    };
-                    
-                    return interaction.update(completePanel);
-                }
-                
-                // Default: defer any other setup interaction
-                return interaction.deferUpdate();
+                return; // Let collector handle
             }
+                
 
             // Setup: Welcome Randomized Delay
             if (customId === 'setup_welcome_randomized_delay_btn') {
