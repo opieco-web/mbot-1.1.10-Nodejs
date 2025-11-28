@@ -1,16 +1,11 @@
 export default {
-    version: "1.0.71",
+    version: "1.0.72",
     releaseDate: "Nov 28, 2025 07:15 AM",
     releaseDateTimestamp: 1764321300,
-    changesSummary: "Added startup message to console when bot comes online",
+    changesSummary: "Removed emoji from startup message",
 
     changes: [
-        "1. Added <:Correct:1440296238305116223> {BOT_NAME} is now Online startup message",
-        "2. Displays bot version on startup",
-        "3. Shows bot user tag on startup",
-        "4. Displays number of guilds bot is in",
-        "5. Shows uptime since bot started",
-        "6. Clean formatting with spacing for easy visibility in console"
+        "1. Removed emoji from bot startup console message"
     ],
 
     versionGuide: `

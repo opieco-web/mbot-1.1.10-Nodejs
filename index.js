@@ -232,7 +232,7 @@ function applyBotStatus() {
 client.once(Events.ClientReady, async () => {
     // Bot startup message
     console.log('\n');
-    console.log(`<:Correct:1440296238305116223> ${BOT_NAME} is now Online`);
+    console.log(`${BOT_NAME} is now Online`);
     console.log(`Bot version: ${BOT_VERSION}`);
     console.log(`User: ${client.user.tag}`);
     console.log(`Guilds: ${client.guilds.cache.size}`);
