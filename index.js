@@ -3208,38 +3208,48 @@ client.on(Events.MessageCreate, async msg => {
             if (i.customId === `approve_${msg.author.id}`) {
                 try {
                     await msg.member.setNickname(nickname);
-                    const approvedText = `## <:Correct:1440296238305116223> Nickname Approved
-
-> **User:** ${msg.author}
-> **New Nickname:** \`${nickname}\`
-
--# Your nickname has been successfully Approved and is now live in the server!`;
-                    const textDisplay = new TextDisplayBuilder().setContent(approvedText);
-                    const container = new ContainerBuilder().addTextDisplayComponents(textDisplay);
-                    await i.update({ content: ' ', components: [container], flags: MessageFlags.IsComponentsV2 });
+                    const approvedPayload = {
+                        content: ' ',
+                        components: [{
+                            type: 17,
+                            components: [
+                                { type: 10, content: `## <:Correct:1440296238305116223> Nickname Approved` },
+                                { type: 14 },
+                                { type: 10, content: `> **User:** ${msg.author}\n> **New Nickname:** \`${nickname}\`\n\n-# Your nickname has been successfully Approved and is now live in the server!` }
+                            ]
+                        }],
+                        flags: MessageFlags.IsComponentsV2
+                    };
+                    await i.update(approvedPayload);
                 } catch {
-                    const failedText = `## <:warning:1441531830607151195> Update Failed
-
-> **User:** ${msg.author}
-> We couldn't apply the nickname change at this moment.
-
--# **Reason:** Permission or technical issue
--# **Action:** Please try again or contact a moderator for assistance.`;
-                    const textDisplay = new TextDisplayBuilder().setContent(failedText);
-                    const container = new ContainerBuilder().addTextDisplayComponents(textDisplay);
-                    await i.update({ content: ' ', components: [container], flags: MessageFlags.IsComponentsV2 });
+                    const failedPayload = {
+                        content: ' ',
+                        components: [{
+                            type: 17,
+                            components: [
+                                { type: 10, content: `## <:warning:1441531830607151195> Update Failed` },
+                                { type: 14 },
+                                { type: 10, content: `> **User:** ${msg.author}\n> We couldn't apply the nickname change at this moment.\n\n-# **Reason:** Permission or technical issue\n-# **Action:** Please try again or contact a moderator for assistance.` }
+                            ]
+                        }],
+                        flags: MessageFlags.IsComponentsV2
+                    };
+                    await i.update(failedPayload);
                 }
             } else if (i.customId === `reject_${msg.author.id}`) {
-                const rejectedText = `## <:Error:1440296241090265088> Nickname Rejected
-
-> **User:** ${msg.author}
-> **Requested:** \`${nickname}\`
-
-This nickname request has been declined by our moderation team.
--# **Next Step:** Submit a new request with a different nickname that follows our community guidelines.`;
-                const textDisplay = new TextDisplayBuilder().setContent(rejectedText);
-                const container = new ContainerBuilder().addTextDisplayComponents(textDisplay);
-                await i.update({ content: ' ', components: [container], flags: MessageFlags.IsComponentsV2 });
+                const rejectedPayload = {
+                    content: ' ',
+                    components: [{
+                        type: 17,
+                        components: [
+                            { type: 10, content: `## <:Error:1440296241090265088> Nickname Rejected` },
+                            { type: 14 },
+                            { type: 10, content: `> **User:** ${msg.author}\n> **Requested:** \`${nickname}\`\n\nThis nickname request has been declined by our moderation team.\n-# **Next Step:** Submit a new request with a different nickname that follows our community guidelines.` }
+                        ]
+                    }],
+                    flags: MessageFlags.IsComponentsV2
+                };
+                await i.update(rejectedPayload);
             }
             collector.stop();
         });

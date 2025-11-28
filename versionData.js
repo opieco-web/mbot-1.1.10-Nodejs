@@ -1,11 +1,11 @@
 export default {
-    version: "1.0.61",
-    releaseDate: "Nov 28, 2025 06:25 AM",
-    releaseDateTimestamp: 1764318300,
-    changesSummary: "Nickname system - refined message formatting with better visual structure",
+    version: "1.0.62",
+    releaseDate: "Nov 28, 2025 06:30 AM",
+    releaseDateTimestamp: 1764318600,
+    changesSummary: "Nickname system - converted to Component V2 raw structure",
 
     changes: [
-        "1. Redesigned nickname approved/failed/rejected messages with improved formatting using quote blocks and small text for better readability and visual hierarchy"
+        "1. Converted nickname approved/failed/rejected messages to use Component V2 raw JSON structure with type 17 (Container), type 10 (TextDisplay), and type 14 (Separator) for better component handling"
     ],
 
     versionGuide: `
