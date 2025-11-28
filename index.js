@@ -16,6 +16,7 @@ const MINING_BANGLADESH_GUILD = '1296783492989980682';
 
 // Data file paths
 const miningBangladeshDataFile = './data/mining-bangladesh.json';
+const otherServersDataFile = './data/servers.json';
 
 // Load data from separate files
 let miningBangladeshData = JSON.parse(fs.readFileSync(miningBangladeshDataFile, 'utf8'));
