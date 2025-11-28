@@ -1,17 +1,19 @@
 export default {
-    version: "1.0.69",
-    releaseDate: "Nov 28, 2025 07:05 AM",
-    releaseDateTimestamp: 1764320700,
-    changesSummary: "Enforced complete data separation: Mining Bangladesh (mining-bangladesh.json) vs Others (servers.json)",
+    version: "1.0.70",
+    releaseDate: "Nov 28, 2025 07:10 AM",
+    releaseDateTimestamp: 1764321000,
+    changesSummary: "Mining Bangladesh command formatting complete - all error messages now use Component V2",
 
     changes: [
-        "1. Added Mining Bangladesh guardrails to ALL servers.json utility functions",
-        "2. loadServer() now rejects Mining Bangladesh ID (1296783492989980682)",
-        "3. saveServer() now rejects Mining Bangladesh ID",
-        "4. updateServerProperty() now rejects Mining Bangladesh ID",
-        "5. deleteServer() now rejects Mining Bangladesh ID",
-        "6. All cleanup functions skip Mining Bangladesh (cannot be kicked/banned/left)",
-        "7. Result: 100% data isolation - Mining Bangladesh uses ONLY mining-bangladesh.json, all others use ONLY servers.json"
+        "1. Updated config_online_status error to Component V2 format",
+        "2. Updated config_activity_type error to Component V2 format",
+        "3. Updated config_status_reset error to Component V2 format",
+        "4. Updated modal_status_set error to Component V2 format",
+        "5. Updated nickname setup guild check to Component V2 format",
+        "6. Updated nickname setup permission check to Component V2 format",
+        "7. Updated nickname mode validation to Component V2 format",
+        "8. Updated nicknamefilter guild check to Component V2 format",
+        "9. All Mining Bangladesh error responses now consistent with standard formatting"
     ],
 
     versionGuide: `

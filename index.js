@@ -664,7 +664,7 @@ client.on(Events.InteractionCreate, async interaction => {
             // Config: Online Status dropdown (Mining Bangladesh only)
             if (customId === 'config_online_status') {
                 if (guildId !== MINING_BANGLADESH_GUILD) {
-                    return interaction.reply({ content: '<:Error:1440296241090265088> This command is only available in Mining Bangladesh.', flags: MessageFlags.Ephemeral });
+                    return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:Error:1440296241090265088> Mining Bangladesh Only' }, { type: 14 }, { type: 10, content: 'This command is only available in Mining Bangladesh.' }] }], flags: 32768 | MessageFlags.Ephemeral });
                 }
                 const newStatus = interaction.values[0];
                 const miningData = miningBangladeshData;
@@ -678,7 +678,7 @@ client.on(Events.InteractionCreate, async interaction => {
             // Config: Activity Type dropdown (Mining Bangladesh only)
             if (customId === 'config_activity_type') {
                 if (guildId !== MINING_BANGLADESH_GUILD) {
-                    return interaction.reply({ content: '<:Error:1440296241090265088> This command is only available in Mining Bangladesh.', flags: MessageFlags.Ephemeral });
+                    return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:Error:1440296241090265088> Mining Bangladesh Only' }, { type: 14 }, { type: 10, content: 'This command is only available in Mining Bangladesh.' }] }], flags: 32768 | MessageFlags.Ephemeral });
                 }
                 const newType = interaction.values[0];
                 const miningData = miningBangladeshData;
@@ -766,7 +766,7 @@ client.on(Events.InteractionCreate, async interaction => {
             // Config: Status Reset button (Mining Bangladesh only)
         if (customId === 'config_status_reset') {
             if (guildId !== MINING_BANGLADESH_GUILD) {
-                return interaction.reply({ content: '<:Error:1440296241090265088> This command is only available in Mining Bangladesh.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:Error:1440296241090265088> Mining Bangladesh Only' }, { type: 14 }, { type: 10, content: 'This command is only available in Mining Bangladesh.' }] }], flags: 32768 | MessageFlags.Ephemeral });
             }
             const miningData = miningBangladeshData;
             miningData.status = { presence: 'online' };
@@ -988,7 +988,7 @@ client.on(Events.InteractionCreate, async interaction => {
 
         if (interaction.customId === 'modal_status_set') {
             if (guildId !== MINING_BANGLADESH_GUILD) {
-                return interaction.reply({ content: '<:Error:1440296241090265088> This command is only available in Mining Bangladesh.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:Error:1440296241090265088> Mining Bangladesh Only' }, { type: 14 }, { type: 10, content: 'This command is only available in Mining Bangladesh.' }] }], flags: 32768 | MessageFlags.Ephemeral });
             }
             try {
                 const activityText = interaction.fields.getTextInputValue('status_activity_text');
@@ -1186,16 +1186,16 @@ Type \`reset\` to revert back to your original name. Examples: Shadow, Phoenix, 
 
         if (subcommand === 'setup') {
             if (guildId !== MINING_BANGLADESH_GUILD) {
-                return interaction.reply({ content: '<:Error:1440296241090265088> Nickname system is only available in Mining Bangladesh.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:Error:1440296241090265088> Mining Bangladesh Only' }, { type: 14 }, { type: 10, content: 'Nickname system is only available in Mining Bangladesh.' }] }], flags: 32768 | MessageFlags.Ephemeral });
             }
             if (!member.permissions.has(PermissionsBitField.Flags.ManageNicknames))
-                return interaction.reply({ content: '<:Error:1440296241090265088> You cannot use this command.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:Error:1440296241090265088> Permission Denied' }, { type: 14 }, { type: 10, content: 'You need ManageNicknames permission to use this command.' }] }], flags: 32768 | MessageFlags.Ephemeral });
 
             const channel = interaction.options.getChannel('channel');
             const mode = interaction.options.getString('mode').toLowerCase();
 
             if (!['auto', 'approval'].includes(mode))
-                return interaction.reply({ content: '<:Error:1440296241090265088> Mode must be auto or approval', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:Error:1440296241090265088> Invalid Mode' }, { type: 14 }, { type: 10, content: 'Mode must be **auto** or **approval**' }] }], flags: 32768 | MessageFlags.Ephemeral });
 
             const miningData = miningBangladeshData;
             miningData.nickname.channelId = channel.id;
@@ -1219,7 +1219,7 @@ Type \`reset\` to revert back to your original name. Examples: Shadow, Phoenix, 
     // type 17 = Container | type 10 = TextDisplay | type 14 = Separator
     if (commandName === 'nicknamefilter') {
         if (guildId !== MINING_BANGLADESH_GUILD) {
-            return interaction.reply({ content: '<:Error:1440296241090265088> Nickname filter is only available in Mining Bangladesh.', flags: MessageFlags.Ephemeral });
+            return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:Error:1440296241090265088> Mining Bangladesh Only' }, { type: 14 }, { type: 10, content: 'Nickname filter is only available in Mining Bangladesh.' }] }], flags: 32768 | MessageFlags.Ephemeral });
         }
         const action = interaction.options.getString('action');
         const word = interaction.options.getString('word')?.toLowerCase();
