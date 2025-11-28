@@ -749,14 +749,7 @@ client.on(Events.InteractionCreate, async interaction => {
                 const userId = interaction.user.id;
                 const session = setupSessions.get(userId);
                 
-                if (!session) return;
-                
-                if (customId === 'setup_welcome_randomized_channel') {
-                    session.settings.welcome = session.settings.welcome || {};
-                    session.settings.welcome.randomizedChannel = interaction.values[0];
-                    setupSessions.set(userId, session);
-                    return interaction.deferUpdate();
-                }
+                if (!session) return interaction.deferUpdate();
                 
                 if (customId === 'setup_welcome_randomized_channel') {
                     session.settings.welcome = session.settings.welcome || {};
@@ -786,6 +779,8 @@ client.on(Events.InteractionCreate, async interaction => {
                     setupSessions.set(userId, session);
                     return interaction.deferUpdate();
                 }
+                
+                return interaction.deferUpdate();
             }
         }
 

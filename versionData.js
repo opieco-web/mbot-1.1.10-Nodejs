@@ -1,15 +1,14 @@
 export default {
-    version: "1.0.89",
-    releaseDate: "Nov 28, 2025 08:45 AM",
-    releaseDateTimestamp: 1764326700,
-    changesSummary: "Fixed all page 2 interactions - dropdowns and buttons now respond properly",
+    version: "1.0.90",
+    releaseDate: "Nov 28, 2025 08:50 AM",
+    releaseDateTimestamp: 1764327000,
+    changesSummary: "Fixed duplicate dropdown handler - all page 2 interactions now working",
 
     changes: [
-        "1. Fixed randomized channel dropdown - now responds",
-        "2. Fixed temporary channels dropdown - now responds",
-        "3. All page 2 buttons respond immediately",
-        "4. Randomized welcome = simple enable/disable (same as /welcome command)",
-        "5. Temporary welcome = NEW system with custom/random message selection"
+        "1. REMOVED duplicate 'setup_welcome_randomized_channel' handler causing conflicts",
+        "2. ALL page 2 dropdowns now respond properly",
+        "3. ALL page 2 buttons (Enable/Disable, Custom/Random, When to Send/Delete) work",
+        "4. Added fallback deferUpdate() for all setup_ interactions"
     ],
 
     versionGuide: `
