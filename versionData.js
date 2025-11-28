@@ -1,17 +1,16 @@
 export default {
-    version: "1.0.73",
-    releaseDate: "Nov 28, 2025 07:20 AM",
-    releaseDateTimestamp: 1764321600,
-    changesSummary: "Fixed bot stability - added robust reconnection and error handling",
+    version: "1.0.74",
+    releaseDate: "Nov 28, 2025 07:25 AM",
+    releaseDateTimestamp: 1764322500,
+    changesSummary: "Comprehensive cleanup and stability improvements",
 
     changes: [
-        "1. Added exponential backoff reconnection on disconnect (up to 5 attempts)",
-        "2. Automatic reconnection with delays: 1s, 2s, 4s, 8s, 16s, max 30s",
-        "3. Reset reconnect attempts counter on successful connection",
-        "4. Added unhandled promise rejection listener",
-        "5. Added uncaught exception listener",
-        "6. Added detailed disconnect/reconnect console logging",
-        "7. Improved error handling for connection failures"
+        "1. Fixed bot stability with exponential backoff reconnection",
+        "2. Added startup console message (bot online status)",
+        "3. Consolidated data files (servers.json unified)",
+        "4. Cleaned up all backup and temporary files",
+        "5. Improved error handling for connection failures",
+        "6. Added unhandled promise rejection listeners"
     ],
 
     versionGuide: `

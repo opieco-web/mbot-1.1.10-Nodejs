@@ -8,102 +8,61 @@ Preferred communication style: Simple, everyday language.
 
 # System Architecture
 
-## Project Structure (Fully Modularized - Nov 25, 2025)
+## Data Management (Multi-Server with Complete Isolation)
+
+**Files:**
+- `mining-bangladesh.json` - Mining Bangladesh server ONLY (exclusive features)
+- `servers.json` - All other servers (shared file with complete data isolation)
+
+**Architecture:**
+- Mining Bangladesh gets full features: AFK system, nickname management, bot status control, welcome messages, moderation
+- Other servers get server-specific features with separate data storage
+- Zero cross-server data contamination through strict file separation
+- Automatic server cleanup when bot is kicked/banned/leaves
+
+## Project Structure
 ```
 /
-├── index.js                    # Main entry point (~550 lines, imports modular commands)
+├── index.js                    # Main entry point (~3,400 lines)
 ├── src/
-│   ├── commands/              # Modular command definitions (organized by category)
+│   ├── commands/              # 7 modular commands (organized by category)
 │   │   ├── nickname.js        # Nickname + nicknamefilter commands
 │   │   ├── fun.js             # truthordare, coinflip, choose commands
 │   │   ├── moderation.js      # autoresponse, welcome, afklist, send commands
 │   │   ├── utility.js         # avatar, botinfo, search, afk commands
 │   │   ├── config.js          # config command
+│   │   ├── mining-only.js     # setbotonstatus, setactivitytype, nickname system (Mining Bangladesh exclusive)
 │   │   └── index.js           # Export all commands
-│   ├── events/                # Event handlers (ready to expand)
-│   │   ├── ready.js           # ClientReady event
-│   │   └── index.js           # Event setup coordination
-│   ├── utils/                 # Utility functions & helpers
-│   │   ├── helpers.js         # Cooldowns, duration, prefix, banned words
-│   │   ├── components.js      # Avatar component builders
-│   │   ├── status.js          # Bot status/presence management
-│   │   └── index.js           # Export all utilities
-│   ├── database/              # Data management
-│   │   ├── data.json          # Central configuration storage
-│   │   └── loadData.js        # Data loading & initialization
-│   ├── data/                  # Static data
-│   │   └── welcomeMessages.js # 60+ localized welcome messages
-│   └── config/                # Configuration files
-├── package.json               # Dependencies
-└── index.js.backup            # Backup of working version
+│   ├── utils/                 # Utility functions
+│   │   ├── loadServer.js      # Load server data
+│   │   ├── saveServer.js      # Save server data
+│   │   └── cleanupServer.js   # Cleanup when bot leaves server
+│   └── ...
+├── data/
+│   ├── mining-bangladesh.json # Mining Bangladesh exclusive data
+│   └── servers.json           # All other servers (consolidated)
+├── package.json
+├── versionData.js             # Version tracking & changelog
+└── MULTI_SERVER_GUIDE.md      # Multi-server implementation guide
 ```
 
 ## Core Framework
 - **Discord.js v14**: Latest Discord API wrapper with slash commands
-- **Node.js ESM**: ES modules with `"type": "module"` for modern syntax
-- **File-based persistence**: JSON storage in `/src/database/data.json`
+- **Node.js ESM**: ES modules with modern syntax
+- **File-based persistence**: JSON storage with complete data isolation
 
 ## Bot Architecture
-- **Modular structure**: Commands organized by category (5 category-grouped files instead of monolithic)
-- **Category-grouped commands**: Related commands grouped together (e.g., all nickname commands in one file)
-- **Command Collection Pattern**: Uses discord.js's built-in Collection for commands
-- **Gateway Intents**: Configured for guilds, messages, content, and members
-- **Event-driven design**: Event handlers separate from command logic
-- **Persistent data**: All configuration saved to data.json on every change
+- **Modular structure**: 7 commands organized by category
+- **Multi-server support**: Mining Bangladesh (exclusive features) + other servers (standard features)
+- **Component V2 UI**: Modern Discord UI with containers and text displays
+- **Robust reconnection**: Exponential backoff on disconnect (up to 5 attempts)
+- **Automatic server cleanup**: Removes data when bot leaves/is kicked
 
-## Data Storage
-- **JSON File Storage**: `/src/database/data.json` persists all configuration
-- **Data structure**:
-  - `nickname`: Channel ID, mode (auto/approval), banned word filter
-  - `prefix`: Server-specific prefixes (guildId → prefix)
-  - `autoresponse`: Trigger-based responses (guildId → [triggers])
-  - `status`: Bot activity & presence (type, text, emoji, url, state)
-  - `welcome`: Welcome system per guild (channelId, delay, enabled)
-  - `afk`: AFK user storage (userId → {reason, timestamp})
-
-## Command Organization (Modular Categories)
-
-**📝 Nickname Category** (`/src/commands/nickname.js`)
-- `/nickname setup` - Set channel and mode (Auto or Approval)
-- `/nickname reset` - Reset your nickname to default
-- `/nicknamefilter add` - Ban a word from nicknames
-- `/nicknamefilter remove` - Unban a word
-- `/nicknamefilter list` - Show all banned words
-
-**🎮 Fun Category** (`/src/commands/fun.js`)
-- `/truthordare` - Random truth question or dare
-- `/coinflip` - Get Heads or Tails
-- `/choose` - Bot chooses between 2-3 options
-
-**🛡️ Moderation Category** (`/src/commands/moderation.js`)
-- `/autoresponse add` - Create text/emoji trigger
-- `/autoresponse remove` - Delete trigger
-- `/autoresponse list` - Show all triggers
-- `/welcome enable` - Set welcome channel & delay
-- `/welcome disable` - Disable welcomes
-- `/afklist` - View all AFK users (mod-only)
-- `/send` - Send formatted Component V2 message (mod-only)
-
-**🔧 Utility Category** (`/src/commands/utility.js`)
-- `/avatar` - Display user avatar (default/server/both)
-- `/botinfo` - View bot stats & configuration
-- `/search` - Search Wikipedia or local bot data
-- `/afk` - Set AFK status with reason
-
-**⚙️ Config Category** (`/src/commands/config.js`)
-- `/config` - 3-page configuration UI panel
-
-**Prefix Commands** (default `!`)
-- `!afk [reason]` - Set AFK status
-- `!av [@user]` - Show avatar
-- `!td` - Truth or Dare
-- `!cf` - Coin flip
-- (More prefix commands available)
-
-## Permission Model
-- **Member Permissions**: Uses `setDefaultMemberPermissions()` for admin commands
-- **PermissionsBitField**: Discord permission flags for access control
-- **Moderator-only**: Commands like `/send`, `/afklist` require ManageGuild/ManageMessages
+## Connection Stability
+- **Exponential backoff reconnection**: 1s, 2s, 4s, 8s, 16s delays (max 30s)
+- **Unhandled error listeners**: Promise rejections and uncaught exceptions handled
+- **Automatic reset**: Reconnect attempts reset on successful connection
+- **Detailed logging**: Console messages for all connection events
 
 ## Component V2 System
 - **All responses**: Use Container format (type 17) for modern Discord UI
@@ -112,143 +71,43 @@ Preferred communication style: Simple, everyday language.
   - `<:Correct:1440296238305116223>` - Success
   - `<:Error:1440296241090265088>` - Error
   - `<:warning:1441531830607151195>` - Warning
-  - And 6+ others for rich responses
 
-## Event Handling (Organized)
-- **ClientReady** (`/src/events/ready.js`): Bot startup, keep-alive activation
-- **InteractionCreate** (inline in index.js): Slash commands, buttons, modals
-- **MessageCreate** (inline in index.js): Prefix commands, auto-responses, AFK mentions
-- **GuildMemberAdd** (inline in index.js): Send welcome messages with configurable delay
-- **Disconnect/Error/Warn** (`/src/events/ready.js`): Connection management
+## Command Categories
 
-## AFK System
-- **Persistent**: Saves to `/src/database/data.json` immediately
-- **Restart-resilient**: Loads all AFK statuses on bot startup
-- **Multiple users**: Each tracked by userId with reason & timestamp
-- **Mention detection**: Replies when AFK user is tagged in chat
-- **Return handling**: Removes AFK status when user sends a message
+**📝 Nickname** - Nickname management
+**🎮 Fun** - Entertainment commands
+**🛡️ Moderation** - Server management
+**🔧 Utility** - Helpful tools
+**⚙️ Config** - Bot configuration
+**🔐 Mining Bangladesh Only** - Exclusive features
 
-## Welcome System
-- **60+ messages**: English, Bangla, and Banglish mix (ages 15-20)
-- **Configurable delay**: 0-300 seconds before sending
-- **Per-server settings**: Each guild can customize channel, delay, enabled state
-- **Timed delivery**: Uses setTimeout for delayed sending
+# Version Management
 
-## Bot Status & Presence
-- **Activity types**: Playing, Listening, Watching, Competing, Streaming
-- **Presence states**: Online, Idle, Do Not Disturb, Invisible
-- **Persistence**: Saved to data.json and restored on startup
-- **Keep-alive**: Updates activity every 30 minutes to prevent idle timeout
+**Current Version**: 1.0.74
+**Last Updated**: Nov 28, 2025 07:25 AM
 
-## Utilities Modularized
-- **helpers.js**: Cooldown management, duration calculation, prefix lookup, word filtering, delay parsing
-- **components.js**: Avatar component building with media galleries
-- **status.js**: Bot presence and activity management
-- **loadData.js**: Data file initialization and topic loading
+## Versioning Format (Semantic)
+- **MAJOR.MINOR.PATCH**
+- PATCH: Bug fixes, small improvements
+- MINOR: New features
+- MAJOR: Breaking changes
+
+## Recent Changes
+- ✅ Fixed bot stability with robust reconnection logic
+- ✅ Added startup console message (bot online status)
+- ✅ Consolidated servers.json (removed redundant other-servers.json)
+- ✅ Cleaned up all backup and temporary files
+- ✅ 50+ responses use consistent Component V2 format
+- ✅ Strict multi-server data isolation implemented
+- ✅ Automatic server cleanup system active
 
 # External Dependencies
 
 ## NPM Packages
 - **discord.js** (^14.13.0): Core Discord API
-- **canvas**: Meme generation (prepared for future use)
-- **openai**: AI integration (prepared for future use)
-
-## Discord API
-- **REST API**: Command registration & interactions
-- **Gateway WebSocket**: Real-time event streaming
-- **Required Intents**: Guilds, messages, message content, guild members
+- **canvas**: Image generation
+- **openai**: AI integration
 
 ## Environment Variables
 - `DISCORD_BOT_TOKEN`: Bot authentication
 - `DISCORD_CLIENT_ID`: Application/client ID
-
-# Version Management System
-
-## Versioning Format: Semantic Versioning (MAJOR.MINOR.PATCH)
-- **MAJOR (1.x.x)**: Breaking changes, major redesigns (1.0.0 → 2.0.0)
-- **MINOR (x.1.x)**: New features added (1.0.0 → 1.1.0)
-- **PATCH (x.x.1)**: Bug fixes, small improvements (1.0.0 → 1.0.1)
-
-## Three Files to Update When Making Changes:
-1. **`versionData.js`** - Update version number and add changelog entry
-2. **`package.json`** - Update version number (auto-synced from versionData.js)
-3. **Bot displays version everywhere**: `/botinfo`, `/config` page 3, and all version references
-
-## How to Update Version:
-
-### Step 1: Identify Change Type
-- **MAJOR**: Restructuring, breaking changes (e.g., modular refactoring)
-- **MINOR**: New commands/features (e.g., new avatar system)
-- **PATCH**: Bug fixes, improvements (e.g., fixed nickname display)
-
-### Step 2: Update versionData.js
-```javascript
-// Change version number
-version: "1.0.11",  // Example: increased from 1.0.10
-
-// Add entry at TOP of changelog
-changelog: `
-# Changelog
-
-## 1.0.11 — (DATE)
-- Brief description of change 1
-- Brief description of change 2
-
-## 1.0.10 — (2025-11-25)
-...rest of changelog
-```
-
-### Step 3: Auto-Updates (Automatic)
-- `package.json` automatically reads from `versionData.js` when bot starts
-- Bot info command (`/botinfo`) displays version from `versionData.js`
-- Config page 3 (`/config`) displays version from `versionData.js`
-- All version references throughout bot auto-update
-
-## Automatic Version Increment System
-
-**PATCH (Last Number) - Small Edits/Bug Fixes:**
-- Increments with every small code edit (1.0.12 → 1.0.13)
-- Ranges from 0-99
-- When PATCH reaches 100 → resets to 0, MINOR increments
-
-**MINOR (Middle Number) - Big Features/Major Updates:**
-- Increments when adding significant new features or big updates (1.0.12 → 1.1.0)
-- Ranges from 0-4
-- When MINOR reaches 5 → resets to 0, MAJOR increments (1.4.99 → 2.0.0)
-
-**MAJOR (First Number) - Breaking Changes:**
-- Increments for major restructuring or breaking changes (1.x.x → 2.0.0)
-
-**Progression Examples:**
-- Small edits: 1.0.12 → 1.0.13 → 1.0.14 → ... → 1.0.99
-- Big update: 1.0.99 → 1.1.0 (MINOR increments, PATCH resets)
-- Continue: 1.1.0 → 1.2.0 → 1.3.0 → 1.4.0 → 1.5.0
-- Major update: 1.5.99 → 2.0.0 (MAJOR increments, MINOR resets)
-
-## Current Version
-- **Version**: 1.0.35
-- **Last Updated**: Nov 25, 2025 3:20 PM
-- **Status**: FIXED: Button interactions now work - moved handlers before slash command filter
-
-# Recent Changes (Nov 25, 2025)
-- **COMPLETED: Full Modularization**
-  - ✅ Extracted 14+ commands into 5 category-grouped files (instead of monolithic)
-  - ✅ Organized: Nickname, Fun, Moderation, Utility, Config categories
-  - ✅ Created modular structure: `/src/commands/`, `/src/events/`
-  - ✅ Updated index.js to import all commands from modular files
-  - ✅ Reduced main index.js from 3,089 to ~550 lines (with all handlers intact)
-  - ✅ Bot remains 100% functional with all commands working
-
-- **COMPLETED: Version Management System**
-  - ✅ Created `versionData.js` with version tracking and changelog
-  - ✅ Synced `package.json` version to match `versionData.js`
-  - ✅ Added changelog display to `/config` page 3
-  - ✅ Version auto-updates everywhere (botinfo, config, etc.)
-  - ✅ Documented versioning process in replit.md
-
-- **Previous (Nov 24, 2025)**
-  - Removed `/setprefix` and `/prefix` commands (functionality moved to `/config`)
-  - Removed `/meme` slash and prefix commands entirely
-  - Removed `activity.js` (legacy event handler)
-  - Fixed AFK command ephemeral message deletion error
-  - Fixed JSON syntax error in data.json
