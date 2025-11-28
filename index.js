@@ -1327,9 +1327,7 @@ Type \`reset\` to revert back to your original name. Examples: Shadow, Phoenix, 
             console.error('Failed to set AFK nickname:', e);
         }
         
-        const { resource: replyMsg } = await interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:mg_alert:1439893442065862698> AFK Set' }, { type: 14 }, { type: 10, content: reason }] }], flags: 32768 | MessageFlags.Ephemeral, withResponse: true });
-
-        setTimeout(() => replyMsg.delete().catch(() => {}), 30000);
+        await interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:mg_alert:1439893442065862698> AFK Set' }, { type: 14 }, { type: 10, content: reason }] }], flags: 32768 | MessageFlags.Ephemeral });
     }
 
     // AFKLIST - Component V2 Container (GUILD-SPECIFIC AFK DATA ONLY)
