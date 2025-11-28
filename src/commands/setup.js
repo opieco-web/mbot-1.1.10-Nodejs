@@ -89,13 +89,15 @@ const setupPagesBase = {
       "type": 1,
       "components": [
         {
-          "type": 4,
-          "custom_id": "setup_welcome_randomized_delay",
-          "label": "Message Delay (1-300 seconds, default: 120)",
-          "style": 1,
-          "placeholder": "120",
-          "min_length": 1,
-          "max_length": 3
+          "style": 2,
+          "type": 2,
+          "label": "Set Delay",
+          "emoji": {
+            "id": "1443156335809007697",
+            "name": "editmessage",
+            "animated": false
+          },
+          "custom_id": "setup_welcome_randomized_delay_btn"
         }
       ]
     },
@@ -159,27 +161,26 @@ const setupPagesBase = {
       "type": 1,
       "components": [
         {
-          "type": 4,
-          "custom_id": "setup_welcome_temporary_delay",
-          "label": "Message Delay (1-300 seconds, default: 120)",
-          "style": 1,
-          "placeholder": "120",
-          "min_length": 1,
-          "max_length": 3
-        }
-      ]
-    },
-    {
-      "type": 1,
-      "components": [
+          "style": 2,
+          "type": 2,
+          "label": "Set Delay",
+          "emoji": {
+            "id": "1443156335809007697",
+            "name": "editmessage",
+            "animated": false
+          },
+          "custom_id": "setup_welcome_temporary_delay_btn"
+        },
         {
-          "type": 4,
-          "custom_id": "setup_welcome_temporary_delete_time",
-          "label": "Message Delete Time (1-300 seconds, default: 60)",
-          "style": 1,
-          "placeholder": "60",
-          "min_length": 1,
-          "max_length": 3
+          "style": 2,
+          "type": 2,
+          "label": "Set Delete Time",
+          "emoji": {
+            "id": "1443156335809007697",
+            "name": "editmessage",
+            "animated": false
+          },
+          "custom_id": "setup_welcome_temporary_delete_time_btn"
         }
       ]
     },

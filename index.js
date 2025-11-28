@@ -765,26 +765,6 @@ client.on(Events.InteractionCreate, async interaction => {
                     return interaction.deferUpdate();
                 }
                 
-                if (customId === 'setup_welcome_randomized_delay') {
-                    session.settings.welcome = session.settings.welcome || {};
-                    session.settings.welcome.randomizedDelay = interaction.fields.getTextInputValue('setup_welcome_randomized_delay') || '120';
-                    setupSessions.set(userId, session);
-                    return interaction.deferUpdate();
-                }
-                
-                if (customId === 'setup_welcome_temporary_delay') {
-                    session.settings.welcome = session.settings.welcome || {};
-                    session.settings.welcome.temporaryDelay = interaction.fields.getTextInputValue('setup_welcome_temporary_delay') || '120';
-                    setupSessions.set(userId, session);
-                    return interaction.deferUpdate();
-                }
-                
-                if (customId === 'setup_welcome_temporary_delete_time') {
-                    session.settings.welcome = session.settings.welcome || {};
-                    session.settings.welcome.temporaryDeleteTime = interaction.fields.getTextInputValue('setup_welcome_temporary_delete_time') || '60';
-                    setupSessions.set(userId, session);
-                    return interaction.deferUpdate();
-                }
                 
                 if (customId === 'setup_nickname_blocklist_action') {
                     const action = interaction.values[0];
@@ -904,6 +884,72 @@ client.on(Events.InteractionCreate, async interaction => {
                 
                 // Default: defer any other setup interaction
                 return interaction.deferUpdate();
+            }
+
+            // Setup: Welcome Randomized Delay
+            if (customId === 'setup_welcome_randomized_delay_btn') {
+                const modal = {
+                    custom_id: 'modal_welcome_randomized_delay',
+                    title: 'Set Randomized Message Delay',
+                    components: [{
+                        type: 1,
+                        components: [{
+                            type: 4,
+                            custom_id: 'randomized_delay_input',
+                            label: 'Delay (1-300 seconds, default: 120)',
+                            style: 1,
+                            placeholder: '120',
+                            max_length: 3,
+                            min_length: 1,
+                            required: false
+                        }]
+                    }]
+                };
+                return interaction.showModal(modal);
+            }
+
+            // Setup: Welcome Temporary Delay
+            if (customId === 'setup_welcome_temporary_delay_btn') {
+                const modal = {
+                    custom_id: 'modal_welcome_temporary_delay',
+                    title: 'Set Temporary Message Delay',
+                    components: [{
+                        type: 1,
+                        components: [{
+                            type: 4,
+                            custom_id: 'temporary_delay_input',
+                            label: 'Delay (1-300 seconds, default: 120)',
+                            style: 1,
+                            placeholder: '120',
+                            max_length: 3,
+                            min_length: 1,
+                            required: false
+                        }]
+                    }]
+                };
+                return interaction.showModal(modal);
+            }
+
+            // Setup: Welcome Temporary Delete Time
+            if (customId === 'setup_welcome_temporary_delete_time_btn') {
+                const modal = {
+                    custom_id: 'modal_welcome_temporary_delete_time',
+                    title: 'Set Message Auto-Delete Time',
+                    components: [{
+                        type: 1,
+                        components: [{
+                            type: 4,
+                            custom_id: 'delete_time_input',
+                            label: 'Delete Time (1-300 seconds, default: 60)',
+                            style: 1,
+                            placeholder: '60',
+                            max_length: 3,
+                            min_length: 1,
+                            required: false
+                        }]
+                    }]
+                };
+                return interaction.showModal(modal);
             }
 
             // Config: Set Prefix button
