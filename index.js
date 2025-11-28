@@ -1549,9 +1549,10 @@ Type \`reset\` to revert back to your original name. Examples: Shadow, Phoenix, 
     // ===== SETUP WIZARD COMMAND =====
     if (commandName === 'setup') {
         const userId = interaction.user.id;
-        setupSessions.set(userId, { page: 1, settings: {} });
+        const { getSetupPage, handleSetupInteraction, toggleFeature } = await import('./src/commands/setup.js');
         
-        const { getSetupPage } = await import('./src/commands/setup.js');
+        setupSessions.set(userId, { page: 1, settings: {}, guildId });
+        
         const pageComponents = getSetupPage(1, userId);
         const botAvatar = client.user.displayAvatarURL({ dynamic: true, size: 1024 });
         
@@ -1578,7 +1579,144 @@ Type \`reset\` to revert back to your original name. Examples: Shadow, Phoenix, 
             flags: 32768 | MessageFlags.Ephemeral
         };
         
-        return interaction.reply(setupPanel);
+        await interaction.reply(setupPanel);
+        
+        // ===== COLLECTOR FOR SETUP WIZARD =====
+        const filter = (i) => i.user.id === userId;
+        const collector = interaction.channel.createMessageComponentCollector({ filter, time: 600000 }); // 10 min timeout
+        
+        collector.on('collect', async (i) => {
+            const session = setupSessions.get(userId);
+            if (!session) {
+                return i.reply({ content: '❌ Session expired. Use `/setup` to start again.', flags: MessageFlags.Ephemeral });
+            }
+            
+            const customId = i.customId;
+            console.log(`[SETUP-COLLECTOR] Interaction: ${customId}, Page: ${session.page}`);
+            
+            // Handle string select menus (dropdowns)
+            if (i.isStringSelectMenu()) {
+                console.log(`[SETUP-COLLECTOR] Dropdown: ${customId}, Values: ${i.values.join(', ')}`);
+                
+                if (customId === 'setup_welcome_randomized_channel') {
+                    session.settings.welcome = session.settings.welcome || {};
+                    session.settings.welcome.randomizedChannel = i.values[0];
+                    setupSessions.set(userId, session);
+                }
+                
+                if (customId === 'setup_welcome_temporary_channels') {
+                    session.settings.welcome = session.settings.welcome || {};
+                    session.settings.welcome.temporaryChannels = i.values;
+                    setupSessions.set(userId, session);
+                }
+                
+                if (customId === 'setup_nickname_blocklist_action') {
+                    session.settings.nickname = session.settings.nickname || {};
+                    session.settings.nickname.blocklistAction = i.values[0];
+                    setupSessions.set(userId, session);
+                }
+                
+                if (customId === 'setup_nickname_channel_select') {
+                    session.settings.nickname = session.settings.nickname || {};
+                    session.settings.nickname.channelId = i.values[0];
+                    setupSessions.set(userId, session);
+                }
+                
+                return i.deferUpdate();
+            }
+            
+            // Handle buttons
+            if (i.isButton()) {
+                console.log(`[SETUP-COLLECTOR] Button: ${customId}`);
+                const action = handleSetupInteraction(customId);
+                
+                // Handle modals
+                if (customId === 'setup_welcome_randomized_delay_btn' || customId === 'setup_welcome_temporary_delay_btn' || customId === 'setup_welcome_temporary_delete_time_btn') {
+                    const modalId = customId === 'setup_welcome_randomized_delay_btn' ? 'modal_welcome_randomized_delay' : 
+                                   customId === 'setup_welcome_temporary_delay_btn' ? 'modal_welcome_temporary_delay' :
+                                   'modal_welcome_temporary_delete_time';
+                    
+                    const modal = {
+                        custom_id: modalId,
+                        title: modalId === 'modal_welcome_randomized_delay' ? 'Set Randomized Delay' :
+                               modalId === 'modal_welcome_temporary_delay' ? 'Set Send Delay' :
+                               'Set Delete Time',
+                        components: [{
+                            type: 1,
+                            components: [{
+                                type: 4,
+                                custom_id: modalId === 'modal_welcome_randomized_delay' ? 'randomized_delay_input' :
+                                          modalId === 'modal_welcome_temporary_delay' ? 'temporary_delay_input' :
+                                          'delete_time_input',
+                                label: 'Delay in seconds (1-300)',
+                                style: 1,
+                                placeholder: '120',
+                                required: false
+                            }]
+                        }]
+                    };
+                    return i.showModal(modal);
+                }
+                
+                if (!action) return i.deferUpdate();
+                
+                // Toggle buttons
+                if (action.action === 'toggle') {
+                    toggleFeature(userId, action.toggleId);
+                    const newComponents = getSetupPage(session.page, userId);
+                    return i.update({ content: ' ', components: [{ type: 17, components: newComponents }], flags: 32768 | MessageFlags.Ephemeral });
+                }
+                
+                // Navigate
+                if (action.action === 'navigate') {
+                    session.page = action.nextPage;
+                    setupSessions.set(userId, session);
+                    const newComponents = getSetupPage(action.nextPage, userId);
+                    return i.update({ content: ' ', components: [{ type: 17, components: newComponents }], flags: 32768 | MessageFlags.Ephemeral });
+                }
+                
+                // Save
+                if (action.action === 'save') {
+                    const guildData = getGuildData(guildId);
+                    
+                    if (session.settings.welcome) {
+                        guildData.welcome = guildData.welcome || {};
+                        if (session.settings.welcome.randomizedChannel) {
+                            guildData.welcome.randomized = { channelId: session.settings.welcome.randomizedChannel, delay: session.settings.welcome.randomizedDelay || 120000, enabled: true };
+                        }
+                        if (session.settings.welcome.temporaryChannels?.length) {
+                            guildData.welcome.temporary = { channelIds: session.settings.welcome.temporaryChannels, type: session.settings.welcome.type || 'random', sendDelay: session.settings.welcome.temporaryDelay || 120000, deleteTime: session.settings.welcome.temporaryDeleteTime || 300000, enabled: true };
+                        }
+                        guildData.welcome.enabled = !!(guildData.welcome.randomized?.enabled || guildData.welcome.temporary?.enabled);
+                    }
+                    
+                    if (session.settings.nickname) {
+                        guildData.nickname = guildData.nickname || {};
+                        if (session.settings.nickname.blocklistAction) guildData.nickname.blocklist_enabled = true;
+                        if (session.settings.nickname.channelId && session.settings.nickname.mode) {
+                            guildData.nickname.channelId = session.settings.nickname.channelId;
+                            guildData.nickname.mode = session.settings.nickname.mode;
+                            guildData.nickname.enabled = true;
+                        }
+                    }
+                    
+                    saveGuildData(guildId, guildData);
+                    setupSessions.delete(userId);
+                    collector.stop();
+                    
+                    return i.update({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '# ✅ Setup Complete!' }, { type: 14 }, { type: 10, content: 'All settings saved successfully.' }] }], flags: 32768 | MessageFlags.Ephemeral });
+                }
+                
+                return i.deferUpdate();
+            }
+        });
+        
+        collector.on('end', () => {
+            console.log(`[SETUP-COLLECTOR] Collector ended for user ${userId}`);
+            setupSessions.delete(userId);
+        });
+        
+        return;
     }
 
     // NICKNAME SYSTEM - Component V2 Container

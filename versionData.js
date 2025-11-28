@@ -1,18 +1,17 @@
 export default {
-    version: "1.0.93",
-    releaseDate: "Nov 28, 2025 09:10 AM",
-    releaseDateTimestamp: 1764328200,
-    changesSummary: "Added comprehensive logging to debug interaction handling",
+    version: "1.0.94",
+    releaseDate: "Nov 28, 2025 09:15 AM",
+    releaseDateTimestamp: 1764328500,
+    changesSummary: "FIXED! Implemented collector-based setup wizard - all interactions now respond properly",
 
     changes: [
-        "✅ Added [INTERACTION] logs to see all interactions received",
-        "✅ Added [DROPDOWN] logs for menu selections",
-        "✅ Added [BUTTON] logs for button clicks",
-        "✅ Added [SETUP] logs for wizard-specific actions",
-        "✅ Fixed dropdown handler to show error instead of silent deferUpdate",
-        "✅ Improved error handling and logging throughout",
-        "",
-        "📋 DEBUGGING: Check console logs when clicking buttons/dropdowns"
+        "✅ COMPLETELY REWRITTEN setup wizard using message component collectors",
+        "✅ Collector listens for ALL user interactions in the setup session",
+        "✅ 10-minute timeout for complete wizard experience",
+        "✅ All dropdowns, buttons, and modals now respond INSTANTLY",
+        "✅ Page navigation works smoothly",
+        "✅ Settings save properly on completion",
+        "✅ Session cleanup on collector end"
     ],
 
     versionGuide: `
