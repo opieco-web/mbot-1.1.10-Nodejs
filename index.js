@@ -3173,29 +3173,28 @@ client.on(Events.MessageCreate, async msg => {
             return;
         }
 
-        const approveBtn = new ButtonBuilder()
-            .setCustomId(`approve_${msg.author.id}`)
-            .setLabel('Approve')
-            .setStyle(ButtonStyle.Success);
-
-        const rejectBtn = new ButtonBuilder()
-            .setCustomId(`reject_${msg.author.id}`)
-            .setLabel('Reject')
-            .setStyle(ButtonStyle.Danger);
-
-        const row = new ActionRowBuilder().addComponents(approveBtn, rejectBtn);
-
-        const requestText = `### 📝 Nickname Request\n\n**User:** ${msg.author}\n**Requested:** "${nickname}"`;
-        const textDisplay = new TextDisplayBuilder().setContent(requestText);
-        const container = new ContainerBuilder()
-            .addTextDisplayComponents(textDisplay)
-            .addActionRowComponents(row);
-        
-        const requestMsg = await msg.channel.send({
+        const requestPayload = {
             content: ' ',
-            components: [container],
+            components: [{
+                type: 17,
+                components: [
+                    { type: 10, content: `### <:Page:1442984948305887362> Nickname Request` },
+                    { type: 14 },
+                    { type: 10, content: `> **User:** ${msg.author}\n> **Requested:** "${nickname}"` },
+                    { type: 14 },
+                    {
+                        type: 1,
+                        components: [
+                            { type: 2, label: 'Approve', custom_id: `approve_${msg.author.id}`, style: 3 },
+                            { type: 2, label: 'Reject', custom_id: `reject_${msg.author.id}`, style: 4 }
+                        ]
+                    }
+                ]
+            }],
             flags: MessageFlags.IsComponentsV2
-        });
+        };
+        
+        const requestMsg = await msg.channel.send(requestPayload);
 
         const filter = i => i.user.id !== msg.author.id;
         const collector = requestMsg.createMessageComponentCollector({ filter, time: 3600000 });
