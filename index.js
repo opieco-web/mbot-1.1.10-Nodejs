@@ -1317,9 +1317,8 @@ Type \`reset\` to revert back to your original name. Examples: Shadow, Phoenix, 
         const originalNickname = member.nickname || user.displayName;
         const newNickname = `AFK - ${originalNickname}`;
         
-        afkUsers[user.id] = { reason, timestamp: Date.now(), originalNickname };
         const guildData = getGuildData(guildId);
-        guildData.afk[user.id] = afkUsers[user.id];
+        guildData.afk[user.id] = { reason, timestamp: Date.now(), originalNickname };
         saveGuildData(guildId, guildData);
         
         try {
@@ -2541,9 +2540,8 @@ client.on(Events.MessageCreate, async msg => {
             const originalNickname = msg.member.nickname || msg.author.displayName;
             const newNickname = `AFK - ${originalNickname}`;
             
-            afkUsers[msg.author.id] = { reason, timestamp: Date.now(), originalNickname };
             const guildData = getGuildData(msg.guildId);
-            guildData.afk[msg.author.id] = afkUsers[msg.author.id];
+            guildData.afk[msg.author.id] = { reason, timestamp: Date.now(), originalNickname };
             saveGuildData(msg.guildId, guildData);
 
             // Only attempt nickname change if bot has permission
