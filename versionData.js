@@ -1,15 +1,15 @@
 export default {
-    version: "1.0.84",
-    releaseDate: "Nov 28, 2025 08:20 AM",
-    releaseDateTimestamp: 1764325200,
-    changesSummary: "Updated Page 2 with detailed welcome message controls - delays, multi-channel support, and message types",
+    version: "1.0.85",
+    releaseDate: "Nov 28, 2025 08:25 AM",
+    releaseDateTimestamp: 1764325500,
+    changesSummary: "Added message delete time control for temporary welcome messages",
 
     changes: [
-        "1. Page 2 now organized by feature: Randomized & Temporary sections",
-        "2. Randomized messages: Channel selection + delay input (1-300 sec, default 120)",
-        "3. Temporary messages: Message type (Customized/Randomized) + up to 5 channels + delay",
-        "4. All text inputs accept delay values with validation",
-        "5. Improved page layout with clear section headers"
+        "1. Temporary messages now have two delay controls:",
+        "   - Message Delay: When the message appears (1-300 sec, default 120)",
+        "   - Message Delete Time: When message auto-deletes (1-300 sec, default 60)",
+        "2. Text input fields accept and validate delay values",
+        "3. Both delays persist when settings are saved"
     ],
 
     versionGuide: `

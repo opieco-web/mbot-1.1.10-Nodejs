@@ -170,6 +170,20 @@ const setupPagesBase = {
       ]
     },
     {
+      "type": 1,
+      "components": [
+        {
+          "type": 4,
+          "custom_id": "setup_welcome_temporary_delete_time",
+          "label": "Message Delete Time (1-300 seconds, default: 60)",
+          "style": 1,
+          "placeholder": "60",
+          "min_length": 1,
+          "max_length": 3
+        }
+      ]
+    },
+    {
       "type": 14
     },
     {

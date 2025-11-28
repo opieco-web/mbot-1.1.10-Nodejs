@@ -765,6 +765,27 @@ client.on(Events.InteractionCreate, async interaction => {
                     return interaction.deferUpdate();
                 }
                 
+                if (customId === 'setup_welcome_randomized_delay') {
+                    session.settings.welcome = session.settings.welcome || {};
+                    session.settings.welcome.randomizedDelay = interaction.fields.getTextInputValue('setup_welcome_randomized_delay') || '120';
+                    setupSessions.set(userId, session);
+                    return interaction.deferUpdate();
+                }
+                
+                if (customId === 'setup_welcome_temporary_delay') {
+                    session.settings.welcome = session.settings.welcome || {};
+                    session.settings.welcome.temporaryDelay = interaction.fields.getTextInputValue('setup_welcome_temporary_delay') || '120';
+                    setupSessions.set(userId, session);
+                    return interaction.deferUpdate();
+                }
+                
+                if (customId === 'setup_welcome_temporary_delete_time') {
+                    session.settings.welcome = session.settings.welcome || {};
+                    session.settings.welcome.temporaryDeleteTime = interaction.fields.getTextInputValue('setup_welcome_temporary_delete_time') || '60';
+                    setupSessions.set(userId, session);
+                    return interaction.deferUpdate();
+                }
+                
                 if (customId === 'setup_nickname_blocklist_action') {
                     const action = interaction.values[0];
                     session.settings.nickname = session.settings.nickname || {};
