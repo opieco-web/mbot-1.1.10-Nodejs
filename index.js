@@ -3262,7 +3262,8 @@ client.on(Events.GuildMemberAdd, async member => {
     const guildId = member.guild.id;
     console.log(`[WELCOME] New member joined: ${member.user.tag} in guild ${guildId}`);
     
-    const welcomeConfig = data.welcome[guildId];
+    const guildData = getGuildData(guildId);
+    const welcomeConfig = guildData.welcome;
     if (!welcomeConfig) {
         console.log(`[WELCOME] No welcome config for guild ${guildId}`);
         return;
