@@ -1,22 +1,14 @@
 export default {
-    version: "1.0.57",
-    releaseDate: "Nov 27, 2025 12:00 AM",
-    releaseDateTimestamp: 1764230400,
-    changesSummary: "Complete multi-server data isolation - 12 critical changes",
+    version: "1.0.58",
+    releaseDate: "Nov 28, 2025 06:00 AM",
+    releaseDateTimestamp: 1764316800,
+    changesSummary: "Code cleanup and structural refinement - 4 critical changes",
 
     changes: [
-        "1. Fixed AFK system - now guild-specific with isolated data per server",
-        "2. Fixed autoresponse triggers - each server has isolated autoresponse data",
-        "3. Fixed header attachment config - server-specific avatar storage",
-        "4. Fixed background attachment config - server-specific banner storage",
-        "5. Fixed welcome messages - each server manages own welcome data independently",
-        "6. Fixed prefix command - guild-specific prefix storage per server",
-        "7. Fixed search functionality - searches only current server's data",
-        "8. Fixed nickname handler - Mining Bangladesh-only with proper data isolation",
-        "9. Fixed duplicate variable declarations - removed guildData redeclaration error",
-        "10. Fixed config command - displays guild-specific settings and configurations",
-        "11. Fixed bot startup - eliminated all global data references for true multi-server support",
-        "12. Fixed AFK nickname permissions - gracefully skips nickname changes if bot lacks permission"
+        "1. Removed all debug console.log/warn statements - cleaner production logs",
+        "2. Deleted redundant afkUsers global variable - data now purely guild-isolated",
+        "3. Cleaned project structure - removed legacy folders (events/, src/config/, src/database/, src/utils/) and unused root files",
+        "4. Fixed afkUsers reference error in slash and prefix AFK commands - direct guild data assignment"
     ],
 
     versionGuide: `
