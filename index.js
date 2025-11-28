@@ -2548,11 +2548,29 @@ client.on(Events.MessageCreate, async msg => {
             
             try {
                 const member = await msg.guild.members.fetch(user.id);
-                const displayName = `**${member.nickname || member.displayName}**`;
-                const replyMsg = await msg.reply(`<:mg_alert:1439893442065862698> ${displayName} is AFK since <t:${timestampSeconds}:R> — "${afkData.reason}"`);
+                const displayName = member.nickname || member.displayName;
+                const replyMsg = await msg.reply({
+                    flags: 32768,
+                    components: [{
+                        type: 17,
+                        components: [{
+                            type: 10,
+                            content: `<:mg_alert:1439893442065862698> **${displayName}** is AFK since <t:${timestampSeconds}:R> — "${afkData.reason}"`
+                        }]
+                    }]
+                });
                 setTimeout(() => replyMsg.delete().catch(() => {}), 60000);
             } catch (e) {
-                const replyMsg = await msg.reply(`<:mg_alert:1439893442065862698> **${user.displayName}** is AFK since <t:${timestampSeconds}:R> — "${afkData.reason}"`);
+                const replyMsg = await msg.reply({
+                    flags: 32768,
+                    components: [{
+                        type: 17,
+                        components: [{
+                            type: 10,
+                            content: `<:mg_alert:1439893442065862698> **${user.displayName}** is AFK since <t:${timestampSeconds}:R> — "${afkData.reason}"`
+                        }]
+                    }]
+                });
                 setTimeout(() => replyMsg.delete().catch(() => {}), 60000);
             }
         }
@@ -2585,7 +2603,16 @@ client.on(Events.MessageCreate, async msg => {
         saveGuildData(guildId, guildData);
         const welcomeEmojis = ['<a:snowmanhellokitty:1441834296804638800>', '<a:mymelody:1441834292400623646>', '<a:twirlingdonut:1441834290311598229>', '<a:orangeblossom:1441834288193605856>', '<a:musicrecordspin:1441834285517639841>', '<a:balloonpikachu:1441834282816377103>', '<a:croissant:1441783019139502112>', '<a:cherry:1441782972486516946>', '<:1210pixelhotcoffee:1443306092863029418>', '<a:scarf:1443306089738141760>', '<a:kittydance:1443306087125094533>', '<a:whitebutterfly:1443306083694280724>', '<a:703209tkkkk:1443306080636502147>', '<a:tkkkk:1443306075356004548>'];
         const welcomeEmoji = welcomeEmojis[Math.floor(Math.random() * welcomeEmojis.length)];
-        await msg.reply(`${welcomeEmoji} Welcome back ${msg.author}! You were AFK for ${duration}.`);
+        await msg.reply({
+            flags: 32768,
+            components: [{
+                type: 17,
+                components: [{
+                    type: 10,
+                    content: `${welcomeEmoji} Welcome back ${msg.author}! You were AFK for ${duration}.`
+                }]
+            }]
+        });
     }
 
     // ----- Handle prefix commands -----
@@ -2613,7 +2640,16 @@ client.on(Events.MessageCreate, async msg => {
                 }
             }
 
-            const replyMsg = await msg.reply(`<:mg_alert:1439893442065862698> AFK set: ${reason}`);
+            const replyMsg = await msg.reply({
+                flags: 32768,
+                components: [{
+                    type: 17,
+                    components: [{
+                        type: 10,
+                        content: `<:mg_alert:1439893442065862698> AFK set: ${reason}`
+                    }]
+                }]
+            });
 
             // Delete user message after 5s
             setTimeout(() => msg.delete().catch(() => {}), 5000);

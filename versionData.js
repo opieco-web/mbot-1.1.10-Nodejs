@@ -1,16 +1,15 @@
 export default {
-    version: "1.0.74",
-    releaseDate: "Nov 28, 2025 07:25 AM",
-    releaseDateTimestamp: 1764322500,
-    changesSummary: "Comprehensive cleanup and stability improvements",
+    version: "1.0.75",
+    releaseDate: "Nov 28, 2025 07:30 AM",
+    releaseDateTimestamp: 1764322800,
+    changesSummary: "All AFK messages now use Component V2 container format",
 
     changes: [
-        "1. Fixed bot stability with exponential backoff reconnection",
-        "2. Added startup console message (bot online status)",
-        "3. Consolidated data files (servers.json unified)",
-        "4. Cleaned up all backup and temporary files",
-        "5. Improved error handling for connection failures",
-        "6. Added unhandled promise rejection listeners"
+        "1. AFK mention replies now use Component V2 container (type 17)",
+        "2. Welcome back message uses Component V2 container",
+        "3. Prefix command AFK set message uses Component V2 container",
+        "4. All AFK messages use flags: 32768 (ephemeral)",
+        "5. Consistent formatting across all AFK notifications"
     ],
 
     versionGuide: `
