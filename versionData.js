@@ -1,15 +1,18 @@
 export default {
-    version: "1.0.77",
-    releaseDate: "Nov 28, 2025 07:45 AM",
-    releaseDateTimestamp: 1764323100,
-    changesSummary: "Rebuilt setup wizard with simple ActionRows - fixed Discord.js compatibility",
+    version: "1.0.75",
+    releaseDate: "Nov 28, 2025 07:35 AM",
+    releaseDateTimestamp: 1764322500,
+    changesSummary: "Integrated 3-page setup wizard with complete navigation and settings saving",
 
     changes: [
-        "1. Rewrote setup pages to use Discord.js ActionRowBuilder instead of Component V2 JSON",
-        "2. Uses proper ButtonBuilder for navigation (Previous/Next/Save buttons)",
-        "3. Added ChannelSelectMenuBuilder for channel selection on pages 2 and 3",
-        "4. Simplified content structure for better Discord.js compatibility",
-        "5. Setup wizard now fully responsive and working with slash commands"
+        "1. Added setup session storage (Map tracking user page and settings)",
+        "2. Implemented /setup slash command - displays Page 1 (Menu)",
+        "3. Added navigation handlers for Previous/Next buttons between pages",
+        "4. Implemented dropdown handlers for channel selections in both Welcome and Nickname pages",
+        "5. Added final save handler - saves all settings when user completes Page 3",
+        "6. Session auto-cleanup after completion or expiration",
+        "7. Perfect Component V2 format with proper container/separator/text structure",
+        "8. All 3 pages fully functional: Menu → Welcome Settings → Nickname Setup"
     ],
 
     versionGuide: `

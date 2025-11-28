@@ -805,7 +805,10 @@ client.on(Events.InteractionCreate, async interaction => {
                     setupSessions.set(userId, session);
                     const pageData = getSetupPage(action.nextPage);
                     
-                    return interaction.update(pageData);
+                    return interaction.update({
+                        content: ' ',
+                        components: pageData.components
+                    });
                 }
                 
                 if (action.save) {
@@ -1330,7 +1333,11 @@ Type \`reset\` to revert back to your original name. Examples: Shadow, Phoenix, 
         const { getSetupPage } = await import('./src/commands/setup.js');
         const pageData = getSetupPage(1);
         
-        return interaction.reply(pageData);
+        return interaction.reply({
+            content: ' ',
+            components: pageData.components,
+            flags: MessageFlags.Ephemeral
+        });
     }
 
     // NICKNAME SYSTEM - Component V2 Container
