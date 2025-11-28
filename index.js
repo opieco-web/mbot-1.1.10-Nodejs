@@ -1270,7 +1270,6 @@ client.on(Events.InteractionCreate, async interaction => {
                 }
             });
         }
-        }
     } catch (error) {
         console.error('Error handling interaction:', error);
     }
