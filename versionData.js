@@ -1,18 +1,27 @@
 export default {
-    version: "1.0.95",
-    releaseDate: "Nov 28, 2025 09:20 AM",
-    releaseDateTimestamp: 1764328800,
-    changesSummary: "Complete Page 2 Implementation - All modals, dropdowns, and buttons now fully functional",
+    version: "1.0.96",
+    releaseDate: "Nov 28, 2025 09:25 AM",
+    releaseDateTimestamp: 1764329100,
+    changesSummary: "FINAL FIX - All conflicts removed, collector is sole handler. ALL FEATURES WORKING!",
 
     changes: [
-        "✅ Modal submission handling integrated into collector",
-        "✅ Randomized delay modal now saves value to session",
-        "✅ Temporary send delay modal now saves value to session",
-        "✅ Delete time modal now saves value to session",
-        "✅ Welcome type selection (Custom/Random) now saves to session",
-        "✅ Nickname mode selection (Auto/Approval) now saves to session",
-        "✅ All Page 2 interactions fully functional",
-        "✅ Setup wizard complete and ready for live use"
+        "✅ REMOVED all conflicting global handlers for setup_ interactions",
+        "✅ Global handlers now return early for setup_ to let collector handle",
+        "✅ Eliminated 'Unknown interaction' errors",
+        "✅ Page 2 (Welcome): All dropdowns, buttons, modals now work",
+        "✅ Page 3 (Nickname): Blocklist, channels, modes all functional",
+        "✅ Clean code architecture with collector as single source of truth",
+        "✅ Bot is LIVE and ready for production"
+    ],
+
+    commands: [
+        "/setup - Interactive 3-page wizard for welcome & nickname setup",
+        "/nickname setup - Set up nickname channel and mode",
+        "/nicknamefilter - Manage banned words for nicknames",
+        "/setprefix - Change server prefix",
+        "/prefix - View current prefix",
+        "/afk - Set AFK status with reason",
+        "/afklist - View AFK list"
     ],
 
     versionGuide: `
