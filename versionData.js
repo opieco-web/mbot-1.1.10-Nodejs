@@ -1,15 +1,13 @@
 export default {
-    version: "1.0.64",
-    releaseDate: "Nov 28, 2025 06:40 AM",
-    releaseDateTimestamp: 1764319200,
-    changesSummary: "Global emoji standardization across all commands and responses",
+    version: "1.0.65",
+    releaseDate: "Nov 28, 2025 06:45 AM",
+    releaseDateTimestamp: 1764319500,
+    changesSummary: "Fixed welcome message bug + Auto-create new server sections",
 
     changes: [
-        "1. Standardized ALL emoji usage across entire codebase for consistent aesthetic",
-        "2. Success responses: <:Correct:1440296238305116223>",
-        "3. Error responses: <:Error:1440296241090265088>",
-        "4. Warning responses: <:warning:1441531830607151195>",
-        "5. Applied to 50+ response messages, commands, and status messages"
+        "1. FIXED critical bug: Welcome message handler now uses getGuildData() instead of incorrect data.welcome[guildId] lookup",
+        "2. Added guildCreate handler to auto-create new server sections in other-servers.json when bot joins",
+        "3. New servers automatically get template structure with prefix, autoresponse, welcome (disabled), config, afk, and pendingNicknameRequests"
     ],
 
     versionGuide: `

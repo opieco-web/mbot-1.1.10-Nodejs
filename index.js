@@ -3256,6 +3256,34 @@ client.on(Events.MessageCreate, async msg => {
 });
 
 // ------------------------
+// GUILD CREATE (NEW SERVER JOIN)
+// ------------------------
+client.on(Events.GuildCreate, async guild => {
+    const guildId = guild.id;
+    console.log(`[GUILD CREATE] Bot joined new server: ${guild.name} (${guildId})`);
+    
+    const otherServersData = getGuildData('other-servers.json');
+    
+    // Check if server already exists
+    if (otherServersData[`====== SERVER: ${guildId} ======`]) {
+        console.log(`[GUILD CREATE] Server ${guildId} already in database`);
+        return;
+    }
+    
+    // Create new server template
+    otherServersData[`====== SERVER: ${guildId} ======`] = {};
+    otherServersData.prefix = '#';
+    otherServersData.autoresponse = [];
+    otherServersData.welcome = { enabled: false };
+    otherServersData.config = {};
+    otherServersData.afk = {};
+    otherServersData.pendingNicknameRequests = {};
+    
+    saveGuildData('other-servers.json', otherServersData);
+    console.log(`[GUILD CREATE] <:Correct:1440296238305116223> New server section created for ${guild.name}`);
+});
+
+// ------------------------
 // GUILD MEMBER ADD (WELCOME SYSTEM)
 // ------------------------
 client.on(Events.GuildMemberAdd, async member => {
