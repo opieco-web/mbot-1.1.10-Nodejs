@@ -1433,7 +1433,8 @@ Type \`reset\` to revert back to your original name. Examples: Shadow, Phoenix, 
                     session.settings.welcome = session.settings.welcome || {};
                     session.settings.welcome.type = action.type;
                     setupSessions.set(userId, session);
-                    return i.deferUpdate();
+                    const newComponents = getSetupPage(session.page, userId);
+                    return i.update({ content: ' ', components: [{ type: 17, components: newComponents }], flags: 32768 | MessageFlags.Ephemeral });
                 }
                 
                 // Handle nickname mode selection
@@ -1441,7 +1442,8 @@ Type \`reset\` to revert back to your original name. Examples: Shadow, Phoenix, 
                     session.settings.nickname = session.settings.nickname || {};
                     session.settings.nickname.mode = action.mode;
                     setupSessions.set(userId, session);
-                    return i.deferUpdate();
+                    const newComponents = getSetupPage(session.page, userId);
+                    return i.update({ content: ' ', components: [{ type: 17, components: newComponents }], flags: 32768 | MessageFlags.Ephemeral });
                 }
                 
                 // Toggle buttons
