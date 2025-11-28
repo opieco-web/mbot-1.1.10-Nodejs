@@ -1,15 +1,15 @@
 export default {
-    version: "1.0.76",
-    releaseDate: "Nov 28, 2025 07:40 AM",
-    releaseDateTimestamp: 1764322800,
-    changesSummary: "Fixed setup wizard component structure - now responds properly to /setup command",
+    version: "1.0.77",
+    releaseDate: "Nov 28, 2025 07:45 AM",
+    releaseDateTimestamp: 1764323100,
+    changesSummary: "Rebuilt setup wizard with simple ActionRows - fixed Discord.js compatibility",
 
     changes: [
-        "1. Fixed Component V2 structure in getSetupPage function",
-        "2. Properly wrapped setup pages with content, components, and flags",
-        "3. Updated /setup command handler to use complete payload structure",
-        "4. Fixed button handlers to pass complete page data",
-        "5. Setup wizard now fully functional and responds to interactions"
+        "1. Rewrote setup pages to use Discord.js ActionRowBuilder instead of Component V2 JSON",
+        "2. Uses proper ButtonBuilder for navigation (Previous/Next/Save buttons)",
+        "3. Added ChannelSelectMenuBuilder for channel selection on pages 2 and 3",
+        "4. Simplified content structure for better Discord.js compatibility",
+        "5. Setup wizard now fully responsive and working with slash commands"
     ],
 
     versionGuide: `
