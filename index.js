@@ -3284,6 +3284,44 @@ client.on(Events.GuildCreate, async guild => {
 });
 
 // ------------------------
+// GUILD DELETE (BOT REMOVED)
+// ------------------------
+client.on(Events.GuildDelete, async guild => {
+    const guildId = guild.id;
+    console.log(`[GUILD DELETE] Bot removed from server: ${guild.name} (${guildId})`);
+    
+    const otherServersData = getGuildData('other-servers.json');
+    const serverKey = `====== SERVER: ${guildId} ======`;
+    
+    if (otherServersData[serverKey]) {
+        delete otherServersData[serverKey];
+        saveGuildData('other-servers.json', otherServersData);
+        console.log(`[GUILD DELETE] <:Correct:1440296238305116223> Server section deleted for ${guild.name}`);
+    }
+});
+
+// ------------------------
+// GUILD MEMBER REMOVE (BOT LEAVES)
+// ------------------------
+client.on(Events.GuildMemberRemove, async member => {
+    const guildId = member.guild.id;
+    
+    // Check if the leaving member is the bot itself
+    if (member.id === client.user.id) {
+        console.log(`[GUILD MEMBER REMOVE] Bot left server: ${member.guild.name} (${guildId})`);
+        
+        const otherServersData = getGuildData('other-servers.json');
+        const serverKey = `====== SERVER: ${guildId} ======`;
+        
+        if (otherServersData[serverKey]) {
+            delete otherServersData[serverKey];
+            saveGuildData('other-servers.json', otherServersData);
+            console.log(`[GUILD MEMBER REMOVE] <:Correct:1440296238305116223> Server section deleted - bot left`);
+        }
+    }
+});
+
+// ------------------------
 // GUILD MEMBER ADD (WELCOME SYSTEM)
 // ------------------------
 client.on(Events.GuildMemberAdd, async member => {

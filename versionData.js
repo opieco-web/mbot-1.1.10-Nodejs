@@ -1,13 +1,12 @@
 export default {
-    version: "1.0.65",
-    releaseDate: "Nov 28, 2025 06:45 AM",
-    releaseDateTimestamp: 1764319500,
-    changesSummary: "Fixed welcome message bug + Auto-create new server sections",
+    version: "1.0.67",
+    releaseDate: "Nov 28, 2025 06:52 AM",
+    releaseDateTimestamp: 1764319920,
+    changesSummary: "Corrected bot leave detection - now checks if bot itself leaves",
 
     changes: [
-        "1. FIXED critical bug: Welcome message handler now uses getGuildData() instead of incorrect data.welcome[guildId] lookup",
-        "2. Added guildCreate handler to auto-create new server sections in other-servers.json when bot joins",
-        "3. New servers automatically get template structure with prefix, autoresponse, welcome (disabled), config, afk, and pendingNicknameRequests"
+        "1. Fixed GuildMemberRemove handler to check if bot (client.user.id) leaves, not guild owner",
+        "2. Ensures server section is deleted when bot leaves the server"
     ],
 
     versionGuide: `
