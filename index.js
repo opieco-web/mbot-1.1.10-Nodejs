@@ -803,13 +803,13 @@ client.on(Events.InteractionCreate, async interaction => {
                 if (action.nextPage) {
                     session.page = action.nextPage;
                     setupSessions.set(userId, session);
-                    const pageData = getSetupPage(action.nextPage);
+                    const pageComponents = getSetupPage(action.nextPage);
                     
                     const setupPanel = {
                         content: ' ',
                         components: [{
                             type: 17,
-                            components: pageData.components[0].components
+                            components: pageComponents
                         }],
                         flags: 32768 | MessageFlags.Ephemeral
                     };
@@ -1335,17 +1335,16 @@ Type \`reset\` to revert back to your original name. Examples: Shadow, Phoenix, 
     // ===== SETUP WIZARD COMMAND =====
     if (commandName === 'setup') {
         const userId = interaction.user.id;
-        
         setupSessions.set(userId, { page: 1, settings: {} });
         
         const { getSetupPage } = await import('./src/commands/setup.js');
-        const pageData = getSetupPage(1);
+        const pageComponents = getSetupPage(1);
         
         const setupPanel = {
             content: ' ',
             components: [{
                 type: 17,
-                components: pageData.components[0].components
+                components: pageComponents
             }],
             flags: 32768 | MessageFlags.Ephemeral
         };
