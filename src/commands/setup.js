@@ -60,11 +60,15 @@ const setupPagesBase = {
       "type": 14
     },
     {
+      "type": 10,
+      "content": "## 🎲 Randomized Welcome Messages"
+    },
+    {
       "type": 9,
       "components": [
         {
           "type": 10,
-          "content": "## Randomized\n-# More than 100 different messages will welcome you within a specific channel."
+          "content": "-# More than 100 different messages will welcome you in a specific channel."
         }
       ],
       "accessory": "toggle_welcome_randomized"
@@ -77,7 +81,21 @@ const setupPagesBase = {
           "custom_id": "setup_welcome_randomized_channel",
           "min_values": 1,
           "max_values": 1,
-          "placeholder": "Select channel"
+          "placeholder": "Select channel for random messages"
+        }
+      ]
+    },
+    {
+      "type": 1,
+      "components": [
+        {
+          "type": 4,
+          "custom_id": "setup_welcome_randomized_delay",
+          "label": "Message Delay (1-300 seconds, default: 120)",
+          "style": 1,
+          "placeholder": "120",
+          "min_length": 1,
+          "max_length": 3
         }
       ]
     },
@@ -85,11 +103,15 @@ const setupPagesBase = {
       "type": 14
     },
     {
+      "type": 10,
+      "content": "## 📝 Temporary Welcome Messages"
+    },
+    {
       "type": 9,
       "components": [
         {
           "type": 10,
-          "content": "## Temporary \n-# It is possible to set the time for the welcome message to appear in one or more channels."
+          "content": "-# Welcome messages appear temporarily in selected channels with custom delay."
         }
       ],
       "accessory": "toggle_welcome_temporary"
@@ -117,7 +139,7 @@ const setupPagesBase = {
             "name": "notificationsettings1",
             "animated": false
           },
-          "custom_id": "setup_welcome_randomized"
+          "custom_id": "setup_welcome_randomized_type"
         }
       ]
     },
@@ -126,10 +148,24 @@ const setupPagesBase = {
       "components": [
         {
           "type": 8,
-          "custom_id": "setup_welcome_temporary_channel",
+          "custom_id": "setup_welcome_temporary_channels",
           "min_values": 1,
-          "max_values": 1,
-          "placeholder": "Select channel"
+          "max_values": 5,
+          "placeholder": "Select up to 5 channels"
+        }
+      ]
+    },
+    {
+      "type": 1,
+      "components": [
+        {
+          "type": 4,
+          "custom_id": "setup_welcome_temporary_delay",
+          "label": "Message Delay (1-300 seconds, default: 120)",
+          "style": 1,
+          "placeholder": "120",
+          "min_length": 1,
+          "max_length": 3
         }
       ]
     },
@@ -386,9 +422,9 @@ export function handleSetupInteraction(customId) {
   if (customId === 'setup_nickname_auto_mode') return { action: 'mode', mode: 'auto' };
   if (customId === 'setup_nickname_approval_mode') return { action: 'mode', mode: 'approval' };
   if (customId === 'setup_welcome_customized') return { action: 'welcome_type', type: 'customized' };
-  if (customId === 'setup_welcome_randomized') return { action: 'welcome_type', type: 'randomized' };
+  if (customId === 'setup_welcome_randomized_type') return { action: 'welcome_type', type: 'randomized' };
   
-  // All other interactions are valid (dropdowns, etc)
+  // All other interactions are valid (dropdowns, text inputs, etc)
   return { action: 'interaction', customId };
 }
 

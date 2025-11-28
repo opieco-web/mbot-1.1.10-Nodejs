@@ -1,15 +1,15 @@
 export default {
-    version: "1.0.83",
-    releaseDate: "Nov 28, 2025 08:15 AM",
-    releaseDateTimestamp: 1764324900,
-    changesSummary: "Dynamic toggle button colors and text - Success emoji (green) when enabled, Error emoji (red) when disabled",
+    version: "1.0.84",
+    releaseDate: "Nov 28, 2025 08:20 AM",
+    releaseDateTimestamp: 1764325200,
+    changesSummary: "Updated Page 2 with detailed welcome message controls - delays, multi-channel support, and message types",
 
     changes: [
-        "1. Toggle buttons now change appearance with each click",
-        "2. Enabled state: Green button (style 3) with Success emoji saying 'Disable'",
-        "3. Disabled state: Gray button (style 2) with Success emoji saying 'Enable'",
-        "4. Toggle state persists across page navigation",
-        "5. All toggles update instantly with proper visual feedback"
+        "1. Page 2 now organized by feature: Randomized & Temporary sections",
+        "2. Randomized messages: Channel selection + delay input (1-300 sec, default 120)",
+        "3. Temporary messages: Message type (Customized/Randomized) + up to 5 channels + delay",
+        "4. All text inputs accept delay values with validation",
+        "5. Improved page layout with clear section headers"
     ],
 
     versionGuide: `

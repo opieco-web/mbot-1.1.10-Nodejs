@@ -758,9 +758,9 @@ client.on(Events.InteractionCreate, async interaction => {
                     return interaction.deferUpdate();
                 }
                 
-                if (customId === 'setup_welcome_temporary_channel') {
+                if (customId === 'setup_welcome_temporary_channels') {
                     session.settings.welcome = session.settings.welcome || {};
-                    session.settings.welcome.temporaryChannel = interaction.values[0];
+                    session.settings.welcome.temporaryChannels = interaction.values;
                     setupSessions.set(userId, session);
                     return interaction.deferUpdate();
                 }
