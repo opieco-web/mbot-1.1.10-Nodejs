@@ -368,7 +368,13 @@ export const setupCommand = [
 ];
 
 export function getSetupPage(pageNum) {
-  return setupPages[pageNum] || setupPages[1];
+  const page = setupPages[pageNum] || setupPages[1];
+  // Return just the components array wrapped properly for discord.js
+  return {
+    content: ' ',
+    components: page.components,
+    flags: MessageFlags.Ephemeral
+  };
 }
 
 export function handleSetupInteraction(customId) {
