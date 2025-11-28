@@ -23,6 +23,7 @@ function loadAllServers() {
 /**
  * Save server data by Guild ID
  * SAFE: Only modifies specified guild, never touches other servers
+ * WARNING: Do NOT use for Mining Bangladesh (1296783492989980682) - use mining-bangladesh.json only
  * @param {string} guildId - Discord Guild ID
  * @param {Object} serverData - Server data to save
  * @returns {boolean} Success status
@@ -30,6 +31,12 @@ function loadAllServers() {
 export function saveServer(guildId, serverData) {
     if (!guildId || !serverData) {
         console.error('<:Error:1440296241090265088> [SAVE] guildId and serverData are required');
+        return false;
+    }
+
+    // CRITICAL: Mining Bangladesh must use mining-bangladesh.json ONLY
+    if (guildId === '1296783492989980682') {
+        console.error('<:Error:1440296241090265088> [SAVE] Mining Bangladesh (1296783492989980682) must use mining-bangladesh.json');
         return false;
     }
 
@@ -56,6 +63,7 @@ export function saveServer(guildId, serverData) {
 /**
  * Update a specific property of server data
  * SAFE: Only updates the specified property
+ * WARNING: Do NOT use for Mining Bangladesh (1296783492989980682) - use mining-bangladesh.json only
  * @param {string} guildId - Discord Guild ID
  * @param {string} property - Property path (e.g., 'prefix' or 'welcome.enabled')
  * @param {*} value - New value
@@ -64,6 +72,12 @@ export function saveServer(guildId, serverData) {
 export function updateServerProperty(guildId, property, value) {
     if (!guildId || !property) {
         console.error('<:Error:1440296241090265088> [UPDATE] guildId and property are required');
+        return false;
+    }
+
+    // CRITICAL: Mining Bangladesh must use mining-bangladesh.json ONLY
+    if (guildId === '1296783492989980682') {
+        console.error('<:Error:1440296241090265088> [UPDATE] Mining Bangladesh (1296783492989980682) must use mining-bangladesh.json');
         return false;
     }
 
@@ -101,12 +115,19 @@ export function updateServerProperty(guildId, property, value) {
 
 /**
  * Delete server profile
+ * WARNING: Do NOT use for Mining Bangladesh (1296783492989980682) - use mining-bangladesh.json only
  * @param {string} guildId - Discord Guild ID
  * @returns {boolean} Success status
  */
 export function deleteServer(guildId) {
     if (!guildId) {
         console.error('<:Error:1440296241090265088> [DELETE] guildId is required');
+        return false;
+    }
+
+    // CRITICAL: Mining Bangladesh must use mining-bangladesh.json ONLY
+    if (guildId === '1296783492989980682') {
+        console.error('<:Error:1440296241090265088> [DELETE] Mining Bangladesh (1296783492989980682) must use mining-bangladesh.json');
         return false;
     }
 

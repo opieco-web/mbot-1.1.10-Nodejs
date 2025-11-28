@@ -22,22 +22,32 @@ function loadAllServers() {
 
 /**
  * When bot is kicked from a server - delete its data
+ * WARNING: Do NOT use for Mining Bangladesh (1296783492989980682) - use mining-bangladesh.json only
  * @param {string} guildId - Discord Guild ID
  * @param {string} guildName - Discord Guild Name (optional)
  * @returns {boolean} Success status
  */
 export function cleanupKickedServer(guildId, guildName = 'Unknown') {
+    if (guildId === '1296783492989980682') {
+        console.log(`[CLEANUP] Mining Bangladesh cannot be kicked, skipping cleanup`);
+        return true;
+    }
     console.log(`[CLEANUP] Bot kicked from: ${guildName} (${guildId})`);
     return deleteServer(guildId);
 }
 
 /**
  * When bot is banned from a server - delete its data
+ * WARNING: Do NOT use for Mining Bangladesh (1296783492989980682) - use mining-bangladesh.json only
  * @param {string} guildId - Discord Guild ID
  * @param {string} guildName - Discord Guild Name (optional)
  * @returns {boolean} Success status
  */
 export function cleanupBannedServer(guildId, guildName = 'Unknown') {
+    if (guildId === '1296783492989980682') {
+        console.log(`[CLEANUP] Mining Bangladesh cannot be banned, skipping cleanup`);
+        return true;
+    }
     console.log(`[CLEANUP] Bot banned from: ${guildName} (${guildId})`);
     return deleteServer(guildId);
 }
@@ -56,11 +66,16 @@ export function cleanupDeletedServer(guildId, guildName = 'Unknown') {
 
 /**
  * When bot leaves server voluntarily - clean up
+ * WARNING: Do NOT use for Mining Bangladesh (1296783492989980682) - use mining-bangladesh.json only
  * @param {string} guildId - Discord Guild ID
  * @param {string} guildName - Discord Guild Name (optional)
  * @returns {boolean} Success status
  */
 export function cleanupLeftServer(guildId, guildName = 'Unknown') {
+    if (guildId === '1296783492989980682') {
+        console.log(`[CLEANUP] Mining Bangladesh cannot be left by bot, skipping cleanup`);
+        return true;
+    }
     console.log(`[CLEANUP] Bot left server: ${guildName} (${guildId})`);
     return deleteServer(guildId);
 }

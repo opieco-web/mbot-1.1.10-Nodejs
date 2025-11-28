@@ -1,15 +1,17 @@
 export default {
-    version: "1.0.68",
-    releaseDate: "Nov 28, 2025 07:00 AM",
-    releaseDateTimestamp: 1764320400,
-    changesSummary: "Auto-cleanup system: Delete orphaned server data when bot leaves",
+    version: "1.0.69",
+    releaseDate: "Nov 28, 2025 07:05 AM",
+    releaseDateTimestamp: 1764320700,
+    changesSummary: "Enforced complete data separation: Mining Bangladesh (mining-bangladesh.json) vs Others (servers.json)",
 
     changes: [
-        "1. Created cleanupServer.js with functions for auto-deleting orphaned server data",
-        "2. Integrated cleanup into GuildDelete event (bot kicked/banned)",
-        "3. Integrated cleanup into GuildMemberRemove event (bot left)",
-        "4. Added periodic cleanup function: cleanupOrphanedServers() for database maintenance",
-        "5. Result: No useless orphaned data, only active servers remain in servers.json"
+        "1. Added Mining Bangladesh guardrails to ALL servers.json utility functions",
+        "2. loadServer() now rejects Mining Bangladesh ID (1296783492989980682)",
+        "3. saveServer() now rejects Mining Bangladesh ID",
+        "4. updateServerProperty() now rejects Mining Bangladesh ID",
+        "5. deleteServer() now rejects Mining Bangladesh ID",
+        "6. All cleanup functions skip Mining Bangladesh (cannot be kicked/banned/left)",
+        "7. Result: 100% data isolation - Mining Bangladesh uses ONLY mining-bangladesh.json, all others use ONLY servers.json"
     ],
 
     versionGuide: `

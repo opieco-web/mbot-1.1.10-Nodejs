@@ -54,13 +54,20 @@ function createDefaultProfile(guildId, guildName) {
 /**
  * Load server data by Guild ID
  * Creates a new profile if server doesn't exist
+ * WARNING: Do NOT use for Mining Bangladesh (1296783492989980682) - use mining-bangladesh.json only
  * @param {string} guildId - Discord Guild ID
  * @param {string} guildName - Discord Guild Name (optional)
- * @returns {Object} Server data
+ * @returns {Object} Server data or null
  */
 export function loadServer(guildId, guildName = 'Unknown Server') {
     if (!guildId) {
         console.error('<:Error:1440296241090265088> loadServer: guildId is required');
+        return null;
+    }
+
+    // CRITICAL: Mining Bangladesh must use mining-bangladesh.json ONLY
+    if (guildId === '1296783492989980682') {
+        console.error('<:Error:1440296241090265088> loadServer: Mining Bangladesh (1296783492989980682) must use mining-bangladesh.json');
         return null;
     }
 
