@@ -1,11 +1,17 @@
 export default {
-    version: "1.0.72",
-    releaseDate: "Nov 28, 2025 07:15 AM",
-    releaseDateTimestamp: 1764321300,
-    changesSummary: "Removed emoji from startup message",
+    version: "1.0.73",
+    releaseDate: "Nov 28, 2025 07:20 AM",
+    releaseDateTimestamp: 1764321600,
+    changesSummary: "Fixed bot stability - added robust reconnection and error handling",
 
     changes: [
-        "1. Removed emoji from bot startup console message"
+        "1. Added exponential backoff reconnection on disconnect (up to 5 attempts)",
+        "2. Automatic reconnection with delays: 1s, 2s, 4s, 8s, 16s, max 30s",
+        "3. Reset reconnect attempts counter on successful connection",
+        "4. Added unhandled promise rejection listener",
+        "5. Added uncaught exception listener",
+        "6. Added detailed disconnect/reconnect console logging",
+        "7. Improved error handling for connection failures"
     ],
 
     versionGuide: `

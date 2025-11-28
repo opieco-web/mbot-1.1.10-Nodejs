@@ -167,16 +167,59 @@ async function initializeTopics() {
 
 // Initialize topics when bot is ready (moved to Events.ClientReady handler below)
 
-// Auto-reconnection on disconnect
-client.on('disconnect', () => {});
+// Connection stability tracking
+let reconnectAttempts = 0;
+const maxReconnectAttempts = 5;
+let reconnectTimeout;
+
+// Auto-reconnection on disconnect with exponential backoff
+client.on('disconnect', () => {
+    console.log('Bot disconnected from Discord');
+    
+    if (client.isReady()) return; // Already reconnecting
+    
+    if (reconnectAttempts < maxReconnectAttempts) {
+        reconnectAttempts++;
+        const delay = Math.min(1000 * Math.pow(2, reconnectAttempts - 1), 30000); // Max 30s
+        console.log(`Reconnection attempt ${reconnectAttempts}/${maxReconnectAttempts} in ${delay}ms`);
+        
+        reconnectTimeout = setTimeout(() => {
+            client.login(TOKEN).catch(err => {
+                console.error('Failed to reconnect:', err.message);
+            });
+        }, delay);
+    }
+});
 
 // Handle connection errors
 client.on('error', (error) => {
-    console.error('<:Error:1440296241090265088> Discord client error:', error);
+    console.error('Discord client error:', error.message);
+    reconnectAttempts = 0; // Reset on error recovery
 });
 
 // Handle warnings
-client.on('warn', (info) => {});
+client.on('warn', (info) => {
+    console.warn('Discord warning:', info);
+});
+
+// Reset reconnect attempts on successful connection
+client.on('ready', () => {
+    reconnectAttempts = 0;
+    if (reconnectTimeout) {
+        clearTimeout(reconnectTimeout);
+        reconnectTimeout = null;
+    }
+});
+
+// Unhandled promise rejections
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('Unhandled Rejection:', reason);
+});
+
+// Uncaught exceptions
+process.on('uncaughtException', (error) => {
+    console.error('Uncaught Exception:', error);
+});
 
 // ------------------------
 // COMMAND REGISTRATION
