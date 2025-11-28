@@ -1,16 +1,15 @@
 export default {
-    version: "1.0.82",
-    releaseDate: "Nov 28, 2025 08:10 AM",
-    releaseDateTimestamp: 1764324600,
-    changesSummary: "Fixed all setup wizard interactions, added toggle state tracking, improved button styling, dynamic status display",
+    version: "1.0.83",
+    releaseDate: "Nov 28, 2025 08:15 AM",
+    releaseDateTimestamp: 1764324900,
+    changesSummary: "Dynamic toggle button colors and text - Success emoji (green) when enabled, Error emoji (red) when disabled",
 
     changes: [
-        "1. ALL interactions now respond properly with deferUpdate()",
-        "2. Toggle buttons track state: enabled (green), disabled (red) - toggle with each click",
-        "3. Previous/Next buttons improved: '◀ Previous' and 'Next ▶' with better styling",
-        "4. Page 1 & 3 show real-time status: ✅ active or ❌ inactive based on enabled features",
-        "5. Toggle states persist across navigation within same session",
-        "6. All dropdown, mode buttons, and selections now respond"
+        "1. Toggle buttons now change appearance with each click",
+        "2. Enabled state: Green button (style 3) with Success emoji saying 'Disable'",
+        "3. Disabled state: Gray button (style 2) with Success emoji saying 'Enable'",
+        "4. Toggle state persists across page navigation",
+        "5. All toggles update instantly with proper visual feedback"
     ],
 
     versionGuide: `

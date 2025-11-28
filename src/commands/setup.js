@@ -4,7 +4,7 @@ import { SlashCommandBuilder } from 'discord.js';
 export const toggleStates = new Map();
 
 // Setup Wizard Pages - Direct JSON structure ready to use
-const setupPages = {
+const setupPagesBase = {
   1: [
     {
       "type": 10,
@@ -67,12 +67,7 @@ const setupPages = {
           "content": "## Randomized\n-# More than 100 different messages will welcome you within a specific channel."
         }
       ],
-      "accessory": {
-        "style": 1,
-        "type": 2,
-        "label": "Enable/Disable",
-        "custom_id": "setup_welcome_randomized_toggle"
-      }
+      "accessory": "toggle_welcome_randomized"
     },
     {
       "type": 1,
@@ -97,12 +92,7 @@ const setupPages = {
           "content": "## Temporary \n-# It is possible to set the time for the welcome message to appear in one or more channels."
         }
       ],
-      "accessory": {
-        "style": 1,
-        "type": 2,
-        "label": "Enable/Disable",
-        "custom_id": "setup_welcome_temporary_toggle"
-      }
+      "accessory": "toggle_welcome_temporary"
     },
     {
       "type": 1,
@@ -187,12 +177,7 @@ const setupPages = {
           "content": "## Blocklist \n-# You can see all the lists of words that have been banned and there is also an option to turn it off or on."
         }
       ],
-      "accessory": {
-        "style": 1,
-        "type": 2,
-        "label": "Enable/Disable",
-        "custom_id": "setup_nickname_blocklist_toggle"
-      }
+      "accessory": "toggle_nickname_blocklist"
     },
     {
       "type": 1,
@@ -246,12 +231,7 @@ const setupPages = {
           "content": "## Channels & Mode\n-# You can add a nickname setup within a specific channel in either automatic or approval mode."
         }
       ],
-      "accessory": {
-        "style": 1,
-        "type": 2,
-        "label": "Enable/Disable",
-        "custom_id": "setup_nickname_channel_toggle"
-      }
+      "accessory": "toggle_nickname_channel"
     },
     {
       "type": 1,
@@ -311,7 +291,7 @@ const setupPages = {
           "custom_id": "setup_page_save_3",
           "emoji": {
             "id": "1440296238305116223",
-            "name": "Correct",
+            "name": "Success",
             "animated": false
           }
         }
@@ -320,6 +300,34 @@ const setupPages = {
   ]
 };
 
+function buildToggleButton(toggleId, isEnabled) {
+  if (isEnabled) {
+    return {
+      "style": 3,
+      "type": 2,
+      "label": "Disable",
+      "emoji": {
+        "id": "1440296241090265088",
+        "name": "Error",
+        "animated": false
+      },
+      "custom_id": toggleId
+    };
+  } else {
+    return {
+      "style": 2,
+      "type": 2,
+      "label": "Enable",
+      "emoji": {
+        "id": "1440296238305116223",
+        "name": "Success",
+        "animated": false
+      },
+      "custom_id": toggleId
+    };
+  }
+}
+
 export const setupCommand = [
   new SlashCommandBuilder()
     .setName('setup')
@@ -327,21 +335,40 @@ export const setupCommand = [
 ];
 
 export function getSetupPage(pageNum, userId) {
-  const page = setupPages[pageNum] || setupPages[1];
+  const page = setupPagesBase[pageNum] || setupPagesBase[1];
   const userState = toggleStates.get(userId) || {};
+  
+  // Deep clone the page
+  let components = JSON.parse(JSON.stringify(page));
   
   // Replace status placeholders with actual status
   const welcomeStatus = userState.welcome_enabled ? '✅ active' : '❌ inactive';
   const nicknameStatus = userState.nickname_enabled ? '✅ active' : '❌ inactive';
   
-  return JSON.parse(JSON.stringify(page)).map(component => {
+  components = components.map(component => {
     if (component.type === 10 && component.content) {
       component.content = component.content
         .replace('<status_welcome>', welcomeStatus)
         .replace('<status_nickname>', nicknameStatus);
     }
+    
+    // Replace toggle accessory placeholders with actual toggle buttons
+    if (component.type === 9 && component.accessory && typeof component.accessory === 'string') {
+      const toggleId = component.accessory;
+      let isEnabled = false;
+      
+      if (toggleId === 'toggle_welcome_randomized') isEnabled = userState.welcome_randomized || false;
+      else if (toggleId === 'toggle_welcome_temporary') isEnabled = userState.welcome_temporary || false;
+      else if (toggleId === 'toggle_nickname_blocklist') isEnabled = userState.nickname_blocklist || false;
+      else if (toggleId === 'toggle_nickname_channel') isEnabled = userState.nickname_channel || false;
+      
+      component.accessory = buildToggleButton(toggleId, isEnabled);
+    }
+    
     return component;
   });
+  
+  return components;
 }
 
 export function handleSetupInteraction(customId) {
@@ -353,7 +380,7 @@ export function handleSetupInteraction(customId) {
   if (customId === 'setup_page_save_3') return { action: 'save' };
   
   // Toggles - all toggle interactions are valid
-  if (customId.includes('_toggle')) return { action: 'toggle', toggleId: customId };
+  if (customId.startsWith('toggle_')) return { action: 'toggle', toggleId: customId };
   
   // Mode selections
   if (customId === 'setup_nickname_auto_mode') return { action: 'mode', mode: 'auto' };
@@ -368,24 +395,16 @@ export function handleSetupInteraction(customId) {
 export function toggleFeature(userId, toggleId) {
   const userState = toggleStates.get(userId) || {};
   
-  if (toggleId === 'setup_welcome_randomized_toggle') {
+  if (toggleId === 'toggle_welcome_randomized') {
     userState.welcome_randomized = !userState.welcome_randomized;
-    if (!userState.welcome_randomized && !userState.welcome_temporary) {
-      userState.welcome_enabled = false;
-    } else if (userState.welcome_randomized || userState.welcome_temporary) {
-      userState.welcome_enabled = true;
-    }
-  } else if (toggleId === 'setup_welcome_temporary_toggle') {
+    userState.welcome_enabled = userState.welcome_randomized || userState.welcome_temporary;
+  } else if (toggleId === 'toggle_welcome_temporary') {
     userState.welcome_temporary = !userState.welcome_temporary;
-    if (!userState.welcome_temporary && !userState.welcome_randomized) {
-      userState.welcome_enabled = false;
-    } else if (userState.welcome_temporary || userState.welcome_randomized) {
-      userState.welcome_enabled = true;
-    }
-  } else if (toggleId === 'setup_nickname_blocklist_toggle') {
+    userState.welcome_enabled = userState.welcome_temporary || userState.welcome_randomized;
+  } else if (toggleId === 'toggle_nickname_blocklist') {
     userState.nickname_blocklist = !userState.nickname_blocklist;
     userState.nickname_enabled = userState.nickname_blocklist || userState.nickname_channel;
-  } else if (toggleId === 'setup_nickname_channel_toggle') {
+  } else if (toggleId === 'toggle_nickname_channel') {
     userState.nickname_channel = !userState.nickname_channel;
     userState.nickname_enabled = userState.nickname_blocklist || userState.nickname_channel;
   }
