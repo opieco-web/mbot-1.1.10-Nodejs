@@ -1339,6 +1339,21 @@ Type \`reset\` to revert back to your original name. Examples: Shadow, Phoenix, 
         
         const { getSetupPage } = await import('./src/commands/setup.js');
         const pageComponents = getSetupPage(1);
+        const botAvatar = client.user.displayAvatarURL({ dynamic: true, size: 1024 });
+        
+        // Add bot avatar to page 1 header
+        if (pageComponents[0] && pageComponents[0].type === 10) {
+            pageComponents[0] = {
+                type: 9,
+                components: [pageComponents[0]],
+                accessory: {
+                    type: 11,
+                    media: {
+                        url: botAvatar
+                    }
+                }
+            };
+        }
         
         const setupPanel = {
             content: ' ',

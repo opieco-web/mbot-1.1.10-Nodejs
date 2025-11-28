@@ -1,14 +1,13 @@
 export default {
-    version: "1.0.80",
-    releaseDate: "Nov 28, 2025 08:00 AM",
-    releaseDateTimestamp: 1764324000,
-    changesSummary: "Fixed setup page 1 - removed invalid URL placeholder from accessory",
+    version: "1.0.81",
+    releaseDate: "Nov 28, 2025 08:05 AM",
+    releaseDateTimestamp: 1764324300,
+    changesSummary: "Added real bot avatar to setup wizard page 1",
 
     changes: [
-        "1. Removed invalid accessory URL placeholder from page 1",
-        "2. Simplified page 1 header to just text display",
-        "3. Setup command now responds without Discord validation errors",
-        "4. All 3 pages now ready to display properly"
+        "1. Setup command now fetches bot avatar URL dynamically",
+        "2. Bot avatar injected into page 1 header with proper accessory structure",
+        "3. Page 1 now displays bot profile picture alongside menu title"
     ],
 
     versionGuide: `
