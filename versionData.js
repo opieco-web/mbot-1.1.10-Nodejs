@@ -1,11 +1,11 @@
 export default {
-    version: "1.0.59",
-    releaseDate: "Nov 28, 2025 06:15 AM",
-    releaseDateTimestamp: 1764317700,
-    changesSummary: "Nickname system UI improvement - 1 change",
+    version: "1.0.60",
+    releaseDate: "Nov 28, 2025 06:20 AM",
+    releaseDateTimestamp: 1764318000,
+    changesSummary: "Nickname system - updated emojis to custom Discord emojis",
 
     changes: [
-        "1. Enhanced nickname approval/rejection/failure messages with better formatting, more context, and beautiful visual design"
+        "1. Updated nickname approval messages to use custom Discord emojis (Correct, warning, Error) for consistency with bot aesthetic"
     ],
 
     versionGuide: `

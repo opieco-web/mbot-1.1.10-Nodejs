@@ -3208,18 +3208,18 @@ client.on(Events.MessageCreate, async msg => {
             if (i.customId === `approve_${msg.author.id}`) {
                 try {
                     await msg.member.setNickname(nickname);
-                    const approvedText = `## ✨ Nickname Approved ✨\n\n**User:** ${msg.author}\n**New Nickname:** \`${nickname}\`\n\n> Your nickname has been successfully updated and is now live in the server!\n\n**Approved by:** ${i.user}\n**Status:** ✅ Active`;
+                    const approvedText = `## <:Correct:1440296238305116223> Nickname Approved\n\n**User:** ${msg.author}\n**New Nickname:** \`${nickname}\`\n\n> Your nickname has been successfully updated and is now live in the server!\n\n**Approved by:** ${i.user}\n**Status:** <:Correct:1440296238305116223> Active`;
                     const textDisplay = new TextDisplayBuilder().setContent(approvedText);
                     const container = new ContainerBuilder().addTextDisplayComponents(textDisplay);
                     await i.update({ content: ' ', components: [container], flags: MessageFlags.IsComponentsV2 });
                 } catch {
-                    const failedText = `## ⚠️ Update Failed\n\n**User:** ${msg.author}\n\n> We couldn't apply the nickname change at this moment.\n\n**Reason:** Permission or technical issue\n**Action:** Please try again or contact a moderator for assistance.`;
+                    const failedText = `## <:warning:1441531830607151195> Update Failed\n\n**User:** ${msg.author}\n\n> We couldn't apply the nickname change at this moment.\n\n**Reason:** Permission or technical issue\n**Action:** Please try again or contact a moderator for assistance.`;
                     const textDisplay = new TextDisplayBuilder().setContent(failedText);
                     const container = new ContainerBuilder().addTextDisplayComponents(textDisplay);
                     await i.update({ content: ' ', components: [container], flags: MessageFlags.IsComponentsV2 });
                 }
             } else if (i.customId === `reject_${msg.author.id}`) {
-                const rejectedText = `## ❌ Nickname Rejected\n\n**User:** ${msg.author}\n**Requested:** \`${nickname}\`\n\n> This nickname request has been declined by our moderation team.\n\n**Rejected by:** ${i.user}\n**Next Step:** Submit a new request with a different nickname that follows our community guidelines.`;
+                const rejectedText = `## <:Error:1440296241090265088> Nickname Rejected\n\n**User:** ${msg.author}\n**Requested:** \`${nickname}\`\n\n> This nickname request has been declined by our moderation team.\n\n**Rejected by:** ${i.user}\n**Next Step:** Submit a new request with a different nickname that follows our community guidelines.`;
                 const textDisplay = new TextDisplayBuilder().setContent(rejectedText);
                 const container = new ContainerBuilder().addTextDisplayComponents(textDisplay);
                 await i.update({ content: ' ', components: [container], flags: MessageFlags.IsComponentsV2 });
