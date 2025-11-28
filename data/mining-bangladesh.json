@@ -57,7 +57,7 @@
   "welcome": {
     "channelId": "1296783493430513747",
     "delay": 120000,
-    "enabled": false
+    "enabled": true
   },
   "topics": {
     "rules": {

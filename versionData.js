@@ -1,24 +1,17 @@
 export default {
-    version: "1.0.97",
-    releaseDate: "Nov 28, 2025 09:30 AM",
-    releaseDateTimestamp: 1764329400,
-    changesSummary: "🎯 FINAL FIX - All buttons now respond with visual feedback!",
+    version: "1.0.73",
+    releaseDate: "Nov 28, 2025 07:20 AM",
+    releaseDateTimestamp: 1764321600,
+    changesSummary: "Fixed bot stability - added robust reconnection and error handling",
 
     changes: [
-        "✅ Mode buttons (Automatic/Approval) now update page display",
-        "✅ Welcome type buttons (Custom/Random) now update page display",
-        "✅ ALL buttons on page 2 & 3 respond with instant visual feedback",
-        "✅ No more silent/unresponsive buttons",
-        "✅ Complete 3-page wizard is 100% functional"
-    ],
-
-    features: [
-        "Page 1: Menu display with status indicators",
-        "Page 2: Welcome system (Randomized + Temporary messages)",
-        "Page 3: Nickname system (Blocklist + Channels/Mode)",
-        "All dropdowns, buttons, and modals working",
-        "All settings save to guild data files",
-        "Full /nickname, /nicknamefilter command support"
+        "1. Added exponential backoff reconnection on disconnect (up to 5 attempts)",
+        "2. Automatic reconnection with delays: 1s, 2s, 4s, 8s, 16s, max 30s",
+        "3. Reset reconnect attempts counter on successful connection",
+        "4. Added unhandled promise rejection listener",
+        "5. Added uncaught exception listener",
+        "6. Added detailed disconnect/reconnect console logging",
+        "7. Improved error handling for connection failures"
     ],
 
     versionGuide: `

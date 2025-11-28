@@ -122,9 +122,6 @@ const client = new Client({
 client.commands = new Collection();
 const startTime = Date.now();
 
-// ===== SETUP WIZARD SESSION STORAGE =====
-const setupSessions = new Map();
-
 // Function to initialize topic messages on bot startup (Mining Bangladesh only)
 async function initializeTopics() {
     const miningData = miningBangladeshData;
@@ -710,12 +707,10 @@ const welcomeMessages = [
 // ------------------------
 client.on(Events.InteractionCreate, async interaction => {
     const { guildId } = interaction;
-    console.log(`[INTERACTION] Type: ${interaction.type}, CustomId: ${interaction.customId || 'N/A'}`);
 
     try {
         // ===== HANDLE SELECT MENUS (DROPDOWNS) =====
         if (interaction.isStringSelectMenu()) {
-            console.log(`[DROPDOWN] Received: ${interaction.customId}`);
             const customId = interaction.customId;
 
             // Config: Online Status dropdown (Mining Bangladesh only)
@@ -745,22 +740,11 @@ client.on(Events.InteractionCreate, async interaction => {
                 applyBotStatus();
                 return interaction.reply({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '## <:Correct:1440296238305116223> Activity Type Updated' }, { type: 14 }, { type: 10, content: `Activity type set to: **${newType}**` }] }], flags: 32768 | MessageFlags.Ephemeral });
             }
-
-            // ===== SETUP WIZARD DROPDOWNS DISABLED - Handled by collector =====
-            if (customId.startsWith('setup_') && interaction.isStringSelectMenu()) {
-                return; // Let collector handle
-            }
         }
 
-        // ===== HANDLE BUTTONS (NON-SETUP) =====
+        // ===== HANDLE BUTTONS =====
         if (interaction.isButton()) {
             const customId = interaction.customId;
-            console.log(`[BUTTON] Clicked: ${customId}`);
-
-            // ===== SETUP WIZARD BUTTONS DISABLED - Handled by collector =====
-            if (customId.startsWith('setup_')) {
-                return; // Let collector handle
-            }
 
             // Config: Set Prefix button
             if (customId === 'config_set_prefix') {
@@ -1034,44 +1018,6 @@ client.on(Events.InteractionCreate, async interaction => {
 
     // ===== HANDLE MODAL SUBMISSIONS =====
     if (interaction.isModalSubmit()) {
-        const userId = interaction.user.id;
-        
-        // Setup: Welcome Randomized Delay modal
-        if (interaction.customId === 'modal_welcome_randomized_delay') {
-            const session = setupSessions.get(userId);
-            if (session) {
-                session.settings.welcome = session.settings.welcome || {};
-                const delay = interaction.fields.getTextInputValue('randomized_delay_input') || '120';
-                session.settings.welcome.randomizedDelay = delay;
-                setupSessions.set(userId, session);
-            }
-            return interaction.reply({ content: `✅ Randomized message delay set to ${interaction.fields.getTextInputValue('randomized_delay_input') || '120'} seconds`, flags: MessageFlags.Ephemeral });
-        }
-        
-        // Setup: Welcome Temporary Delay modal
-        if (interaction.customId === 'modal_welcome_temporary_delay') {
-            const session = setupSessions.get(userId);
-            if (session) {
-                session.settings.welcome = session.settings.welcome || {};
-                const delay = interaction.fields.getTextInputValue('temporary_delay_input') || '120';
-                session.settings.welcome.temporaryDelay = delay;
-                setupSessions.set(userId, session);
-            }
-            return interaction.reply({ content: `✅ Temporary message delay set to ${interaction.fields.getTextInputValue('temporary_delay_input') || '120'} seconds`, flags: MessageFlags.Ephemeral });
-        }
-        
-        // Setup: Welcome Temporary Delete Time modal
-        if (interaction.customId === 'modal_welcome_temporary_delete_time') {
-            const session = setupSessions.get(userId);
-            if (session) {
-                session.settings.welcome = session.settings.welcome || {};
-                const deleteTime = interaction.fields.getTextInputValue('delete_time_input') || '60';
-                session.settings.welcome.temporaryDeleteTime = deleteTime;
-                setupSessions.set(userId, session);
-            }
-            return interaction.reply({ content: `✅ Message delete time set to ${interaction.fields.getTextInputValue('delete_time_input') || '60'} seconds`, flags: MessageFlags.Ephemeral });
-        }
-        
         if (interaction.customId === 'modal_set_prefix') {
             const newPrefix = interaction.fields.getTextInputValue('prefix_input');
             const guildData = getGuildData(guildId);
@@ -1284,226 +1230,6 @@ Type \`reset\` to revert back to your original name. Examples: Shadow, Phoenix, 
     if (!interaction.isChatInputCommand()) return;
 
     const { commandName, member, user } = interaction;
-
-    // ===== SETUP WIZARD COMMAND =====
-    if (commandName === 'setup') {
-        const userId = interaction.user.id;
-        const { getSetupPage, handleSetupInteraction, toggleFeature } = await import('./src/commands/setup.js');
-        
-        setupSessions.set(userId, { page: 1, settings: {}, guildId });
-        
-        const pageComponents = getSetupPage(1, userId);
-        const botAvatar = client.user.displayAvatarURL({ dynamic: true, size: 1024 });
-        
-        // Add bot avatar to page 1 header
-        if (pageComponents[0] && pageComponents[0].type === 10) {
-            pageComponents[0] = {
-                type: 9,
-                components: [pageComponents[0]],
-                accessory: {
-                    type: 11,
-                    media: {
-                        url: botAvatar
-                    }
-                }
-            };
-        }
-        
-        const setupPanel = {
-            content: ' ',
-            components: [{
-                type: 17,
-                components: pageComponents
-            }],
-            flags: 32768 | MessageFlags.Ephemeral
-        };
-        
-        await interaction.reply(setupPanel);
-        
-        // ===== COLLECTOR FOR SETUP WIZARD =====
-        const filter = (i) => i.user.id === userId;
-        const collector = interaction.channel.createMessageComponentCollector({ filter, time: 600000 }); // 10 min timeout
-        
-        collector.on('collect', async (i) => {
-            const session = setupSessions.get(userId);
-            if (!session) {
-                return i.reply({ content: '❌ Session expired. Use `/setup` to start again.', flags: MessageFlags.Ephemeral });
-            }
-            
-            const customId = i.customId;
-            console.log(`[SETUP-COLLECTOR] Interaction: ${customId}, Page: ${session.page}`);
-            
-            // Handle modal submissions
-            if (i.isModalSubmit()) {
-                console.log(`[SETUP-COLLECTOR] Modal submitted: ${customId}`);
-                session.settings.welcome = session.settings.welcome || {};
-                
-                if (customId === 'modal_welcome_randomized_delay') {
-                    const delay = i.fields.getTextInputValue('randomized_delay_input') || '120';
-                    session.settings.welcome.randomizedDelay = parseInt(delay) * 1000;
-                    setupSessions.set(userId, session);
-                    return i.reply({ content: `✅ Randomized delay set to ${delay} seconds`, flags: MessageFlags.Ephemeral });
-                }
-                
-                if (customId === 'modal_welcome_temporary_delay') {
-                    const delay = i.fields.getTextInputValue('temporary_delay_input') || '120';
-                    session.settings.welcome.temporaryDelay = parseInt(delay) * 1000;
-                    setupSessions.set(userId, session);
-                    return i.reply({ content: `✅ Send delay set to ${delay} seconds`, flags: MessageFlags.Ephemeral });
-                }
-                
-                if (customId === 'modal_welcome_temporary_delete_time') {
-                    const deleteTime = i.fields.getTextInputValue('delete_time_input') || '60';
-                    session.settings.welcome.temporaryDeleteTime = parseInt(deleteTime) * 1000;
-                    setupSessions.set(userId, session);
-                    return i.reply({ content: `✅ Delete time set to ${deleteTime} seconds`, flags: MessageFlags.Ephemeral });
-                }
-                
-                return i.deferUpdate();
-            }
-            
-            // Handle string select menus (dropdowns)
-            if (i.isStringSelectMenu()) {
-                console.log(`[SETUP-COLLECTOR] Dropdown: ${customId}, Values: ${i.values.join(', ')}`);
-                
-                if (customId === 'setup_welcome_randomized_channel') {
-                    session.settings.welcome = session.settings.welcome || {};
-                    session.settings.welcome.randomizedChannel = i.values[0];
-                    setupSessions.set(userId, session);
-                }
-                
-                if (customId === 'setup_welcome_temporary_channels') {
-                    session.settings.welcome = session.settings.welcome || {};
-                    session.settings.welcome.temporaryChannels = i.values;
-                    setupSessions.set(userId, session);
-                }
-                
-                if (customId === 'setup_nickname_blocklist_action') {
-                    session.settings.nickname = session.settings.nickname || {};
-                    session.settings.nickname.blocklistAction = i.values[0];
-                    setupSessions.set(userId, session);
-                }
-                
-                if (customId === 'setup_nickname_channel_select') {
-                    session.settings.nickname = session.settings.nickname || {};
-                    session.settings.nickname.channelId = i.values[0];
-                    setupSessions.set(userId, session);
-                }
-                
-                return i.deferUpdate();
-            }
-            
-            // Handle buttons
-            if (i.isButton()) {
-                console.log(`[SETUP-COLLECTOR] Button: ${customId}`);
-                const action = handleSetupInteraction(customId);
-                
-                // Handle modal buttons
-                if (customId === 'setup_welcome_randomized_delay_btn' || customId === 'setup_welcome_temporary_delay_btn' || customId === 'setup_welcome_temporary_delete_time_btn') {
-                    const modalId = customId === 'setup_welcome_randomized_delay_btn' ? 'modal_welcome_randomized_delay' : 
-                                   customId === 'setup_welcome_temporary_delay_btn' ? 'modal_welcome_temporary_delay' :
-                                   'modal_welcome_temporary_delete_time';
-                    
-                    const modal = {
-                        custom_id: modalId,
-                        title: modalId === 'modal_welcome_randomized_delay' ? 'Set Randomized Delay' :
-                               modalId === 'modal_welcome_temporary_delay' ? 'Set Send Delay' :
-                               'Set Delete Time',
-                        components: [{
-                            type: 1,
-                            components: [{
-                                type: 4,
-                                custom_id: modalId === 'modal_welcome_randomized_delay' ? 'randomized_delay_input' :
-                                          modalId === 'modal_welcome_temporary_delay' ? 'temporary_delay_input' :
-                                          'delete_time_input',
-                                label: 'Delay in seconds (1-300)',
-                                style: 1,
-                                placeholder: '120',
-                                required: false
-                            }]
-                        }]
-                    };
-                    return i.showModal(modal);
-                }
-                
-                if (!action) return i.deferUpdate();
-                
-                // Handle welcome type selection
-                if (action.action === 'welcome_type') {
-                    session.settings.welcome = session.settings.welcome || {};
-                    session.settings.welcome.type = action.type;
-                    setupSessions.set(userId, session);
-                    const newComponents = getSetupPage(session.page, userId);
-                    return i.update({ content: ' ', components: [{ type: 17, components: newComponents }], flags: 32768 | MessageFlags.Ephemeral });
-                }
-                
-                // Handle nickname mode selection
-                if (action.action === 'mode') {
-                    session.settings.nickname = session.settings.nickname || {};
-                    session.settings.nickname.mode = action.mode;
-                    setupSessions.set(userId, session);
-                    const newComponents = getSetupPage(session.page, userId);
-                    return i.update({ content: ' ', components: [{ type: 17, components: newComponents }], flags: 32768 | MessageFlags.Ephemeral });
-                }
-                
-                // Toggle buttons
-                if (action.action === 'toggle') {
-                    toggleFeature(userId, action.toggleId);
-                    const newComponents = getSetupPage(session.page, userId);
-                    return i.update({ content: ' ', components: [{ type: 17, components: newComponents }], flags: 32768 | MessageFlags.Ephemeral });
-                }
-                
-                // Navigate
-                if (action.action === 'navigate') {
-                    session.page = action.nextPage;
-                    setupSessions.set(userId, session);
-                    const newComponents = getSetupPage(action.nextPage, userId);
-                    return i.update({ content: ' ', components: [{ type: 17, components: newComponents }], flags: 32768 | MessageFlags.Ephemeral });
-                }
-                
-                // Save
-                if (action.action === 'save') {
-                    const guildData = getGuildData(guildId);
-                    
-                    if (session.settings.welcome) {
-                        guildData.welcome = guildData.welcome || {};
-                        if (session.settings.welcome.randomizedChannel) {
-                            guildData.welcome.randomized = { channelId: session.settings.welcome.randomizedChannel, delay: session.settings.welcome.randomizedDelay || 120000, enabled: true };
-                        }
-                        if (session.settings.welcome.temporaryChannels?.length) {
-                            guildData.welcome.temporary = { channelIds: session.settings.welcome.temporaryChannels, type: session.settings.welcome.type || 'random', sendDelay: session.settings.welcome.temporaryDelay || 120000, deleteTime: session.settings.welcome.temporaryDeleteTime || 300000, enabled: true };
-                        }
-                        guildData.welcome.enabled = !!(guildData.welcome.randomized?.enabled || guildData.welcome.temporary?.enabled);
-                    }
-                    
-                    if (session.settings.nickname) {
-                        guildData.nickname = guildData.nickname || {};
-                        if (session.settings.nickname.blocklistAction) guildData.nickname.blocklist_enabled = true;
-                        if (session.settings.nickname.channelId && session.settings.nickname.mode) {
-                            guildData.nickname.channelId = session.settings.nickname.channelId;
-                            guildData.nickname.mode = session.settings.nickname.mode;
-                            guildData.nickname.enabled = true;
-                        }
-                    }
-                    
-                    saveGuildData(guildId, guildData);
-                    setupSessions.delete(userId);
-                    collector.stop();
-                    
-                    return i.update({ content: ' ', components: [{ type: 17, components: [{ type: 10, content: '# ✅ Setup Complete!' }, { type: 14 }, { type: 10, content: 'All settings saved successfully.' }] }], flags: 32768 | MessageFlags.Ephemeral });
-                }
-                
-                return i.deferUpdate();
-            }
-        });
-        
-        collector.on('end', () => {
-            console.log(`[SETUP-COLLECTOR] Collector ended for user ${userId}`);
-            setupSessions.delete(userId);
-        });
-        
-        return;
-    }
 
     // NICKNAME SYSTEM - Component V2 Container
     // type 17 = Container | type 10 = TextDisplay | type 14 = Separator
