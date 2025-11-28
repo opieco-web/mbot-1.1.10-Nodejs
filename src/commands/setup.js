@@ -61,14 +61,14 @@ const setupPagesBase = {
     },
     {
       "type": 10,
-      "content": "## 🎲 Randomized Welcome Messages"
+      "content": "## 🎲 Random Welcome Messages\nBot automatically sends random welcome messages"
     },
     {
       "type": 9,
       "components": [
         {
           "type": 10,
-          "content": "-# More than 100 different messages will welcome you in a specific channel."
+          "content": "-# Bot sends 100+ different random messages in your channel when users join"
         }
       ],
       "accessory": "toggle_welcome_randomized"
@@ -81,7 +81,7 @@ const setupPagesBase = {
           "custom_id": "setup_welcome_randomized_channel",
           "min_values": 1,
           "max_values": 1,
-          "placeholder": "Select channel for random messages"
+          "placeholder": "Pick 1 channel for random messages"
         }
       ]
     },
@@ -91,7 +91,7 @@ const setupPagesBase = {
         {
           "style": 2,
           "type": 2,
-          "label": "Set Delay",
+          "label": "When to Send",
           "emoji": {
             "id": "1443156335809007697",
             "name": "editmessage",
@@ -106,14 +106,14 @@ const setupPagesBase = {
     },
     {
       "type": 10,
-      "content": "## 📝 Temporary Welcome Messages"
+      "content": "## 📝 Temporary Welcome Messages\nMessages that auto-delete after time"
     },
     {
       "type": 9,
       "components": [
         {
           "type": 10,
-          "content": "-# Welcome messages appear temporarily in selected channels with custom delay."
+          "content": "-# Send custom message or random message, then auto-delete in multiple channels"
         }
       ],
       "accessory": "toggle_welcome_temporary"
@@ -124,7 +124,7 @@ const setupPagesBase = {
         {
           "style": 2,
           "type": 2,
-          "label": "Customized",
+          "label": "Custom Message",
           "emoji": {
             "id": "1443156335809007697",
             "name": "editmessage",
@@ -135,7 +135,7 @@ const setupPagesBase = {
         {
           "style": 2,
           "type": 2,
-          "label": "Randomized",
+          "label": "Random Message",
           "emoji": {
             "id": "1443156329068888105",
             "name": "notificationsettings1",
@@ -153,7 +153,7 @@ const setupPagesBase = {
           "custom_id": "setup_welcome_temporary_channels",
           "min_values": 1,
           "max_values": 5,
-          "placeholder": "Select up to 5 channels"
+          "placeholder": "Pick channels (up to 5)"
         }
       ]
     },
@@ -163,7 +163,7 @@ const setupPagesBase = {
         {
           "style": 2,
           "type": 2,
-          "label": "Set Delay",
+          "label": "When to Send",
           "emoji": {
             "id": "1443156335809007697",
             "name": "editmessage",
@@ -174,10 +174,10 @@ const setupPagesBase = {
         {
           "style": 2,
           "type": 2,
-          "label": "Set Delete Time",
+          "label": "When to Delete",
           "emoji": {
-            "id": "1443156335809007697",
-            "name": "editmessage",
+            "id": "1441777857205637254",
+            "name": "Bin",
             "animated": false
           },
           "custom_id": "setup_welcome_temporary_delete_time_btn"

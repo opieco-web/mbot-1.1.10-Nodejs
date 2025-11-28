@@ -1,15 +1,16 @@
 export default {
-    version: "1.0.86",
-    releaseDate: "Nov 28, 2025 08:30 AM",
-    releaseDateTimestamp: 1764325800,
-    changesSummary: "Fixed Component V2 validation errors - replaced text inputs with modal buttons",
+    version: "1.0.87",
+    releaseDate: "Nov 28, 2025 08:35 AM",
+    releaseDateTimestamp: 1764326100,
+    changesSummary: "Simplified Welcome Setup page with clearer descriptions and better button labels",
 
     changes: [
-        "1. Fixed Discord validation error: removed type 4 fields from Component V2 rows",
-        "2. Replaced delay text inputs with 'Set Delay' and 'Set Delete Time' buttons",
-        "3. Buttons now open modals for entering delay values (1-300 seconds)",
-        "4. Continue button on page 1 now works - can navigate to page 2",
-        "5. All modal handlers properly integrated"
+        "1. Page 2 now clearly explains two simple features:",
+        "   - Random Welcome: Auto sends random messages in 1 channel",
+        "   - Temporary Welcome: Send custom/random message in multiple channels, auto-delete",
+        "2. Better button labels: 'When to Send' and 'When to Delete' instead of 'Set Delay'",
+        "3. Clearer descriptions for each section",
+        "4. Simpler, easier to understand interface"
     ],
 
     versionGuide: `
