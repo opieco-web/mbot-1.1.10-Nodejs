@@ -1,18 +1,14 @@
 export default {
-    version: "1.0.75",
-    releaseDate: "Nov 28, 2025 07:35 AM",
-    releaseDateTimestamp: 1764322500,
-    changesSummary: "Integrated 3-page setup wizard with complete navigation and settings saving",
+    version: "1.0.76",
+    releaseDate: "Nov 28, 2025 07:40 AM",
+    releaseDateTimestamp: 1764322800,
+    changesSummary: "Fixed Component V2 structure - wrapped type 17 containers in type 1 ActionRow",
 
     changes: [
-        "1. Added setup session storage (Map tracking user page and settings)",
-        "2. Implemented /setup slash command - displays Page 1 (Menu)",
-        "3. Added navigation handlers for Previous/Next buttons between pages",
-        "4. Implemented dropdown handlers for channel selections in both Welcome and Nickname pages",
-        "5. Added final save handler - saves all settings when user completes Page 3",
-        "6. Session auto-cleanup after completion or expiration",
-        "7. Perfect Component V2 format with proper container/separator/text structure",
-        "8. All 3 pages fully functional: Menu → Welcome Settings → Nickname Setup"
+        "1. Fixed setup command - wrapped Components in proper type 1 ActionRow",
+        "2. Fixed setup page updates - all navigation now properly wraps type 17 in type 1",
+        "3. Fixed completion page - wrapped completion message in proper structure",
+        "4. Component V2 format preserved exactly - only fixed Discord.js structure requirement"
     ],
 
     versionGuide: `
