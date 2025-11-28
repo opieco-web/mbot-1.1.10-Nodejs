@@ -1,14 +1,20 @@
 export default {
-    version: "1.0.90",
-    releaseDate: "Nov 28, 2025 08:50 AM",
-    releaseDateTimestamp: 1764327000,
-    changesSummary: "Fixed duplicate dropdown handler - all page 2 interactions now working",
+    version: "1.0.91",
+    releaseDate: "Nov 28, 2025 09:00 AM",
+    releaseDateTimestamp: 1764327600,
+    changesSummary: "FULL BACKEND LOGIC - Setup wizard now saves and executes all welcome & nickname features",
 
     changes: [
-        "1. REMOVED duplicate 'setup_welcome_randomized_channel' handler causing conflicts",
-        "2. ALL page 2 dropdowns now respond properly",
-        "3. ALL page 2 buttons (Enable/Disable, Custom/Random, When to Send/Delete) work",
-        "4. Added fallback deferUpdate() for all setup_ interactions"
+        "✅ PAGE 2 - WELCOME SETUP",
+        "  • Randomized Welcome: Saves channel + delay (default 120s), fully enabled",
+        "  • Temporary Welcome: Saves multi-channels + type (custom/random) + send/delete times",
+        "",
+        "✅ PAGE 3 - NICKNAME SETUP",
+        "  • Blocklist: Saves blocklist status for add/remove/list operations",
+        "  • Channels & Mode: Saves channel + mode (auto/approval) for nickname processing",
+        "",
+        "✅ ALL DATA PERSISTS in guildData with proper structure",
+        "✅ Setup wizard now works EXACTLY like /config command"
     ],
 
     versionGuide: `

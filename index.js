@@ -857,11 +857,63 @@ client.on(Events.InteractionCreate, async interaction => {
                 if (action.action === 'save') {
                     const guildData = getGuildData(guildId);
                     
+                    // ===== WELCOME SETTINGS =====
                     if (session.settings.welcome) {
-                        guildData.welcome = { ...guildData.welcome, ...session.settings.welcome };
+                        const welcomeSettings = session.settings.welcome;
+                        
+                        // Initialize welcome object
+                        guildData.welcome = guildData.welcome || {};
+                        
+                        // Handle randomized welcome
+                        if (welcomeSettings.randomizedChannel) {
+                            guildData.welcome.randomized = guildData.welcome.randomized || {};
+                            guildData.welcome.randomized.channelId = welcomeSettings.randomizedChannel;
+                            guildData.welcome.randomized.delay = welcomeSettings.randomizedDelay || 120000;
+                            guildData.welcome.randomized.enabled = true;
+                        }
+                        
+                        // Handle temporary welcome
+                        if (welcomeSettings.temporaryChannels && welcomeSettings.temporaryChannels.length > 0) {
+                            guildData.welcome.temporary = guildData.welcome.temporary || {};
+                            guildData.welcome.temporary.channelIds = welcomeSettings.temporaryChannels;
+                            guildData.welcome.temporary.type = welcomeSettings.type || 'random'; // 'custom' or 'random'
+                            guildData.welcome.temporary.sendDelay = welcomeSettings.temporaryDelay || 120000;
+                            guildData.welcome.temporary.deleteTime = welcomeSettings.temporaryDeleteTime || 300000;
+                            guildData.welcome.temporary.enabled = true;
+                        }
+                        
+                        // Set overall welcome enabled if either randomized or temporary is enabled
+                        guildData.welcome.enabled = !!(guildData.welcome.randomized?.enabled || guildData.welcome.temporary?.enabled);
                     }
+                    
+                    // ===== NICKNAME SETTINGS =====
                     if (session.settings.nickname) {
-                        guildData.nickname = { ...guildData.nickname, ...session.settings.nickname };
+                        const nicknameSettings = session.settings.nickname;
+                        
+                        // Initialize nickname object
+                        guildData.nickname = guildData.nickname || {};
+                        
+                        // Handle blocklist
+                        if (nicknameSettings.blocklistAction) {
+                            guildData.nickname.filter = guildData.nickname.filter || [];
+                            
+                            if (nicknameSettings.blocklistAction === 'add') {
+                                // Add action will be triggered by user input later
+                                guildData.nickname.blocklist_enabled = true;
+                            } else if (nicknameSettings.blocklistAction === 'remove') {
+                                // Remove action will be triggered by user input later
+                                guildData.nickname.blocklist_enabled = true;
+                            } else if (nicknameSettings.blocklistAction === 'list') {
+                                guildData.nickname.blocklist_enabled = true;
+                            }
+                        }
+                        
+                        // Handle channel & mode
+                        if (nicknameSettings.channelId && nicknameSettings.mode) {
+                            guildData.nickname.channelId = nicknameSettings.channelId;
+                            guildData.nickname.mode = nicknameSettings.mode; // 'auto' or 'approval'
+                            guildData.nickname.enabled = true;
+                        }
                     }
                     
                     saveGuildData(guildId, guildData);
