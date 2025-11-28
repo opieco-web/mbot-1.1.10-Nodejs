@@ -1,16 +1,13 @@
 export default {
-    version: "1.0.87",
-    releaseDate: "Nov 28, 2025 08:35 AM",
-    releaseDateTimestamp: 1764326100,
-    changesSummary: "Simplified Welcome Setup page with clearer descriptions and better button labels",
+    version: "1.0.88",
+    releaseDate: "Nov 28, 2025 08:40 AM",
+    releaseDateTimestamp: 1764326400,
+    changesSummary: "Removed emojis from section headers on Page 2",
 
     changes: [
-        "1. Page 2 now clearly explains two simple features:",
-        "   - Random Welcome: Auto sends random messages in 1 channel",
-        "   - Temporary Welcome: Send custom/random message in multiple channels, auto-delete",
-        "2. Better button labels: 'When to Send' and 'When to Delete' instead of 'Set Delay'",
-        "3. Clearer descriptions for each section",
-        "4. Simpler, easier to understand interface"
+        "1. Removed emoji from 'Random Welcome Messages' header",
+        "2. Removed emoji from 'Temporary Welcome Messages' header",
+        "3. Cleaner, simpler text-only section titles"
     ],
 
     versionGuide: `

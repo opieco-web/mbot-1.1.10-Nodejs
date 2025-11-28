@@ -61,7 +61,7 @@ const setupPagesBase = {
     },
     {
       "type": 10,
-      "content": "## 🎲 Random Welcome Messages\nBot automatically sends random welcome messages"
+      "content": "## Random Welcome Messages\nBot automatically sends random welcome messages"
     },
     {
       "type": 9,
@@ -106,7 +106,7 @@ const setupPagesBase = {
     },
     {
       "type": 10,
-      "content": "## 📝 Temporary Welcome Messages\nMessages that auto-delete after time"
+      "content": "## Temporary Welcome Messages\nMessages that auto-delete after time"
     },
     {
       "type": 9,
