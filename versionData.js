@@ -1,14 +1,15 @@
 export default {
-    version: "1.0.77",
-    releaseDate: "Nov 28, 2025 07:45 AM",
-    releaseDateTimestamp: 1764323100,
-    changesSummary: "Fixed Component V2 structure - use IsComponentsV2 flag instead of wrapping in type 1",
+    version: "1.0.78",
+    releaseDate: "Nov 28, 2025 07:50 AM",
+    releaseDateTimestamp: 1764323400,
+    changesSummary: "Fixed setup wizard to match config command format - type 17 wrapped in array with 32768 flag",
 
     changes: [
-        "1. Removed incorrect type 1 wrapping around Component V2",
-        "2. Added MessageFlags.IsComponentsV2 flag to all setup responses",
-        "3. Setup pages now send Component V2 directly with proper flag",
-        "4. Navigation and completion messages use correct Component V2 format"
+        "1. Setup command now uses exact config format: components: [{ type: 17, components: [...] }]",
+        "2. Changed flags from IsComponentsV2 to 32768 | MessageFlags.Ephemeral",
+        "3. Removed type 1 wrapper - Component V2 structure now matches working config command",
+        "4. Navigation and completion pages use identical format to config command",
+        "5. Setup wizard now responds properly without Discord errors"
     ],
 
     versionGuide: `

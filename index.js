@@ -805,11 +805,16 @@ client.on(Events.InteractionCreate, async interaction => {
                     setupSessions.set(userId, session);
                     const pageData = getSetupPage(action.nextPage);
                     
-                    return interaction.update({
+                    const setupPanel = {
                         content: ' ',
-                        components: pageData.components,
-                        flags: MessageFlags.Ephemeral | MessageFlags.IsComponentsV2
-                    });
+                        components: [{
+                            type: 17,
+                            components: pageData.components[0].components
+                        }],
+                        flags: 32768 | MessageFlags.Ephemeral
+                    };
+                    
+                    return interaction.update(setupPanel);
                 }
                 
                 if (action.save) {
@@ -825,7 +830,7 @@ client.on(Events.InteractionCreate, async interaction => {
                     saveGuildData(guildId, guildData);
                     setupSessions.delete(userId);
                     
-                    return interaction.update({
+                    const completePanel = {
                         content: ' ',
                         components: [{
                             type: 17,
@@ -835,8 +840,10 @@ client.on(Events.InteractionCreate, async interaction => {
                                 { type: 10, content: 'All your settings have been saved successfully. The bot is now configured for your server.' }
                             ]
                         }],
-                        flags: MessageFlags.Ephemeral | MessageFlags.IsComponentsV2
-                    });
+                        flags: 32768 | MessageFlags.Ephemeral
+                    };
+                    
+                    return interaction.update(completePanel);
                 }
             }
 
@@ -1334,11 +1341,16 @@ Type \`reset\` to revert back to your original name. Examples: Shadow, Phoenix, 
         const { getSetupPage } = await import('./src/commands/setup.js');
         const pageData = getSetupPage(1);
         
-        return interaction.reply({
+        const setupPanel = {
             content: ' ',
-            components: pageData.components,
-            flags: MessageFlags.Ephemeral | MessageFlags.IsComponentsV2
-        });
+            components: [{
+                type: 17,
+                components: pageData.components[0].components
+            }],
+            flags: 32768 | MessageFlags.Ephemeral
+        };
+        
+        return interaction.reply(setupPanel);
     }
 
     // NICKNAME SYSTEM - Component V2 Container
