@@ -710,10 +710,12 @@ const welcomeMessages = [
 // ------------------------
 client.on(Events.InteractionCreate, async interaction => {
     const { guildId } = interaction;
+    console.log(`[INTERACTION] Type: ${interaction.type}, CustomId: ${interaction.customId || 'N/A'}`);
 
     try {
         // ===== HANDLE SELECT MENUS (DROPDOWNS) =====
         if (interaction.isStringSelectMenu()) {
+            console.log(`[DROPDOWN] Received: ${interaction.customId}`);
             const customId = interaction.customId;
 
             // Config: Online Status dropdown (Mining Bangladesh only)
@@ -749,9 +751,13 @@ client.on(Events.InteractionCreate, async interaction => {
                 const userId = interaction.user.id;
                 const session = setupSessions.get(userId);
                 
-                if (!session) return interaction.deferUpdate();
+                if (!session) {
+                    console.log(`[SETUP] No session for user ${userId}, custom_id: ${customId}`);
+                    return interaction.reply({ content: '❌ Session expired. Use `/setup` to start again.', flags: MessageFlags.Ephemeral });
+                }
                 
                 if (customId === 'setup_welcome_randomized_channel') {
+                    console.log(`[SETUP] Randomized channel selected: ${interaction.values[0]}`);
                     session.settings.welcome = session.settings.welcome || {};
                     session.settings.welcome.randomizedChannel = interaction.values[0];
                     setupSessions.set(userId, session);
@@ -759,6 +765,7 @@ client.on(Events.InteractionCreate, async interaction => {
                 }
                 
                 if (customId === 'setup_welcome_temporary_channels') {
+                    console.log(`[SETUP] Temporary channels selected: ${interaction.values.join(', ')}`);
                     session.settings.welcome = session.settings.welcome || {};
                     session.settings.welcome.temporaryChannels = interaction.values;
                     setupSessions.set(userId, session);
@@ -767,6 +774,7 @@ client.on(Events.InteractionCreate, async interaction => {
                 
                 if (customId === 'setup_nickname_blocklist_action') {
                     const action = interaction.values[0];
+                    console.log(`[SETUP] Blocklist action: ${action}`);
                     session.settings.nickname = session.settings.nickname || {};
                     session.settings.nickname.blocklistAction = action;
                     setupSessions.set(userId, session);
@@ -774,12 +782,14 @@ client.on(Events.InteractionCreate, async interaction => {
                 }
                 
                 if (customId === 'setup_nickname_channel_select') {
+                    console.log(`[SETUP] Nickname channel selected: ${interaction.values[0]}`);
                     session.settings.nickname = session.settings.nickname || {};
                     session.settings.nickname.channelId = interaction.values[0];
                     setupSessions.set(userId, session);
                     return interaction.deferUpdate();
                 }
                 
+                console.log(`[SETUP] Unhandled dropdown: ${customId}`);
                 return interaction.deferUpdate();
             }
         }
@@ -787,20 +797,28 @@ client.on(Events.InteractionCreate, async interaction => {
         // ===== HANDLE BUTTONS =====
         if (interaction.isButton()) {
             const customId = interaction.customId;
+            console.log(`[BUTTON] Clicked: ${customId}`);
 
             // ===== SETUP WIZARD NAVIGATION & SAVE =====
             if (customId.startsWith('setup_')) {
+                console.log(`[SETUP-BUTTON] Processing setup button: ${customId}`);
                 const userId = interaction.user.id;
                 const session = setupSessions.get(userId);
+                console.log(`[SETUP] Session exists: ${!!session}, Action will be determined...`);
                 
                 if (!session) {
-                    return interaction.reply({ content: 'Session expired. Use `/setup` to start again.', flags: MessageFlags.Ephemeral });
+                    console.log(`[SETUP] Session expired for user ${userId}`);
+                    return interaction.reply({ content: '❌ Session expired. Use `/setup` to start again.', flags: MessageFlags.Ephemeral });
                 }
                 
                 const { getSetupPage, handleSetupInteraction, toggleFeature } = await import('./src/commands/setup.js');
                 const action = handleSetupInteraction(customId);
+                console.log(`[SETUP] Action handled:`, action);
                 
-                if (!action) return interaction.deferUpdate();
+                if (!action) {
+                    console.log(`[SETUP] No action returned for: ${customId}`);
+                    return interaction.deferUpdate();
+                }
                 
                 // Handle toggle buttons
                 if (action.action === 'toggle') {

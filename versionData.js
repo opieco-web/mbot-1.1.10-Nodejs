@@ -1,17 +1,18 @@
 export default {
-    version: "1.0.92",
-    releaseDate: "Nov 28, 2025 09:05 AM",
-    releaseDateTimestamp: 1764327900,
-    changesSummary: "FIXED! Setup wizard fully live with all features working",
+    version: "1.0.93",
+    releaseDate: "Nov 28, 2025 09:10 AM",
+    releaseDateTimestamp: 1764328200,
+    changesSummary: "Added comprehensive logging to debug interaction handling",
 
     changes: [
-        "✅ FIXED syntax error - added missing closing brace for buttons handler",
-        "✅ Bot is now ONLINE and /setup command is LIVE",
-        "✅ Page 1: Menu shows both Welcome & Nickname with status indicators",
-        "✅ Page 2: Full Welcome system (Randomized + Temporary messages)",
-        "✅ Page 3: Full Nickname system (Blocklist + Channel Mode)",
-        "✅ All data persists to file with correct structure",
-        "✅ Setup wizard matches /config command functionality"
+        "✅ Added [INTERACTION] logs to see all interactions received",
+        "✅ Added [DROPDOWN] logs for menu selections",
+        "✅ Added [BUTTON] logs for button clicks",
+        "✅ Added [SETUP] logs for wizard-specific actions",
+        "✅ Fixed dropdown handler to show error instead of silent deferUpdate",
+        "✅ Improved error handling and logging throughout",
+        "",
+        "📋 DEBUGGING: Check console logs when clicking buttons/dropdowns"
     ],
 
     versionGuide: `
