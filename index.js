@@ -3,6 +3,7 @@ import fs from 'fs';
 import { createCanvas } from 'canvas';
 import { allCommands } from './src/commands/index.js';
 import versionData from './versionData.js';
+import { cleanupKickedServer, cleanupLeftServer, cleanupOrphanedServers } from './src/utils/cleanupServer.js';
 
 const TOKEN = process.env.DISCORD_BOT_TOKEN;
 const CLIENT_ID = process.env.DISCORD_CLIENT_ID;
@@ -19,7 +20,15 @@ const otherServersDataFile = './data/other-servers.json';
 
 // Load data from separate files
 let miningBangladeshData = JSON.parse(fs.readFileSync(miningBangladeshDataFile, 'utf8'));
-let otherServersData = JSON.parse(fs.readFileSync(otherServersDataFile, 'utf8'));
+let otherServersData = (() => {
+    try {
+        const content = fs.readFileSync(otherServersDataFile, 'utf8');
+        return content.trim() ? JSON.parse(content) : {};
+    } catch (e) {
+        fs.writeFileSync(otherServersDataFile, JSON.stringify({}, null, 2));
+        return {};
+    }
+})();
 
 // Backward compatibility - dataFile points to mining-bangladesh.json (primary file)
 const dataFile = miningBangladeshDataFile;
@@ -3284,20 +3293,22 @@ client.on(Events.GuildCreate, async guild => {
 });
 
 // ------------------------
-// GUILD DELETE (BOT REMOVED)
+// GUILD DELETE (BOT REMOVED / KICKED / BANNED)
 // ------------------------
 client.on(Events.GuildDelete, async guild => {
     const guildId = guild.id;
     console.log(`[GUILD DELETE] Bot removed from server: ${guild.name} (${guildId})`);
     
+    // Cleanup old system (mining-bangladesh.json, other-servers.json)
     const otherServersData = getGuildData('other-servers.json');
     const serverKey = `====== SERVER: ${guildId} ======`;
-    
     if (otherServersData[serverKey]) {
         delete otherServersData[serverKey];
         saveGuildData('other-servers.json', otherServersData);
-        console.log(`[GUILD DELETE] <:Correct:1440296238305116223> Server section deleted for ${guild.name}`);
     }
+    
+    // Cleanup new system (servers.json)
+    cleanupKickedServer(guildId, guild.name);
 });
 
 // ------------------------
@@ -3310,14 +3321,16 @@ client.on(Events.GuildMemberRemove, async member => {
     if (member.id === client.user.id) {
         console.log(`[GUILD MEMBER REMOVE] Bot left server: ${member.guild.name} (${guildId})`);
         
+        // Cleanup old system (mining-bangladesh.json, other-servers.json)
         const otherServersData = getGuildData('other-servers.json');
         const serverKey = `====== SERVER: ${guildId} ======`;
-        
         if (otherServersData[serverKey]) {
             delete otherServersData[serverKey];
             saveGuildData('other-servers.json', otherServersData);
-            console.log(`[GUILD MEMBER REMOVE] <:Correct:1440296238305116223> Server section deleted - bot left`);
         }
+        
+        // Cleanup new system (servers.json)
+        cleanupLeftServer(guildId, member.guild.name);
     }
 });
 

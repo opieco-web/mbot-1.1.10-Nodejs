@@ -1,12 +1,15 @@
 export default {
-    version: "1.0.67",
-    releaseDate: "Nov 28, 2025 06:52 AM",
-    releaseDateTimestamp: 1764319920,
-    changesSummary: "Corrected bot leave detection - now checks if bot itself leaves",
+    version: "1.0.68",
+    releaseDate: "Nov 28, 2025 07:00 AM",
+    releaseDateTimestamp: 1764320400,
+    changesSummary: "Auto-cleanup system: Delete orphaned server data when bot leaves",
 
     changes: [
-        "1. Fixed GuildMemberRemove handler to check if bot (client.user.id) leaves, not guild owner",
-        "2. Ensures server section is deleted when bot leaves the server"
+        "1. Created cleanupServer.js with functions for auto-deleting orphaned server data",
+        "2. Integrated cleanup into GuildDelete event (bot kicked/banned)",
+        "3. Integrated cleanup into GuildMemberRemove event (bot left)",
+        "4. Added periodic cleanup function: cleanupOrphanedServers() for database maintenance",
+        "5. Result: No useless orphaned data, only active servers remain in servers.json"
     ],
 
     versionGuide: `
