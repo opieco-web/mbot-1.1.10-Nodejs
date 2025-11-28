@@ -1594,6 +1594,35 @@ Type \`reset\` to revert back to your original name. Examples: Shadow, Phoenix, 
             const customId = i.customId;
             console.log(`[SETUP-COLLECTOR] Interaction: ${customId}, Page: ${session.page}`);
             
+            // Handle modal submissions
+            if (i.isModalSubmit()) {
+                console.log(`[SETUP-COLLECTOR] Modal submitted: ${customId}`);
+                session.settings.welcome = session.settings.welcome || {};
+                
+                if (customId === 'modal_welcome_randomized_delay') {
+                    const delay = i.fields.getTextInputValue('randomized_delay_input') || '120';
+                    session.settings.welcome.randomizedDelay = parseInt(delay) * 1000;
+                    setupSessions.set(userId, session);
+                    return i.reply({ content: `✅ Randomized delay set to ${delay} seconds`, flags: MessageFlags.Ephemeral });
+                }
+                
+                if (customId === 'modal_welcome_temporary_delay') {
+                    const delay = i.fields.getTextInputValue('temporary_delay_input') || '120';
+                    session.settings.welcome.temporaryDelay = parseInt(delay) * 1000;
+                    setupSessions.set(userId, session);
+                    return i.reply({ content: `✅ Send delay set to ${delay} seconds`, flags: MessageFlags.Ephemeral });
+                }
+                
+                if (customId === 'modal_welcome_temporary_delete_time') {
+                    const deleteTime = i.fields.getTextInputValue('delete_time_input') || '60';
+                    session.settings.welcome.temporaryDeleteTime = parseInt(deleteTime) * 1000;
+                    setupSessions.set(userId, session);
+                    return i.reply({ content: `✅ Delete time set to ${deleteTime} seconds`, flags: MessageFlags.Ephemeral });
+                }
+                
+                return i.deferUpdate();
+            }
+            
             // Handle string select menus (dropdowns)
             if (i.isStringSelectMenu()) {
                 console.log(`[SETUP-COLLECTOR] Dropdown: ${customId}, Values: ${i.values.join(', ')}`);
@@ -1630,7 +1659,7 @@ Type \`reset\` to revert back to your original name. Examples: Shadow, Phoenix, 
                 console.log(`[SETUP-COLLECTOR] Button: ${customId}`);
                 const action = handleSetupInteraction(customId);
                 
-                // Handle modals
+                // Handle modal buttons
                 if (customId === 'setup_welcome_randomized_delay_btn' || customId === 'setup_welcome_temporary_delay_btn' || customId === 'setup_welcome_temporary_delete_time_btn') {
                     const modalId = customId === 'setup_welcome_randomized_delay_btn' ? 'modal_welcome_randomized_delay' : 
                                    customId === 'setup_welcome_temporary_delay_btn' ? 'modal_welcome_temporary_delay' :
@@ -1659,6 +1688,22 @@ Type \`reset\` to revert back to your original name. Examples: Shadow, Phoenix, 
                 }
                 
                 if (!action) return i.deferUpdate();
+                
+                // Handle welcome type selection
+                if (action.action === 'welcome_type') {
+                    session.settings.welcome = session.settings.welcome || {};
+                    session.settings.welcome.type = action.type;
+                    setupSessions.set(userId, session);
+                    return i.deferUpdate();
+                }
+                
+                // Handle nickname mode selection
+                if (action.action === 'mode') {
+                    session.settings.nickname = session.settings.nickname || {};
+                    session.settings.nickname.mode = action.mode;
+                    setupSessions.set(userId, session);
+                    return i.deferUpdate();
+                }
                 
                 // Toggle buttons
                 if (action.action === 'toggle') {

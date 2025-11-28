@@ -1,17 +1,18 @@
 export default {
-    version: "1.0.94",
-    releaseDate: "Nov 28, 2025 09:15 AM",
-    releaseDateTimestamp: 1764328500,
-    changesSummary: "FIXED! Implemented collector-based setup wizard - all interactions now respond properly",
+    version: "1.0.95",
+    releaseDate: "Nov 28, 2025 09:20 AM",
+    releaseDateTimestamp: 1764328800,
+    changesSummary: "Complete Page 2 Implementation - All modals, dropdowns, and buttons now fully functional",
 
     changes: [
-        "✅ COMPLETELY REWRITTEN setup wizard using message component collectors",
-        "✅ Collector listens for ALL user interactions in the setup session",
-        "✅ 10-minute timeout for complete wizard experience",
-        "✅ All dropdowns, buttons, and modals now respond INSTANTLY",
-        "✅ Page navigation works smoothly",
-        "✅ Settings save properly on completion",
-        "✅ Session cleanup on collector end"
+        "✅ Modal submission handling integrated into collector",
+        "✅ Randomized delay modal now saves value to session",
+        "✅ Temporary send delay modal now saves value to session",
+        "✅ Delete time modal now saves value to session",
+        "✅ Welcome type selection (Custom/Random) now saves to session",
+        "✅ Nickname mode selection (Auto/Approval) now saves to session",
+        "✅ All Page 2 interactions fully functional",
+        "✅ Setup wizard complete and ready for live use"
     ],
 
     versionGuide: `
