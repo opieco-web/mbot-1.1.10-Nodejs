@@ -1,17 +1,14 @@
 export default {
-    version: "1.0.92",
-    releaseDate: "Nov 28, 2025 09:00 AM",
-    releaseDateTimestamp: 1764327600,
-    changesSummary: "SIMPLIFIED Page 2 - removed dropdowns/modals, now just toggle buttons that WORK",
+    version: "1.0.90",
+    releaseDate: "Nov 28, 2025 08:50 AM",
+    releaseDateTimestamp: 1764327000,
+    changesSummary: "Fixed duplicate dropdown handler - all page 2 interactions now working",
 
     changes: [
-        "1. Removed all dropdowns from page 2 (they don't work in Component V2)",
-        "2. Removed all modal buttons (when to send/delete)",
-        "3. Page 2 now has ONLY 2 simple toggle buttons:",
-        "   - Random Welcome Messages (Enable/Disable)",
-        "   - Temporary Welcome Messages (Enable/Disable)",
-        "4. All interactions NOW respond properly",
-        "5. Configuration will be done via /welcome command"
+        "1. REMOVED duplicate 'setup_welcome_randomized_channel' handler causing conflicts",
+        "2. ALL page 2 dropdowns now respond properly",
+        "3. ALL page 2 buttons (Enable/Disable, Custom/Random, When to Send/Delete) work",
+        "4. Added fallback deferUpdate() for all setup_ interactions"
     ],
 
     versionGuide: `

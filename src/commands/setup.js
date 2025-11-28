@@ -61,34 +61,128 @@ const setupPagesBase = {
     },
     {
       "type": 10,
-      "content": "## Random Welcome Messages"
+      "content": "## Random Welcome Messages\nBot automatically sends random welcome messages"
     },
     {
       "type": 9,
       "components": [
         {
           "type": 10,
-          "content": "-# Enable to send random welcome messages"
+          "content": "-# Bot sends 100+ different random messages in your channel when users join"
         }
       ],
       "accessory": "toggle_welcome_randomized"
+    },
+    {
+      "type": 1,
+      "components": [
+        {
+          "type": 8,
+          "custom_id": "setup_welcome_randomized_channel",
+          "min_values": 1,
+          "max_values": 1,
+          "placeholder": "Pick 1 channel for random messages"
+        }
+      ]
+    },
+    {
+      "type": 1,
+      "components": [
+        {
+          "style": 2,
+          "type": 2,
+          "label": "When to Send",
+          "emoji": {
+            "id": "1443156335809007697",
+            "name": "editmessage",
+            "animated": false
+          },
+          "custom_id": "setup_welcome_randomized_delay_btn"
+        }
+      ]
     },
     {
       "type": 14
     },
     {
       "type": 10,
-      "content": "## Temporary Welcome Messages"
+      "content": "## Temporary Welcome Messages\nMessages that auto-delete after time"
     },
     {
       "type": 9,
       "components": [
         {
           "type": 10,
-          "content": "-# Enable to send messages that auto-delete"
+          "content": "-# Send custom message or random message, then auto-delete in multiple channels"
         }
       ],
       "accessory": "toggle_welcome_temporary"
+    },
+    {
+      "type": 1,
+      "components": [
+        {
+          "style": 2,
+          "type": 2,
+          "label": "Custom Message",
+          "emoji": {
+            "id": "1443156335809007697",
+            "name": "editmessage",
+            "animated": false
+          },
+          "custom_id": "setup_welcome_customized"
+        },
+        {
+          "style": 2,
+          "type": 2,
+          "label": "Random Message",
+          "emoji": {
+            "id": "1443156329068888105",
+            "name": "notificationsettings1",
+            "animated": false
+          },
+          "custom_id": "setup_welcome_randomized_type"
+        }
+      ]
+    },
+    {
+      "type": 1,
+      "components": [
+        {
+          "type": 8,
+          "custom_id": "setup_welcome_temporary_channels",
+          "min_values": 1,
+          "max_values": 5,
+          "placeholder": "Pick channels (up to 5)"
+        }
+      ]
+    },
+    {
+      "type": 1,
+      "components": [
+        {
+          "style": 2,
+          "type": 2,
+          "label": "When to Send",
+          "emoji": {
+            "id": "1443156335809007697",
+            "name": "editmessage",
+            "animated": false
+          },
+          "custom_id": "setup_welcome_temporary_delay_btn"
+        },
+        {
+          "style": 2,
+          "type": 2,
+          "label": "When to Delete",
+          "emoji": {
+            "id": "1441777857205637254",
+            "name": "Bin",
+            "animated": false
+          },
+          "custom_id": "setup_welcome_temporary_delete_time_btn"
+        }
+      ]
     },
     {
       "type": 14
