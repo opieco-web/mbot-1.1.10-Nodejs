@@ -1224,6 +1224,44 @@ client.on(Events.InteractionCreate, async interaction => {
 
     // ===== HANDLE MODAL SUBMISSIONS =====
     if (interaction.isModalSubmit()) {
+        const userId = interaction.user.id;
+        
+        // Setup: Welcome Randomized Delay modal
+        if (interaction.customId === 'modal_welcome_randomized_delay') {
+            const session = setupSessions.get(userId);
+            if (session) {
+                session.settings.welcome = session.settings.welcome || {};
+                const delay = interaction.fields.getTextInputValue('randomized_delay_input') || '120';
+                session.settings.welcome.randomizedDelay = delay;
+                setupSessions.set(userId, session);
+            }
+            return interaction.reply({ content: `✅ Randomized message delay set to ${interaction.fields.getTextInputValue('randomized_delay_input') || '120'} seconds`, flags: MessageFlags.Ephemeral });
+        }
+        
+        // Setup: Welcome Temporary Delay modal
+        if (interaction.customId === 'modal_welcome_temporary_delay') {
+            const session = setupSessions.get(userId);
+            if (session) {
+                session.settings.welcome = session.settings.welcome || {};
+                const delay = interaction.fields.getTextInputValue('temporary_delay_input') || '120';
+                session.settings.welcome.temporaryDelay = delay;
+                setupSessions.set(userId, session);
+            }
+            return interaction.reply({ content: `✅ Temporary message delay set to ${interaction.fields.getTextInputValue('temporary_delay_input') || '120'} seconds`, flags: MessageFlags.Ephemeral });
+        }
+        
+        // Setup: Welcome Temporary Delete Time modal
+        if (interaction.customId === 'modal_welcome_temporary_delete_time') {
+            const session = setupSessions.get(userId);
+            if (session) {
+                session.settings.welcome = session.settings.welcome || {};
+                const deleteTime = interaction.fields.getTextInputValue('delete_time_input') || '60';
+                session.settings.welcome.temporaryDeleteTime = deleteTime;
+                setupSessions.set(userId, session);
+            }
+            return interaction.reply({ content: `✅ Message delete time set to ${interaction.fields.getTextInputValue('delete_time_input') || '60'} seconds`, flags: MessageFlags.Ephemeral });
+        }
+        
         if (interaction.customId === 'modal_set_prefix') {
             const newPrefix = interaction.fields.getTextInputValue('prefix_input');
             const guildData = getGuildData(guildId);

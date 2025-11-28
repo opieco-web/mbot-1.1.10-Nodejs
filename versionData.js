@@ -1,15 +1,15 @@
 export default {
-    version: "1.0.85",
-    releaseDate: "Nov 28, 2025 08:25 AM",
-    releaseDateTimestamp: 1764325500,
-    changesSummary: "Added message delete time control for temporary welcome messages",
+    version: "1.0.86",
+    releaseDate: "Nov 28, 2025 08:30 AM",
+    releaseDateTimestamp: 1764325800,
+    changesSummary: "Fixed Component V2 validation errors - replaced text inputs with modal buttons",
 
     changes: [
-        "1. Temporary messages now have two delay controls:",
-        "   - Message Delay: When the message appears (1-300 sec, default 120)",
-        "   - Message Delete Time: When message auto-deletes (1-300 sec, default 60)",
-        "2. Text input fields accept and validate delay values",
-        "3. Both delays persist when settings are saved"
+        "1. Fixed Discord validation error: removed type 4 fields from Component V2 rows",
+        "2. Replaced delay text inputs with 'Set Delay' and 'Set Delete Time' buttons",
+        "3. Buttons now open modals for entering delay values (1-300 seconds)",
+        "4. Continue button on page 1 now works - can navigate to page 2",
+        "5. All modal handlers properly integrated"
     ],
 
     versionGuide: `
