@@ -1,15 +1,14 @@
 export default {
-    version: "1.0.89",
-    releaseDate: "Nov 30, 2025 09:05 AM",
-    releaseDateTimestamp: 1764327900,
-    changesSummary: "Fixed rate limit error in /role-info member fetching",
+    version: "1.0.90",
+    releaseDate: "Nov 30, 2025 09:10 AM",
+    releaseDateTimestamp: 1764328200,
+    changesSummary: "Fixed Discord component validation error for accessory field",
 
     changes: [
-        "1. Fixed GatewayRateLimitError by using member cache first",
-        "2. Only fetches members if cache is empty",
-        "3. Gracefully handles rate limit errors by using cached members",
-        "4. Prevents rapid member list requests from causing bot delays",
-        "5. Improves performance by leveraging cached member data"
+        "1. Fixed 'BASE_TYPE_REQUIRED' error by conditionally adding accessory field",
+        "2. Accessory field only added when role icon exists",
+        "3. Prevents undefined values from breaking component validation",
+        "4. Improved component structure for Discord API compatibility"
     ],
 
     versionGuide: `
