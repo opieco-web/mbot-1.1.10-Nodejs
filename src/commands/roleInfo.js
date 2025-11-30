@@ -18,27 +18,25 @@ export const roleInfo = new SlashCommandBuilder()
     .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageRoles);
 
 /**
- * Get important permissions ordered by danger level
+ * Get important permissions
  */
 function getImportantPermissions(permissions) {
-    // Ordered from most dangerous/powerful to least
-    const permissionHierarchy = [
-        'Administrator',
-        'ManageGuild',
-        'ManageRoles',
-        'ManageChannels',
-        'ViewAuditLog',
+    const importantPermissions = [
+        'CreateInstantInvite',
         'KickMembers',
         'BanMembers',
-        'ModerateMembers',
+        'ManageChannels',
+        'ManageGuild',
+        'ViewAuditLog',
+        'ManageMessages',
         'MuteMembers',
         'DeafenMembers',
         'MoveMembers',
-        'ManageMessages',
         'ManageNicknames',
+        'ManageRoles',
         'ManageWebhooks',
         'ManageEmojisAndStickers',
-        'CreateInstantInvite'
+        'ModerateMembers'
     ];
 
     if (!permissions || permissions.bitfield === 0n) {
@@ -46,36 +44,28 @@ function getImportantPermissions(permissions) {
     }
 
     const perms = permissions.toArray();
+    const important = perms.filter(perm => importantPermissions.includes(perm));
 
     // Map to readable names
     const permissionNames = {
-        'Administrator': 'Administrator',
-        'ManageGuild': 'Manage Server',
-        'ManageRoles': 'Manage Roles',
-        'ManageChannels': 'Manage Channels',
-        'ViewAuditLog': 'View Audit Log',
+        'CreateInstantInvite': 'Create Invite',
         'KickMembers': 'Kick',
         'BanMembers': 'Ban',
-        'ModerateMembers': 'Moderate',
+        'ManageChannels': 'Manage Channels',
+        'ManageGuild': 'Manage Server',
+        'ViewAuditLog': 'View Audit Log',
+        'ManageMessages': 'Manage Messages',
         'MuteMembers': 'Mute',
         'DeafenMembers': 'Deafen',
         'MoveMembers': 'Move',
-        'ManageMessages': 'Manage Messages',
         'ManageNicknames': 'Manage Nicknames',
+        'ManageRoles': 'Manage Roles',
         'ManageWebhooks': 'Manage Webhooks',
         'ManageEmojisAndStickers': 'Manage Emojis',
-        'CreateInstantInvite': 'Create Invite'
+        'ModerateMembers': 'Moderate'
     };
 
-    // Return permissions in hierarchy order
-    const result = [];
-    for (const perm of permissionHierarchy) {
-        if (perms.includes(perm)) {
-            result.push(permissionNames[perm]);
-        }
-    }
-
-    return result;
+    return important.map(perm => permissionNames[perm] || perm);
 }
 
 /**
@@ -92,21 +82,8 @@ export async function handleRoleInfo(interaction) {
         // Get role icon/image URL
         const roleIcon = role.iconURL({ dynamic: true, size: 256 }) || role.icon;
 
-        // Get members with role - try cache first, then fetch
-        let membersWithRole;
-        try {
-            membersWithRole = interaction.guild.members.cache.size > 0 
-                ? interaction.guild.members.cache 
-                : await interaction.guild.members.fetch({ limit: 0 });
-        } catch (fetchError) {
-            // If fetch fails due to rate limit or other issues, use cache only
-            if (fetchError.code === 'GatewayRateLimitError') {
-                membersWithRole = interaction.guild.members.cache;
-            } else {
-                throw fetchError;
-            }
-        }
-        
+        // Get members with role
+        const membersWithRole = await interaction.guild.members.fetch();
         const membersArray = membersWithRole.filter(member => member.roles.cache.has(role.id)).map(m => m);
         const memberCount = membersArray.length;
 
@@ -129,19 +106,25 @@ export async function handleRoleInfo(interaction) {
             roleInfoContent += `\n> [IconLink](${roleIcon}),`;
         }
 
-        // Build permissions text - format nicely with line breaks for better display
-        let permissionsContent = `> **Permissions:**`;
-        if (importantPerms.length > 0) {
-            permissionsContent += `\n> ${importantPerms.join(', ')}`;
-        } else {
-            permissionsContent += `\n> None`;
-        }
+        // Build permissions text
+        const permissionsContent = `> **Permissions:** ${permissionsText}`;
 
         // Build component array
         const components = [
             {
-                type: 10,
-                content: `-# The information about\n## ${role}`
+                type: 9,
+                components: [
+                    {
+                        type: 10,
+                        content: `-# The information about\n## ${role}`
+                    }
+                ],
+                accessory: roleIcon ? {
+                    type: 11,
+                    media: {
+                        url: roleIcon
+                    }
+                } : undefined
             },
             {
                 type: 14
@@ -209,22 +192,18 @@ export async function handleRoleInfo(interaction) {
             }
         }
 
-        // Filter out any undefined values and build clean response
-        const cleanComponents = components.filter(c => c !== undefined && c !== null);
-        
         const response = {
             content: ' ',
             flags: 32768,
             components: [
                 {
                     type: 17,
-                    components: cleanComponents
+                    components: components
                 }
             ]
         };
 
-        // Clean response to remove undefined values
-        return interaction.reply(JSON.parse(JSON.stringify(response)));
+        return interaction.reply(response);
 
     } catch (error) {
         console.error('Error in role-info command:', error);
