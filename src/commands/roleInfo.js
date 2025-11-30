@@ -22,22 +22,21 @@ export const roleInfo = new SlashCommandBuilder()
  */
 function getImportantPermissions(permissions) {
     const importantPermissions = [
-        'Administrator',
-        'ManageGuild',
-        'ManageRoles',
-        'ManageChannels',
+        'CreateInstantInvite',
         'KickMembers',
         'BanMembers',
-        'ModerateMembers',
+        'ManageChannels',
+        'ManageGuild',
+        'ViewAuditLog',
+        'ManageMessages',
         'MuteMembers',
         'DeafenMembers',
         'MoveMembers',
-        'ManageMessages',
-        'ManageWebhooks',
         'ManageNicknames',
+        'ManageRoles',
+        'ManageWebhooks',
         'ManageEmojisAndStickers',
-        'CreateInstantInvite',
-        'ViewAuditLog'
+        'ModerateMembers'
     ];
 
     if (!permissions || permissions.bitfield === 0n) {
@@ -49,22 +48,21 @@ function getImportantPermissions(permissions) {
 
     // Map to readable names
     const permissionNames = {
-        'Administrator': 'Administrator',
-        'ManageGuild': 'Manage Server',
-        'ManageRoles': 'Manage Roles',
-        'ManageChannels': 'Manage Channels',
+        'CreateInstantInvite': 'Create Invite',
         'KickMembers': 'Kick',
         'BanMembers': 'Ban',
-        'ModerateMembers': 'Moderate',
+        'ManageChannels': 'Manage Channels',
+        'ManageGuild': 'Manage Server',
+        'ViewAuditLog': 'View Audit Log',
+        'ManageMessages': 'Manage Messages',
         'MuteMembers': 'Mute',
         'DeafenMembers': 'Deafen',
         'MoveMembers': 'Move',
-        'ManageMessages': 'Manage Messages',
-        'ManageWebhooks': 'Manage Webhooks',
         'ManageNicknames': 'Manage Nicknames',
+        'ManageRoles': 'Manage Roles',
+        'ManageWebhooks': 'Manage Webhooks',
         'ManageEmojisAndStickers': 'Manage Emojis',
-        'CreateInstantInvite': 'Create Invite',
-        'ViewAuditLog': 'View Audit Log'
+        'ModerateMembers': 'Moderate'
     };
 
     return important.map(perm => permissionNames[perm] || perm);
@@ -100,8 +98,11 @@ export async function handleRoleInfo(interaction) {
         const importantPerms = getImportantPermissions(role.permissions);
         const permissionsText = importantPerms.length > 0 ? importantPerms.join(', ') : 'None';
 
-        // Build role info text
-        const roleInfoText = `> **Role:** ${role}\n> **Name:** ${role.name}\n> **ID:** \`${role.id}\`\n> **Color:** \`${colorHex}\`\n> **Members:** \`${memberCount}\`\n> **Created:** <t:${createdTimestamp}:F> (<t:${createdTimestamp}:R>)\n> **Hoisted:** ${isHoisted}\n> **Position:** \`${rolePosition}\`` + (roleIcon ? `\n> **[Icon](${roleIcon})** ` : '');
+        // Build role info text - exact format provided
+        const roleInfoContent = `> Role: ${role}\n> Name: ${role.name}\n> ID: ${role.id}\n> Color: ${colorHex}\n> Members: ${memberCount}\n> Created: <t:${createdTimestamp}:F> (<t:${createdTimestamp}:R>)\n> Hoisted: ${isHoisted}\n> Position: ${rolePosition}\n> Icon`;
+
+        // Build permissions text
+        const permissionsContent = `> **Permissions:** ${permissionsText}`;
 
         // Build component array
         const components = [
@@ -121,18 +122,18 @@ export async function handleRoleInfo(interaction) {
                 } : undefined
             },
             {
+                type: 14
+            },
+            {
                 type: 10,
-                content: `**Permissions:** ${permissionsText}`
+                content: roleInfoContent
             },
             {
                 type: 14
             },
             {
                 type: 10,
-                content: roleInfoText
-            },
-            {
-                type: 14
+                content: permissionsContent
             }
         ];
 

@@ -1,16 +1,16 @@
 export default {
-    version: "1.0.85",
-    releaseDate: "Nov 30, 2025 08:45 AM",
-    releaseDateTimestamp: 1764326700,
-    changesSummary: "Added Permissions section and smart member list pagination",
+    version: "1.0.86",
+    releaseDate: "Nov 30, 2025 08:50 AM",
+    releaseDateTimestamp: 1764327000,
+    changesSummary: "Updated /role-info to exact Component V2 format specifications",
 
     changes: [
-        "1. Added Permissions section showing important role permissions (Administrator, Kick, Mute, Ban, etc)",
-        "2. Permissions section displays below role icon in Component V2 format",
-        "3. Member list now fits maximum members possible within 4,000 character limit",
-        "4. Shows 'Too many to display' when members exceed character limit",
-        "5. Member list includes count and join date for each member",
-        "6. Proper character counting to prevent truncation"
+        "1. Updated role info format to match exact specifications",
+        "2. Role details now use plain blockquotes without bold field markers",
+        "3. ID field removed backticks for consistency",
+        "4. Icon field shows as simple text instead of clickable link",
+        "5. Permissions section formatted as blockquote with bold header",
+        "6. Maintained smart member list pagination within 4,000 character limit"
     ],
 
     versionGuide: `
