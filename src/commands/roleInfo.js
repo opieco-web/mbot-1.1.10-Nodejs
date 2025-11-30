@@ -18,6 +18,59 @@ export const roleInfo = new SlashCommandBuilder()
     .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageRoles);
 
 /**
+ * Get important permissions
+ */
+function getImportantPermissions(permissions) {
+    const importantPermissions = [
+        'Administrator',
+        'ManageGuild',
+        'ManageRoles',
+        'ManageChannels',
+        'KickMembers',
+        'BanMembers',
+        'ModerateMembers',
+        'MuteMembers',
+        'DeafenMembers',
+        'MoveMembers',
+        'ManageMessages',
+        'ManageWebhooks',
+        'ManageNicknames',
+        'ManageEmojisAndStickers',
+        'CreateInstantInvite',
+        'ViewAuditLog'
+    ];
+
+    if (!permissions || permissions.bitfield === 0n) {
+        return [];
+    }
+
+    const perms = permissions.toArray();
+    const important = perms.filter(perm => importantPermissions.includes(perm));
+
+    // Map to readable names
+    const permissionNames = {
+        'Administrator': 'Administrator',
+        'ManageGuild': 'Manage Server',
+        'ManageRoles': 'Manage Roles',
+        'ManageChannels': 'Manage Channels',
+        'KickMembers': 'Kick',
+        'BanMembers': 'Ban',
+        'ModerateMembers': 'Moderate',
+        'MuteMembers': 'Mute',
+        'DeafenMembers': 'Deafen',
+        'MoveMembers': 'Move',
+        'ManageMessages': 'Manage Messages',
+        'ManageWebhooks': 'Manage Webhooks',
+        'ManageNicknames': 'Manage Nicknames',
+        'ManageEmojisAndStickers': 'Manage Emojis',
+        'CreateInstantInvite': 'Create Invite',
+        'ViewAuditLog': 'View Audit Log'
+    };
+
+    return important.map(perm => permissionNames[perm] || perm);
+}
+
+/**
  * Handle role info command
  */
 export async function handleRoleInfo(interaction) {
@@ -43,6 +96,10 @@ export async function handleRoleInfo(interaction) {
         // Format color
         const colorHex = role.color ? `#${role.color.toString(16).toUpperCase().padStart(6, '0')}` : 'None';
 
+        // Get important permissions
+        const importantPerms = getImportantPermissions(role.permissions);
+        const permissionsText = importantPerms.length > 0 ? importantPerms.join(', ') : 'None';
+
         // Build role info text
         const roleInfoText = `> **Role:** ${role}\n> **Name:** ${role.name}\n> **ID:** \`${role.id}\`\n> **Color:** \`${colorHex}\`\n> **Members:** \`${memberCount}\`\n> **Created:** <t:${createdTimestamp}:F> (<t:${createdTimestamp}:R>)\n> **Hoisted:** ${isHoisted}\n> **Position:** \`${rolePosition}\`` + (roleIcon ? `\n> **[Icon](${roleIcon})** ` : '');
 
@@ -64,6 +121,10 @@ export async function handleRoleInfo(interaction) {
                 } : undefined
             },
             {
+                type: 10,
+                content: `**Permissions:** ${permissionsText}`
+            },
+            {
                 type: 14
             },
             {
@@ -75,20 +136,54 @@ export async function handleRoleInfo(interaction) {
             }
         ];
 
-        // If full_member_list is requested and there are members
-        if (fullMemberList && memberCount > 0) {
+        // If full_member_list is requested
+        if (fullMemberList) {
+            const MAX_CHARS = 4000;
             let memberListContent = `### **Members:** \`${memberCount}\`\n\n`;
+            let addedMembers = 0;
+            let tooManyMembers = false;
 
-            // Add members with count
-            membersArray.forEach((member, index) => {
+            // Try to add members one by one
+            for (let i = 0; i < membersArray.length; i++) {
+                const member = membersArray[i];
                 const joinedTimestamp = Math.floor(member.joinedTimestamp / 1000);
-                memberListContent += `${index + 1}. <@${member.id}> on <t:${joinedTimestamp}:R>\n`;
-            });
+                const memberLine = `${i + 1}. <@${member.id}> on <t:${joinedTimestamp}:R>\n`;
 
-            components.push({
-                type: 10,
-                content: memberListContent
-            });
+                // Check if adding this member exceeds the limit
+                if ((memberListContent + memberLine).length > MAX_CHARS) {
+                    tooManyMembers = true;
+                    break;
+                }
+
+                memberListContent += memberLine;
+                addedMembers++;
+            }
+
+            // If too many members to display, show only the warning
+            if (tooManyMembers && addedMembers === 0) {
+                components.push({
+                    type: 10,
+                    content: `### **Members:** Too many to display`
+                });
+            } else if (tooManyMembers && addedMembers > 0) {
+                // Show what we could fit
+                components.push({
+                    type: 10,
+                    content: memberListContent
+                });
+            } else if (memberCount > 0) {
+                // All members fit
+                components.push({
+                    type: 10,
+                    content: memberListContent
+                });
+            } else {
+                // No members
+                components.push({
+                    type: 10,
+                    content: `### **Members:** \`0\``
+                });
+            }
         }
 
         const response = {

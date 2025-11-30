@@ -1,16 +1,16 @@
 export default {
-    version: "1.0.84",
-    releaseDate: "Nov 28, 2025 08:40 AM",
-    releaseDateTimestamp: 1764326400,
-    changesSummary: "Implemented Component V2 container format for /role-info command",
+    version: "1.0.85",
+    releaseDate: "Nov 30, 2025 08:45 AM",
+    releaseDateTimestamp: 1764326700,
+    changesSummary: "Added Permissions section and smart member list pagination",
 
     changes: [
-        "1. Converted /role-info to use Component V2 containers (type 17) instead of embeds",
-        "2. Role icon displayed as media accessory with content accessory component (type 9)",
-        "3. Role information formatted as blockquotes with all details",
-        "4. Member list shows count with numbered mentions and join dates",
-        "5. Proper Component V2 formatting with separators and text displays",
-        "6. Hoisted status displayed with Correct/Error emojis"
+        "1. Added Permissions section showing important role permissions (Administrator, Kick, Mute, Ban, etc)",
+        "2. Permissions section displays below role icon in Component V2 format",
+        "3. Member list now fits maximum members possible within 4,000 character limit",
+        "4. Shows 'Too many to display' when members exceed character limit",
+        "5. Member list includes count and join date for each member",
+        "6. Proper character counting to prevent truncation"
     ],
 
     versionGuide: `
