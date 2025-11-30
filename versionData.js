@@ -1,17 +1,16 @@
 export default {
-    version: "1.0.76",
-    releaseDate: "Nov 28, 2025 08:00 AM",
-    releaseDateTimestamp: 1764324000,
-    changesSummary: "Integrated complete roles-connection system with auto-role assignments",
+    version: "1.0.77",
+    releaseDate: "Nov 28, 2025 08:05 AM",
+    releaseDateTimestamp: 1764324300,
+    changesSummary: "Converted /roles-connection to full Component V2 container responses",
 
     changes: [
-        "1. Added /roles-connection slash command (add/remove/list modes)",
-        "2. Integrated guildMemberUpdate event for automatic role connections",
-        "3. Role connections saved in ./serverData/<guildId>.json",
-        "4. Automatic role assignment when members gain/lose main roles",
-        "5. All responses use embed format with proper error handling",
-        "6. Permission validation and role hierarchy checks implemented",
-        "7. Duplicate prevention and empty entry cleanup"
+        "1. All /roles-connection responses now use Component V2 containers (type 17)",
+        "2. Success messages use Correct emoji <:Correct:1440296238305116223>",
+        "3. Error messages use Error emoji <:Error:1440296241090265088>",
+        "4. Info messages use Warning emoji <:warning:1441531830607151195>",
+        "5. List mode shows role connections in organized Component V2 format",
+        "6. All responses consistent with bot's design system"
     ],
 
     versionGuide: `
