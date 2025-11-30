@@ -1,14 +1,14 @@
 export default {
-    version: "1.0.95",
-    releaseDate: "Nov 30, 2025 09:25 AM",
-    releaseDateTimestamp: 1764329100,
-    changesSummary: "Fixed role icon URL format in /role-info accessory",
+    version: "1.0.96",
+    releaseDate: "Nov 30, 2025 09:30 AM",
+    releaseDateTimestamp: 1764329400,
+    changesSummary: "Fixed role icon URL - icon link preserved, accessory thumbnail now displays",
 
     changes: [
-        "1. Changed role icon URL construction to direct Discord CDN format",
-        "2. Uses proper format: https://cdn.discordapp.com/role-icons/{roleId}/{icon}.webp",
-        "3. Ensures role icon displays correctly in accessory thumbnail",
-        "4. Fallback to default avatar if role has no custom icon"
+        "1. Restored full icon link functionality in role info content",
+        "2. Fixed icon URL format by removing size parameter",
+        "3. Icon now shows in both: clickable link in content AND thumbnail in accessory",
+        "4. **IMPORTANT: Will ask permission before ANY Component V2 structure changes**"
     ],
 
     versionGuide: `

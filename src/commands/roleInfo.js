@@ -82,8 +82,8 @@ export async function handleRoleInfo(interaction) {
         // Get role icon/image URL - properly formatted
         let roleIcon = null;
         if (role.icon) {
-            // Build complete role icon URL
-            roleIcon = `https://cdn.discordapp.com/role-icons/${role.id}/${role.icon}.webp?size=256`;
+            // Build complete role icon URL (matching Discord CDN format)
+            roleIcon = `https://cdn.discordapp.com/role-icons/${role.id}/${role.icon}.webp`;
         }
 
         // Get members with role
