@@ -1,14 +1,14 @@
 export default {
-    version: "1.0.94",
-    releaseDate: "Nov 30, 2025 09:20 AM",
-    releaseDateTimestamp: 1764328800,
-    changesSummary: "Role icon always shows in /role-info with fallback",
+    version: "1.0.95",
+    releaseDate: "Nov 30, 2025 09:25 AM",
+    releaseDateTimestamp: 1764329100,
+    changesSummary: "Fixed role icon URL format in /role-info accessory",
 
     changes: [
-        "1. Accessory always included in title component (no conditional check)",
-        "2. Uses role icon if available, fallback to default Discord avatar if not",
-        "3. Ensures consistent appearance for all role-info responses",
-        "4. Better visual presentation without conditional rendering"
+        "1. Changed role icon URL construction to direct Discord CDN format",
+        "2. Uses proper format: https://cdn.discordapp.com/role-icons/{roleId}/{icon}.webp",
+        "3. Ensures role icon displays correctly in accessory thumbnail",
+        "4. Fallback to default avatar if role has no custom icon"
     ],
 
     versionGuide: `

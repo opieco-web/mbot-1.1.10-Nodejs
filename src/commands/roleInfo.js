@@ -79,8 +79,12 @@ export async function handleRoleInfo(interaction) {
         // Get creation date
         const createdTimestamp = Math.floor(role.createdTimestamp / 1000);
 
-        // Get role icon/image URL
-        const roleIcon = role.iconURL({ dynamic: true, size: 256 }) || role.icon;
+        // Get role icon/image URL - properly formatted
+        let roleIcon = null;
+        if (role.icon) {
+            // Build complete role icon URL
+            roleIcon = `https://cdn.discordapp.com/role-icons/${role.id}/${role.icon}.webp?size=256`;
+        }
 
         // Get members with role
         const membersWithRole = await interaction.guild.members.fetch();
