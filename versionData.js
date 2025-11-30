@@ -1,16 +1,14 @@
 export default {
-    version: "1.0.79",
-    releaseDate: "Nov 28, 2025 08:15 AM",
-    releaseDateTimestamp: 1764324900,
-    changesSummary: "Fixed ephemeral flag & simplified remove mode for /roles-connection",
+    version: "1.0.80",
+    releaseDate: "Nov 28, 2025 08:20 AM",
+    releaseDateTimestamp: 1764325200,
+    changesSummary: "Fixed ephemeral messages to be properly hidden & cleared all role connections",
 
     changes: [
-        "1. Fixed all bot responses to be properly hidden (ephemeral) - flags: 64",
-        "2. Reverse option now required ONLY for add mode, not remove mode",
-        "3. Remove mode simplified: just provide Main Role, Action, Connection Role",
-        "4. Clearer error messages differentiating add vs remove requirements",
-        "5. All responses now have content field for Discord compatibility",
-        "6. Ephemeral flag (64) ensures all responses are hidden from other users"
+        "1. Fixed ephemeral flag: now using ephemeral: true for proper Discord formatting",
+        "2. All bot responses are now HIDDEN from other users - only command user sees them",
+        "3. Cleared all existing role connections from data files - fresh start",
+        "4. Ready to add new role connections with working functionality"
     ],
 
     versionGuide: `

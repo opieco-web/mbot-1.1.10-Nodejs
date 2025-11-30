@@ -56,7 +56,7 @@ export const rolesConnection = new SlashCommandBuilder()
 function createSuccessResponse(title, description) {
     return {
         content: ' ',
-        flags: 64,
+        ephemeral: true,
         components: [{
             type: 17,
             components: [
@@ -74,7 +74,7 @@ function createSuccessResponse(title, description) {
 function createErrorResponse(title, description) {
     return {
         content: ' ',
-        flags: 64,
+        ephemeral: true,
         components: [{
             type: 17,
             components: [
@@ -92,7 +92,7 @@ function createErrorResponse(title, description) {
 function createInfoResponse(title, description) {
     return {
         content: ' ',
-        flags: 64,
+        ephemeral: true,
         components: [{
             type: 17,
             components: [
@@ -249,7 +249,7 @@ async function handleListMode(interaction, guildId) {
 
         return interaction.reply({
             content: ' ',
-            flags: 64,
+            ephemeral: true,
             components: [{
                 type: 17,
                 components: [
