@@ -45,14 +45,14 @@ async function execute(interaction) {
 
         if (!member) {
             return interaction.reply({
-                content: ' ',
                 flags: 32768,
                 components: [{
                     type: 17,
-                    components: [{
-                        type: 10,
-                        content: `## <:Error:1440296241090265088> Error\n\nUser not found in this server.`
-                    }]
+                    components: [
+                        { type: 10, content: '### <:Error:1440296241090265088> Error' },
+                        { type: 14 },
+                        { type: 10, content: 'User not found in this server.' }
+                    ]
                 }]
             });
         }
@@ -61,14 +61,14 @@ async function execute(interaction) {
         const botRole = interaction.guild.members.me.roles.highest;
         if (botRole.position <= role.position) {
             return interaction.reply({
-                content: ' ',
                 flags: 32768,
                 components: [{
                     type: 17,
-                    components: [{
-                        type: 10,
-                        content: `## <:Error:1440296241090265088> Error\n\nBoth role is too high to manage. Bot role must be higher than the target role.`
-                    }]
+                    components: [
+                        { type: 10, content: '### <:Error:1440296241090265088> Error' },
+                        { type: 14 },
+                        { type: 10, content: 'Bot role is too low to manage. Bot role must be higher than the target role.' }
+                    ]
                 }]
             });
         }
@@ -77,55 +77,55 @@ async function execute(interaction) {
         if (action === 'add') {
             if (member.roles.cache.has(role.id)) {
                 return interaction.reply({
-                    content: ' ',
                     flags: 32768,
                     components: [{
                         type: 17,
-                        components: [{
-                            type: 10,
-                            content: `## <:warning:1441531830607151195> Already Has Role\n\n${user} already has ${role}`
-                        }]
+                        components: [
+                            { type: 10, content: '### <:warning:1441531830607151195> Already Has Role' },
+                            { type: 14 },
+                            { type: 10, content: `${user} already has ${role}` }
+                        ]
                     }]
                 });
             }
 
             await member.roles.add(role);
             return interaction.reply({
-                content: ' ',
                 flags: 32768,
                 components: [{
                     type: 17,
-                    components: [{
-                        type: 10,
-                        content: `## <:Success:1440296238305116223> Role Added\n\nAdded ${role} to ${user}`
-                    }]
+                    components: [
+                        { type: 10, content: '### <:Success:1440296238305116223> Role Added' },
+                        { type: 14 },
+                        { type: 10, content: `Added ${role} to ${user}` }
+                    ]
                 }]
             });
         } else {
             if (!member.roles.cache.has(role.id)) {
                 return interaction.reply({
-                    content: ' ',
                     flags: 32768,
                     components: [{
                         type: 17,
-                        components: [{
-                            type: 10,
-                            content: `## <:warning:1441531830607151195> Doesn't Have Role\n\n${user} doesn't have ${role}`
-                        }]
+                        components: [
+                            { type: 10, content: '### <:warning:1441531830607151195> Doesn\'t Have Role' },
+                            { type: 14 },
+                            { type: 10, content: `${user} doesn't have ${role}` }
+                        ]
                     }]
                 });
             }
 
             await member.roles.remove(role);
             return interaction.reply({
-                content: ' ',
                 flags: 32768,
                 components: [{
                     type: 17,
-                    components: [{
-                        type: 10,
-                        content: `## <:Success:1440296238305116223> Role Removed\n\nRemoved ${role} from ${user}`
-                    }]
+                    components: [
+                        { type: 10, content: '### <:Success:1440296238305116223> Role Removed' },
+                        { type: 14 },
+                        { type: 10, content: `Removed ${role} from ${user}` }
+                    ]
                 }]
             });
         }
@@ -133,14 +133,14 @@ async function execute(interaction) {
     } catch (error) {
         console.error('Error in role-manage command:', error);
         return interaction.reply({
-            content: ' ',
             flags: 32768,
             components: [{
                 type: 17,
-                components: [{
-                    type: 10,
-                    content: `## <:Error:1440296241090265088> Error\n\n${error.message}`
-                }]
+                components: [
+                    { type: 10, content: '### <:Error:1440296241090265088> Error' },
+                    { type: 14 },
+                    { type: 10, content: error.message }
+                ]
             }]
         });
     }

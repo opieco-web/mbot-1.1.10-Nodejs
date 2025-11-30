@@ -96,14 +96,14 @@ async function execute(interaction) {
         const botRole = interaction.guild.members.me.roles.highest;
         if (botRole.position <= role.position) {
             return interaction.reply({
-                content: ' ',
                 flags: 32768,
                 components: [{
                     type: 17,
-                    components: [{
-                        type: 10,
-                        content: `## <:Error:1440296241090265088> Error\n\nBot role is too low. Bot role must be higher than the target role.`
-                    }]
+                    components: [
+                        { type: 10, content: '### <:Error:1440296241090265088> Error' },
+                        { type: 14 },
+                        { type: 10, content: 'Bot role is too low to manage. Bot role must be higher than the target role.' }
+                    ]
                 }]
             });
         }
@@ -126,28 +126,34 @@ async function execute(interaction) {
 
         // Show processing message
         await interaction.editReply({
-            content: ' ',
+            flags: 32768,
             components: [{
                 type: 17,
-                components: [{
-                    type: 10,
-                    content: `## ⏳ Processing\n\nApplying roles to ${targetMembers.length} members...`
-                }]
+                components: [
+                    { type: 10, content: '### ⏳ Processing' },
+                    { type: 14 },
+                    { type: 10, content: `Applying roles to ${targetMembers.length} members...` }
+                ]
             }]
         });
 
         // Process members with ultra-fast parallel batches
         const result = await processMembersInBatches(targetMembers, role, action);
 
+        // Build result message
+        const targetLabel = target === 'all_users' ? 'All Humans' : target === 'all_bots' ? 'All Bots' : 'All Users + Bots';
+        const actionLabel = action === 'add' ? 'Added' : 'Removed';
+
         // Send final result
         return interaction.editReply({
-            content: ' ',
+            flags: 32768,
             components: [{
                 type: 17,
-                components: [{
-                    type: 10,
-                    content: `## <:Success:1440296238305116223> Bulk Operation Complete\n\n**Action:** ${action === 'add' ? 'Added' : 'Removed'}\n**Target:** ${target === 'all_users' ? 'All Humans' : target === 'all_bots' ? 'All Bots' : 'All Users + Bots'}\n**Role:** ${role}\n**Success:** ${result.success}/${result.total}\n**Failed:** ${result.failed}\n**Duration:** ${result.duration}s`
-                }]
+                components: [
+                    { type: 10, content: '### <:Success:1440296238305116223> Bulk Operation Complete' },
+                    { type: 14 },
+                    { type: 10, content: `**Action:** ${actionLabel}\n**Target:** ${targetLabel}\n**Role:** ${role}\n**Success:** ${result.success}/${result.total}\n**Failed:** ${result.failed}\n**Duration:** ${result.duration}s` }
+                ]
             }]
         });
 
@@ -156,26 +162,27 @@ async function execute(interaction) {
         
         try {
             return interaction.editReply({
-                content: ' ',
+                flags: 32768,
                 components: [{
                     type: 17,
-                    components: [{
-                        type: 10,
-                        content: `## <:Error:1440296241090265088> Error\n\n${error.message}`
-                    }]
+                    components: [
+                        { type: 10, content: '### <:Error:1440296241090265088> Error' },
+                        { type: 14 },
+                        { type: 10, content: error.message }
+                    ]
                 }]
             });
         } catch (e) {
             // If editReply fails, try reply
             return interaction.reply({
-                content: ' ',
                 flags: 32768,
                 components: [{
                     type: 17,
-                    components: [{
-                        type: 10,
-                        content: `## <:Error:1440296241090265088> Error\n\n${error.message}`
-                    }]
+                    components: [
+                        { type: 10, content: '### <:Error:1440296241090265088> Error' },
+                        { type: 14 },
+                        { type: 10, content: error.message }
+                    ]
                 }]
             });
         }
