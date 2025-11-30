@@ -6,6 +6,8 @@ import versionData from './versionData.js';
 import { cleanupKickedServer, cleanupLeftServer, cleanupOrphanedServers } from './src/utils/cleanupServer.js';
 import { handleRolesConnection } from './src/commands/rolesConnection.js';
 import { handleRoleInfo } from './src/commands/roleInfo.js';
+import { handleRoleManage } from './src/commands/roleManage.js';
+import { handleRoleBulk } from './src/commands/roleBulk.js';
 import { execute as guildMemberUpdateHandler, name as guildMemberUpdateName } from './src/events/guildMemberUpdate.js';
 
 const TOKEN = process.env.DISCORD_BOT_TOKEN;
@@ -2064,6 +2066,16 @@ Type \`reset\` to revert back to your original name. Examples: Shadow, Phoenix, 
     // ROLE-INFO - Get detailed role information
     if (commandName === 'role-info') {
         return handleRoleInfo(interaction);
+    }
+
+    // ROLE-MANAGE - Add or remove role from single user
+    if (commandName === 'role-manage') {
+        return handleRoleManage(interaction);
+    }
+
+    // ROLE-BULK - Bulk add/remove role to thousands of users with parallel processing
+    if (commandName === 'role-bulk') {
+        return handleRoleBulk(interaction);
     }
 
     // SEARCH - Component V2 Container

@@ -5,6 +5,8 @@ import { utilityCommands } from './utility.js';
 import { configCommand } from './config.js';
 import { rolesConnection } from './rolesConnection.js';
 import { roleInfo } from './roleInfo.js';
+import { roleManage } from './roleManage.js';
+import { roleBulk } from './roleBulk.js';
 
 export const allCommands = [
     ...nicknameCommands,
@@ -13,5 +15,7 @@ export const allCommands = [
     ...utilityCommands,
     ...configCommand,
     rolesConnection,
-    roleInfo
+    roleInfo,
+    roleManage,
+    roleBulk
 ];
