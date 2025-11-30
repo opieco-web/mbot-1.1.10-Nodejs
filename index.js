@@ -2055,6 +2055,11 @@ Type \`reset\` to revert back to your original name. Examples: Shadow, Phoenix, 
         return interaction.reply(configPanel);
     }
 
+    // ROLES-CONNECTION - Automatic Role Connections System
+    if (commandName === 'roles-connection') {
+        return handleRolesConnection(interaction);
+    }
+
     // SEARCH - Component V2 Container
     // type 17 = Container | type 10 = TextDisplay | type 14 = Separator | type 9 = Content Accessory
     if (commandName === 'search') {
@@ -3467,6 +3472,11 @@ client.on(Events.GuildMemberAdd, async member => {
         }
     }, delay);
 });
+
+// ------------------------
+// GUILD MEMBER UPDATE - Auto Role Connections
+// ------------------------
+client.on(guildMemberUpdateName, guildMemberUpdateHandler);
 
 // ------------------------
 client.login(TOKEN);

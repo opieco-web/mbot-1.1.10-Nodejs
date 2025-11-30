@@ -1,15 +1,17 @@
 export default {
-    version: "1.0.75",
-    releaseDate: "Nov 28, 2025 07:30 AM",
-    releaseDateTimestamp: 1764322800,
-    changesSummary: "All AFK messages now use Component V2 container format",
+    version: "1.0.76",
+    releaseDate: "Nov 28, 2025 08:00 AM",
+    releaseDateTimestamp: 1764324000,
+    changesSummary: "Integrated complete roles-connection system with auto-role assignments",
 
     changes: [
-        "1. AFK mention replies now use Component V2 container (type 17)",
-        "2. Welcome back message uses Component V2 container",
-        "3. Prefix command AFK set message uses Component V2 container",
-        "4. All AFK messages use flags: 32768 (ephemeral)",
-        "5. Consistent formatting across all AFK notifications"
+        "1. Added /roles-connection slash command (add/remove/list modes)",
+        "2. Integrated guildMemberUpdate event for automatic role connections",
+        "3. Role connections saved in ./serverData/<guildId>.json",
+        "4. Automatic role assignment when members gain/lose main roles",
+        "5. All responses use embed format with proper error handling",
+        "6. Permission validation and role hierarchy checks implemented",
+        "7. Duplicate prevention and empty entry cleanup"
     ],
 
     versionGuide: `
