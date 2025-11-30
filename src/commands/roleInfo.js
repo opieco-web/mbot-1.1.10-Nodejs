@@ -99,7 +99,12 @@ export async function handleRoleInfo(interaction) {
         const permissionsText = importantPerms.length > 0 ? importantPerms.join(', ') : 'None';
 
         // Build role info text - exact format provided
-        const roleInfoContent = `> Role: ${role}\n> Name: ${role.name}\n> ID: ${role.id}\n> Color: ${colorHex}\n> Members: ${memberCount}\n> Created: <t:${createdTimestamp}:F> (<t:${createdTimestamp}:R>)\n> Hoisted: ${isHoisted}\n> Position: ${rolePosition}\n> Icon`;
+        let roleInfoContent = `> Role: ${role}\n> Name: ${role.name}\n> ID: \`${role.id}\`\n> Color: \`${colorHex}\`\n> Members: \`${memberCount}\`\n> Created: <t:${createdTimestamp}:F> (<t:${createdTimestamp}:R>)\n> Hoisted: ${isHoisted}\n> Position: \`${rolePosition}\``;
+
+        // Add icon link if available
+        if (roleIcon) {
+            roleInfoContent += `\n> [IconLink](${roleIcon}),`;
+        }
 
         // Build permissions text
         const permissionsContent = `> **Permissions:** ${permissionsText}`;

@@ -1,16 +1,16 @@
 export default {
-    version: "1.0.86",
-    releaseDate: "Nov 30, 2025 08:50 AM",
-    releaseDateTimestamp: 1764327000,
-    changesSummary: "Updated /role-info to exact Component V2 format specifications",
+    version: "1.0.87",
+    releaseDate: "Nov 30, 2025 08:55 AM",
+    releaseDateTimestamp: 1764327300,
+    changesSummary: "Updated /role-info format with backticks and icon link",
 
     changes: [
-        "1. Updated role info format to match exact specifications",
-        "2. Role details now use plain blockquotes without bold field markers",
-        "3. ID field removed backticks for consistency",
-        "4. Icon field shows as simple text instead of clickable link",
-        "5. Permissions section formatted as blockquote with bold header",
-        "6. Maintained smart member list pagination within 4,000 character limit"
+        "1. Added backticks around ID field",
+        "2. Added backticks around Color field",
+        "3. Added backticks around Members count field",
+        "4. Added backticks around Position field",
+        "5. Changed Icon from plain text to clickable link with URL",
+        "6. Icon link includes size=256 parameter and comma suffix"
     ],
 
     versionGuide: `
