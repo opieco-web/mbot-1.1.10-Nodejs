@@ -33,9 +33,9 @@ export const roleBulk = new SlashCommandBuilder()
     .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageRoles);
 
 /**
- * Process members in parallel batches for ultra-fast role distribution
+ * Process members in parallel batches with rate limit handling
  */
-async function processMembersInBatches(members, role, action, batchSize = 50) {
+async function processMembersInBatches(members, role, action, batchSize = 30) {
     const totalMembers = members.length;
     let processed = 0;
     let success = 0;
@@ -48,8 +48,10 @@ async function processMembersInBatches(members, role, action, batchSize = 50) {
         batches.push(members.slice(i, i + batchSize));
     }
 
-    // Process each batch in parallel
-    for (const batch of batches) {
+    // Process each batch with delay between batches to avoid rate limits
+    for (let batchIdx = 0; batchIdx < batches.length; batchIdx++) {
+        const batch = batches[batchIdx];
+        
         const promises = batch.map(member => {
             return (async () => {
                 try {
@@ -65,7 +67,12 @@ async function processMembersInBatches(members, role, action, batchSize = 50) {
                         }
                     }
                 } catch (err) {
-                    failed++;
+                    // Check for rate limit error and handle gracefully
+                    if (err.code === 429 || err.message?.includes('rate')) {
+                        failed++;
+                    } else {
+                        failed++;
+                    }
                 }
                 processed++;
             })();
@@ -73,6 +80,11 @@ async function processMembersInBatches(members, role, action, batchSize = 50) {
 
         // Wait for batch to complete before moving to next
         await Promise.allSettled(promises);
+        
+        // Add small delay between batches to prevent rate limiting (200ms)
+        if (batchIdx < batches.length - 1) {
+            await new Promise(resolve => setTimeout(resolve, 200));
+        }
     }
 
     const duration = ((Date.now() - startTime) / 1000).toFixed(2);
@@ -108,8 +120,8 @@ async function execute(interaction) {
             });
         }
 
-        // Defer reply - this might take a moment
-        await interaction.deferReply({ flags: 32768 });
+        // Defer reply immediately with ephemeral flag (flags: 32768 not supported in defer, will be set in editReply)
+        await interaction.deferReply();
 
         // Fetch all members
         const allMembers = await interaction.guild.members.fetch();

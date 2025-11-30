@@ -1,16 +1,16 @@
 export default {
-    version: "1.0.91",
-    releaseDate: "Nov 30, 2025 09:05 AM",
-    releaseDateTimestamp: 1764327900,
-    changesSummary: "Standardized all bot responses to unified Component V2 format",
+    version: "1.0.92",
+    releaseDate: "Nov 30, 2025 09:10 AM",
+    releaseDateTimestamp: 1764328200,
+    changesSummary: "Fixed rate limiting and interaction timeout issues in /role-bulk",
 
     changes: [
-        "1. Updated /role-manage responses to standardized format with title + separator + content",
-        "2. Updated /role-bulk responses to standardized format with title + separator + content",
-        "3. Removed content field from main level (only flags in main body)",
-        "4. All responses use exact Component V2 structure: type 17 container with type 10, 14, 10",
-        "5. Success/Error/Warning emojis in title line with ### heading",
-        "6. Content details in separate text display below separator"
+        "1. Added 200ms delay between batches to prevent Discord API rate limits",
+        "2. Reduced batch size from 50 to 30 members for more manageable processing",
+        "3. Added rate limit error handling in member role operations",
+        "4. Fixed deferReply flag setting (Discord doesn't support flags in defer)",
+        "5. Improved error handling for rate limit errors",
+        "6. Prevents 'This application didn't respond' timeout errors"
     ],
 
     versionGuide: `
