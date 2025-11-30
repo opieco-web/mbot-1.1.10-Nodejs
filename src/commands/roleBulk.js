@@ -27,7 +27,7 @@ export const roleBulk = new SlashCommandBuilder()
             .addChoices(
                 { name: 'All Users (humans only)', value: 'all_users' },
                 { name: 'All Bots', value: 'all_bots' },
-                { name: 'Both (users and bots)', value: 'both' }
+                { name: 'all users&bots (both)', value: 'both' }
             )
     )
     .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageRoles);
