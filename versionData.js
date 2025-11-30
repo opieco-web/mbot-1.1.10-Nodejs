@@ -1,17 +1,16 @@
 export default {
-    version: "1.0.78",
-    releaseDate: "Nov 28, 2025 08:10 AM",
-    releaseDateTimestamp: 1764324600,
-    changesSummary: "Added reverse functionality to /roles-connection system",
+    version: "1.0.79",
+    releaseDate: "Nov 28, 2025 08:15 AM",
+    releaseDateTimestamp: 1764324900,
+    changesSummary: "Fixed ephemeral flag & simplified remove mode for /roles-connection",
 
     changes: [
-        "1. Added 'reverse' boolean option to /roles-connection command",
-        "2. Reverse option required for add/remove modes",
-        "3. When reverse=true, bot undoes role changes when main role is removed",
-        "4. When reverse=false, bot only applies when main role is added",
-        "5. Reverse setting stored in JSON: {add_role: [...], remove_role: [...], reverse: true/false}",
-        "6. List mode shows reverse status for each rule (✅ ON / ❌ OFF)",
-        "7. guildMemberUpdate checks reverse flag and restores affected roles accordingly"
+        "1. Fixed all bot responses to be properly hidden (ephemeral) - flags: 64",
+        "2. Reverse option now required ONLY for add mode, not remove mode",
+        "3. Remove mode simplified: just provide Main Role, Action, Connection Role",
+        "4. Clearer error messages differentiating add vs remove requirements",
+        "5. All responses now have content field for Discord compatibility",
+        "6. Ephemeral flag (64) ensures all responses are hidden from other users"
     ],
 
     versionGuide: `

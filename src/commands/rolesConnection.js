@@ -34,7 +34,7 @@ export const rolesConnection = new SlashCommandBuilder()
     .addBooleanOption(option =>
         option
             .setName('reverse')
-            .setDescription('Undo role changes when main role is removed (required for add/remove)')
+            .setDescription('Undo role changes when main role is removed (required only for ADD mode)')
             .setRequired(false)
     )
     .addRoleOption(option =>
@@ -55,7 +55,8 @@ export const rolesConnection = new SlashCommandBuilder()
  */
 function createSuccessResponse(title, description) {
     return {
-        flags: 32768,
+        content: ' ',
+        flags: 64,
         components: [{
             type: 17,
             components: [
@@ -72,7 +73,8 @@ function createSuccessResponse(title, description) {
  */
 function createErrorResponse(title, description) {
     return {
-        flags: 32768,
+        content: ' ',
+        flags: 64,
         components: [{
             type: 17,
             components: [
@@ -89,7 +91,8 @@ function createErrorResponse(title, description) {
  */
 function createInfoResponse(title, description) {
     return {
-        flags: 32768,
+        content: ' ',
+        flags: 64,
         components: [{
             type: 17,
             components: [
@@ -127,10 +130,19 @@ export async function handleRolesConnection(interaction) {
     const connectionRole1 = interaction.options.getRole('connection-role1');
     const connectionRole2 = interaction.options.getRole('connection-role2');
 
-    if (!mainRole || !action || reverse === null || !connectionRole1) {
+    if (!mainRole || !action || !connectionRole1) {
+        const errorMsg = mode === 'add' 
+            ? 'For **add** mode, you must provide:\n• Main Role\n• Action\n• Reverse (On/Off)\n• Connection Role 1'
+            : 'For **remove** mode, you must provide:\n• Main Role\n• Action\n• Connection Role 1';
+        
+        return interaction.reply(createErrorResponse('Missing Parameters', errorMsg));
+    }
+
+    // For add mode only, reverse is required
+    if (mode === 'add' && reverse === null) {
         return interaction.reply(createErrorResponse(
             'Missing Parameters',
-            'For **add** or **remove** mode, you must provide:\n• Main Role\n• Action\n• Reverse (On/Off)\n• Connection Role 1'
+            'For **add** mode, the **Reverse** option is required (set to On or Off).'
         ));
     }
 
@@ -236,7 +248,8 @@ async function handleListMode(interaction, guildId) {
         }
 
         return interaction.reply({
-            flags: 32768,
+            content: ' ',
+            flags: 64,
             components: [{
                 type: 17,
                 components: [
