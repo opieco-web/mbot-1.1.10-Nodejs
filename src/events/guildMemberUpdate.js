@@ -1,5 +1,5 @@
 import { Events } from 'discord.js';
-import { getMemberRoleActions } from '../utils/rolesConnectionData.js';
+import { getMemberRoleActionsGain, getMemberRoleActionsLose } from '../utils/rolesConnectionData.js';
 
 export const name = Events.GuildMemberUpdate;
 
@@ -14,12 +14,20 @@ export async function execute(oldMember, newMember) {
         }
 
         const guildId = newMember.guild.id;
-        const memberRoleIds = Array.from(newMember.roles.cache.keys());
+        const oldMemberRoleIds = Array.from(oldMember.roles.cache.keys());
+        const newMemberRoleIds = Array.from(newMember.roles.cache.keys());
 
-        // Get roles to add/remove based on connections
-        const { rolesToAdd, rolesToRemove } = getMemberRoleActions(guildId, newMember.id, memberRoleIds);
+        // Check if member gained any main roles
+        const gainedRoles = newMemberRoleIds.filter(role => !oldMemberRoleIds.includes(role));
+        const lostRoles = oldMemberRoleIds.filter(role => !newMemberRoleIds.includes(role));
 
-        if (rolesToAdd.length === 0 && rolesToRemove.length === 0) {
+        // Get roles to add/remove based on connections when gaining main role
+        const { rolesToAdd, rolesToRemove } = getMemberRoleActionsGain(guildId, newMemberRoleIds);
+        
+        // Get roles to restore if losing main role with reverse enabled
+        const rolesToRestore = getMemberRoleActionsLose(guildId, oldMemberRoleIds, newMemberRoleIds);
+
+        if (rolesToAdd.length === 0 && rolesToRemove.length === 0 && rolesToRestore.length === 0) {
             return;
         }
 
@@ -36,6 +44,10 @@ export async function execute(oldMember, newMember) {
 
             if (rolesToRemove.length > 0) {
                 await newMember.roles.remove(rolesToRemove, 'Automatic role connection');
+            }
+
+            if (rolesToRestore.length > 0) {
+                await newMember.roles.add(rolesToRestore, 'Reversing role connection');
             }
         } catch (e) {
             console.error(`Failed to apply role connections for ${newMember.user.tag}:`, e.message);

@@ -1,16 +1,17 @@
 export default {
-    version: "1.0.77",
-    releaseDate: "Nov 28, 2025 08:05 AM",
-    releaseDateTimestamp: 1764324300,
-    changesSummary: "Converted /roles-connection to full Component V2 container responses",
+    version: "1.0.78",
+    releaseDate: "Nov 28, 2025 08:10 AM",
+    releaseDateTimestamp: 1764324600,
+    changesSummary: "Added reverse functionality to /roles-connection system",
 
     changes: [
-        "1. All /roles-connection responses now use Component V2 containers (type 17)",
-        "2. Success messages use Correct emoji <:Correct:1440296238305116223>",
-        "3. Error messages use Error emoji <:Error:1440296241090265088>",
-        "4. Info messages use Warning emoji <:warning:1441531830607151195>",
-        "5. List mode shows role connections in organized Component V2 format",
-        "6. All responses consistent with bot's design system"
+        "1. Added 'reverse' boolean option to /roles-connection command",
+        "2. Reverse option required for add/remove modes",
+        "3. When reverse=true, bot undoes role changes when main role is removed",
+        "4. When reverse=false, bot only applies when main role is added",
+        "5. Reverse setting stored in JSON: {add_role: [...], remove_role: [...], reverse: true/false}",
+        "6. List mode shows reverse status for each rule (✅ ON / ❌ OFF)",
+        "7. guildMemberUpdate checks reverse flag and restores affected roles accordingly"
     ],
 
     versionGuide: `
