@@ -113,13 +113,18 @@ export async function handleRoleInfo(interaction) {
         // Build permissions text
         const permissionsContent = `> **Permissions:** ${permissionsText}`;
 
-        // Build component array - matching botinfo pattern
+        // Build component array - Type 9 Content Accessory structure
         const components = [];
         
-        // Title with accessory (always show icon)
+        // Title with Type 9 accessory container
         const titleComponent = {
-            type: 10,
-            content: `-# The information about\n## ${role}`,
+            type: 9,
+            components: [
+                {
+                    type: 10,
+                    content: `## ${role}\n-# All kinds of information about this role is given.`
+                }
+            ],
             accessory: {
                 type: 11,
                 media: {

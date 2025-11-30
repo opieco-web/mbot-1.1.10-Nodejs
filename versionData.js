@@ -1,14 +1,15 @@
 export default {
-    version: "1.0.96",
-    releaseDate: "Nov 30, 2025 09:30 AM",
-    releaseDateTimestamp: 1764329400,
-    changesSummary: "Fixed role icon URL - icon link preserved, accessory thumbnail now displays",
+    version: "1.0.97",
+    releaseDate: "Nov 30, 2025 09:35 AM",
+    releaseDateTimestamp: 1764329700,
+    changesSummary: "Updated /role-info to use Type 9 Content Accessory structure for Component V2",
 
     changes: [
-        "1. Restored full icon link functionality in role info content",
-        "2. Fixed icon URL format by removing size parameter",
-        "3. Icon now shows in both: clickable link in content AND thumbnail in accessory",
-        "4. **IMPORTANT: Will ask permission before ANY Component V2 structure changes**"
+        "1. Changed title component from type 10 to type 9 (Content Accessory)",
+        "2. Wrapped title content in components array within type 9",
+        "3. Moved accessory (type 11) inside type 9 structure",
+        "4. Improved title formatting with role mention and descriptive text",
+        "5. Maintains flags: 32768 and type 17 container structure"
     ],
 
     versionGuide: `
