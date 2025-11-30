@@ -112,20 +112,17 @@ export async function handleRoleInfo(interaction) {
         // Build component array - matching botinfo pattern
         const components = [];
         
-        // Title with optional accessory (like botinfo does it)
+        // Title with accessory (always show icon)
         const titleComponent = {
             type: 10,
-            content: `-# The information about\n## ${role}`
-        };
-        
-        if (roleIcon) {
-            titleComponent.accessory = {
+            content: `-# The information about\n## ${role}`,
+            accessory: {
                 type: 11,
                 media: {
-                    url: roleIcon
+                    url: roleIcon || 'https://cdn.discordapp.com/embed/avatars/0.png'
                 }
-            };
-        }
+            }
+        };
         
         components.push(titleComponent);
         components.push({ type: 14 });

@@ -1,15 +1,14 @@
 export default {
-    version: "1.0.93",
-    releaseDate: "Nov 30, 2025 09:15 AM",
-    releaseDateTimestamp: 1764328500,
-    changesSummary: "Fixed /role-info Component V2 format to match working botinfo pattern",
+    version: "1.0.94",
+    releaseDate: "Nov 30, 2025 09:20 AM",
+    releaseDateTimestamp: 1764328800,
+    changesSummary: "Role icon always shows in /role-info with fallback",
 
     changes: [
-        "1. Changed title component from type 9 to type 10 (matching botinfo)",
-        "2. Accessory now directly on type 10 component, not on type 9",
-        "3. Removed unnecessary type 9 wrapper structure",
-        "4. Now follows same Component V2 pattern as botinfo (which works perfectly)",
-        "5. Eliminates BASE_TYPE_REQUIRED error for accessory field"
+        "1. Accessory always included in title component (no conditional check)",
+        "2. Uses role icon if available, fallback to default Discord avatar if not",
+        "3. Ensures consistent appearance for all role-info responses",
+        "4. Better visual presentation without conditional rendering"
     ],
 
     versionGuide: `
