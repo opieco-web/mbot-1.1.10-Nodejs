@@ -1,14 +1,15 @@
 export default {
-    version: "1.0.90",
-    releaseDate: "Nov 30, 2025 09:10 AM",
-    releaseDateTimestamp: 1764328200,
-    changesSummary: "Fixed Discord component validation error for accessory field",
+    version: "1.0.91",
+    releaseDate: "Nov 30, 2025 09:15 AM",
+    releaseDateTimestamp: 1764328500,
+    changesSummary: "Fixed component validation and improved permissions display",
 
     changes: [
-        "1. Fixed 'BASE_TYPE_REQUIRED' error by conditionally adding accessory field",
-        "2. Accessory field only added when role icon exists",
-        "3. Prevents undefined values from breaking component validation",
-        "4. Improved component structure for Discord API compatibility"
+        "1. Fixed Discord component validation by removing undefined values",
+        "2. Cleaned response JSON to ensure no undefined fields",
+        "3. Improved permissions display with better formatting",
+        "4. Added line breaks in permissions section for readability",
+        "5. Filtered components array to prevent null/undefined entries"
     ],
 
     versionGuide: `

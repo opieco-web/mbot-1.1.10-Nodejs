@@ -129,8 +129,13 @@ export async function handleRoleInfo(interaction) {
             roleInfoContent += `\n> [IconLink](${roleIcon}),`;
         }
 
-        // Build permissions text
-        const permissionsContent = `> **Permissions:** ${permissionsText}`;
+        // Build permissions text - format nicely with line breaks for better display
+        let permissionsContent = `> **Permissions:**`;
+        if (importantPerms.length > 0) {
+            permissionsContent += `\n> ${importantPerms.join(', ')}`;
+        } else {
+            permissionsContent += `\n> None`;
+        }
 
         // Build component array
         const headerComponent = {
@@ -221,18 +226,22 @@ export async function handleRoleInfo(interaction) {
             }
         }
 
+        // Filter out any undefined values and build clean response
+        const cleanComponents = components.filter(c => c !== undefined && c !== null);
+        
         const response = {
             content: ' ',
             flags: 32768,
             components: [
                 {
                     type: 17,
-                    components: components
+                    components: cleanComponents
                 }
             ]
         };
 
-        return interaction.reply(response);
+        // Clean response to remove undefined values
+        return interaction.reply(JSON.parse(JSON.stringify(response)));
 
     } catch (error) {
         console.error('Error in role-info command:', error);
