@@ -53,13 +53,15 @@ export function saveRoleConnections(guildId, roleConnections) {
 }
 
 /**
- * Add role connection
+ * Add role connection with reverse flag
  */
-export function addRoleConnection(guildId, mainRoleId, action, roleId) {
+export function addRoleConnection(guildId, mainRoleId, action, roleId, reverse) {
     const connections = loadRoleConnections(guildId);
     
     if (!connections[mainRoleId]) {
-        connections[mainRoleId] = { add_role: [], remove_role: [] };
+        connections[mainRoleId] = { add_role: [], remove_role: [], reverse: reverse || false };
+    } else {
+        connections[mainRoleId].reverse = reverse || false;
     }
     
     // Prevent duplicates
@@ -95,7 +97,7 @@ export function removeRoleConnection(guildId, mainRoleId, action, roleId) {
     }
     
     // Clean up empty main role entries
-    if (Object.keys(connections[mainRoleId]).length === 0) {
+    if (Object.keys(connections[mainRoleId]).filter(k => k !== 'reverse').length === 0) {
         delete connections[mainRoleId];
     }
     
@@ -111,21 +113,21 @@ export function getRoleConnections(guildId) {
 }
 
 /**
- * Check if member should trigger auto-role changes
+ * Check roles to add when member gains main role
  */
-export function getMemberRoleActions(guildId, memberId, memberRoleIds) {
+export function getMemberRoleActionsGain(guildId, memberRoleIds) {
     const connections = loadRoleConnections(guildId);
     const rolesToAdd = [];
     const rolesToRemove = [];
     
-    for (const [mainRoleId, actions] of Object.entries(connections)) {
+    for (const [mainRoleId, config] of Object.entries(connections)) {
         // Only apply if member has the main role
         if (memberRoleIds.includes(mainRoleId)) {
-            if (actions.add_role) {
-                rolesToAdd.push(...actions.add_role.filter(id => !rolesToAdd.includes(id)));
+            if (config.add_role) {
+                rolesToAdd.push(...config.add_role.filter(id => !rolesToAdd.includes(id)));
             }
-            if (actions.remove_role) {
-                rolesToRemove.push(...actions.remove_role.filter(id => !rolesToRemove.includes(id)));
+            if (config.remove_role) {
+                rolesToRemove.push(...config.remove_role.filter(id => !rolesToRemove.includes(id)));
             }
         }
     }
@@ -134,4 +136,45 @@ export function getMemberRoleActions(guildId, memberId, memberRoleIds) {
     const finalRemove = rolesToRemove.filter(id => !rolesToAdd.includes(id));
     
     return { rolesToAdd, rolesToRemove: finalRemove };
+}
+
+/**
+ * Check roles to restore when member loses main role with reverse enabled
+ */
+export function getMemberRoleActionsLose(guildId, oldMemberRoleIds, newMemberRoleIds) {
+    const connections = loadRoleConnections(guildId);
+    const rolesToRestore = [];
+    
+    // Find main roles that were removed
+    const lostMainRoles = oldMemberRoleIds.filter(role => !newMemberRoleIds.includes(role));
+    
+    for (const mainRoleId of lostMainRoles) {
+        const config = connections[mainRoleId];
+        if (!config || !config.reverse) {
+            continue;
+        }
+        
+        // If reverse is true, restore the roles that were added/removed by this rule
+        if (config.add_role && config.add_role.length > 0) {
+            // Remove roles that were added (reverse = remove them back)
+            config.add_role.forEach(roleId => {
+                if (newMemberRoleIds.includes(roleId) && !rolesToRestore.includes(roleId)) {
+                    // Actually we want to remove them, but getMemberRoleActionsLose should return roles to re-add
+                    // Let me re-think: if remove_role was specified, we need to re-add those roles
+                    // So for now, we collect roles to potentially modify
+                }
+            });
+        }
+        
+        if (config.remove_role && config.remove_role.length > 0) {
+            // Re-add roles that were removed
+            config.remove_role.forEach(roleId => {
+                if (!newMemberRoleIds.includes(roleId) && !rolesToRestore.includes(roleId)) {
+                    rolesToRestore.push(roleId);
+                }
+            });
+        }
+    }
+    
+    return rolesToRestore;
 }

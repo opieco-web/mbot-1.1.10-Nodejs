@@ -31,6 +31,12 @@ export const rolesConnection = new SlashCommandBuilder()
                 { name: 'Remove Role', value: 'remove_role' }
             )
     )
+    .addBooleanOption(option =>
+        option
+            .setName('reverse')
+            .setDescription('Undo role changes when main role is removed (required for add/remove)')
+            .setRequired(false)
+    )
     .addRoleOption(option =>
         option
             .setName('connection-role1')
@@ -117,13 +123,14 @@ export async function handleRolesConnection(interaction) {
     // For add/remove, check required options
     const mainRole = interaction.options.getRole('main-role');
     const action = interaction.options.getString('action');
+    const reverse = interaction.options.getBoolean('reverse');
     const connectionRole1 = interaction.options.getRole('connection-role1');
     const connectionRole2 = interaction.options.getRole('connection-role2');
 
-    if (!mainRole || !action || !connectionRole1) {
+    if (!mainRole || !action || reverse === null || !connectionRole1) {
         return interaction.reply(createErrorResponse(
             'Missing Parameters',
-            'For **add** or **remove** mode, you must provide:\n• Main Role\n• Action\n• Connection Role 1'
+            'For **add** or **remove** mode, you must provide:\n• Main Role\n• Action\n• Reverse (On/Off)\n• Connection Role 1'
         ));
     }
 
@@ -145,7 +152,7 @@ export async function handleRolesConnection(interaction) {
     }
 
     if (mode === 'add') {
-        return handleAddMode(interaction, guildId, mainRole, action, connectionRole1, connectionRole2);
+        return handleAddMode(interaction, guildId, mainRole, action, reverse, connectionRole1, connectionRole2);
     } else if (mode === 'remove') {
         return handleRemoveMode(interaction, guildId, mainRole, action, connectionRole1, connectionRole2);
     }
@@ -154,18 +161,19 @@ export async function handleRolesConnection(interaction) {
 /**
  * Handle add mode
  */
-async function handleAddMode(interaction, guildId, mainRole, action, connectionRole1, connectionRole2) {
+async function handleAddMode(interaction, guildId, mainRole, action, reverse, connectionRole1, connectionRole2) {
     try {
-        addRoleConnection(guildId, mainRole.id, action, connectionRole1.id);
+        addRoleConnection(guildId, mainRole.id, action, connectionRole1.id, reverse);
         if (connectionRole2) {
-            addRoleConnection(guildId, mainRole.id, action, connectionRole2.id);
+            addRoleConnection(guildId, mainRole.id, action, connectionRole2.id, reverse);
         }
 
         const roleNames = connectionRole2 
             ? `${connectionRole1.name}, ${connectionRole2.name}`
             : connectionRole1.name;
 
-        const description = `**Main Role:** ${mainRole}\n**Action:** ${action === 'add_role' ? '➕ Add' : '➖ Remove'}\n**Connected Roles:** ${roleNames}`;
+        const reverseStatus = reverse ? '✅ ON' : '❌ OFF';
+        const description = `**Main Role:** ${mainRole}\n**Action:** ${action === 'add_role' ? '➕ Add' : '➖ Remove'}\n**Connected Roles:** ${roleNames}\n**Reverse:** ${reverseStatus}`;
 
         return interaction.reply(createSuccessResponse('Role Connection Added', description));
     } catch (e) {
@@ -210,20 +218,21 @@ async function handleListMode(interaction, guildId) {
 
         let content = '📋 **Role Connections**\n\n';
 
-        for (const [mainRoleId, actions] of Object.entries(connections)) {
+        for (const [mainRoleId, config] of Object.entries(connections)) {
             content += `**Main Role:** <@&${mainRoleId}>\n`;
 
-            if (actions.add_role && actions.add_role.length > 0) {
-                const roleNames = actions.add_role.map(id => `<@&${id}>`).join(', ');
+            if (config.add_role && config.add_role.length > 0) {
+                const roleNames = config.add_role.map(id => `<@&${id}>`).join(', ');
                 content += `  **➕ Add:** ${roleNames}\n`;
             }
 
-            if (actions.remove_role && actions.remove_role.length > 0) {
-                const roleNames = actions.remove_role.map(id => `<@&${id}>`).join(', ');
+            if (config.remove_role && config.remove_role.length > 0) {
+                const roleNames = config.remove_role.map(id => `<@&${id}>`).join(', ');
                 content += `  **➖ Remove:** ${roleNames}\n`;
             }
 
-            content += '\n';
+            const reverseStatus = config.reverse ? '✅ ON' : '❌ OFF';
+            content += `  **Reverse:** ${reverseStatus}\n\n`;
         }
 
         return interaction.reply({
