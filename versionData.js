@@ -1,14 +1,16 @@
 export default {
-    version: "1.0.82",
-    releaseDate: "Nov 28, 2025 08:30 AM",
-    releaseDateTimestamp: 1764325800,
-    changesSummary: "Fixed Component V2 format using proper flag combination",
+    version: "1.0.83",
+    releaseDate: "Nov 28, 2025 08:35 AM",
+    releaseDateTimestamp: 1764326100,
+    changesSummary: "Added /role-info command with detailed role information and member listing",
 
     changes: [
-        "1. Fixed flag format: now using 32768 | MessageFlags.Ephemeral",
-        "2. All responses use Component V2 container format (type 17) matching config command",
-        "3. Proper content field and flag combination for hidden messages",
-        "4. Messages now truly hidden from other users"
+        "1. Created /role-info slash command for moderators (ManageRoles permission)",
+        "2. Displays detailed role info: name, color, hex, creation date, member count, permissions",
+        "3. Optional full_member_list shows all members with their join dates as mentions",
+        "4. Large member lists automatically split across multiple embeds",
+        "5. All responses ephemeral (hidden) with professional embed formatting",
+        "6. Readable permission names and timestamps in Discord format"
     ],
 
     versionGuide: `

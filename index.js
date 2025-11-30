@@ -5,6 +5,7 @@ import { allCommands } from './src/commands/index.js';
 import versionData from './versionData.js';
 import { cleanupKickedServer, cleanupLeftServer, cleanupOrphanedServers } from './src/utils/cleanupServer.js';
 import { handleRolesConnection } from './src/commands/rolesConnection.js';
+import { handleRoleInfo } from './src/commands/roleInfo.js';
 import { execute as guildMemberUpdateHandler, name as guildMemberUpdateName } from './src/events/guildMemberUpdate.js';
 
 const TOKEN = process.env.DISCORD_BOT_TOKEN;
@@ -2058,6 +2059,11 @@ Type \`reset\` to revert back to your original name. Examples: Shadow, Phoenix, 
     // ROLES-CONNECTION - Automatic Role Connections System
     if (commandName === 'roles-connection') {
         return handleRolesConnection(interaction);
+    }
+
+    // ROLE-INFO - Get detailed role information
+    if (commandName === 'role-info') {
+        return handleRoleInfo(interaction);
     }
 
     // SEARCH - Component V2 Container

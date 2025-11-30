@@ -4,6 +4,7 @@ import { moderationCommands } from './moderation.js';
 import { utilityCommands } from './utility.js';
 import { configCommand } from './config.js';
 import { rolesConnection } from './rolesConnection.js';
+import { roleInfo } from './roleInfo.js';
 
 export const allCommands = [
     ...nicknameCommands,
@@ -11,5 +12,6 @@ export const allCommands = [
     ...moderationCommands,
     ...utilityCommands,
     ...configCommand,
-    rolesConnection
+    rolesConnection,
+    roleInfo
 ];
