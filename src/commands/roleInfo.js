@@ -110,37 +110,34 @@ export async function handleRoleInfo(interaction) {
         const permissionsContent = `> **Permissions:** ${permissionsText}`;
 
         // Build component array
-        const components = [
-            {
-                type: 9,
-                components: [
-                    {
-                        type: 10,
-                        content: `-# The information about\n## ${role}`
-                    }
-                ],
-                accessory: roleIcon ? {
-                    type: 11,
-                    media: {
-                        url: roleIcon
-                    }
-                } : undefined
-            },
-            {
-                type: 14
-            },
-            {
-                type: 10,
-                content: roleInfoContent
-            },
-            {
-                type: 14
-            },
-            {
-                type: 10,
-                content: permissionsContent
-            }
-        ];
+        const components = [];
+        
+        // Add title component (with or without accessory)
+        const titleComponent = {
+            type: 9,
+            components: [
+                {
+                    type: 10,
+                    content: `-# The information about\n## ${role}`
+                }
+            ]
+        };
+        
+        // Only add accessory if roleIcon exists
+        if (roleIcon) {
+            titleComponent.accessory = {
+                type: 11,
+                media: {
+                    url: roleIcon
+                }
+            };
+        }
+        
+        components.push(titleComponent);
+        components.push({ type: 14 });
+        components.push({ type: 10, content: roleInfoContent });
+        components.push({ type: 14 });
+        components.push({ type: 10, content: permissionsContent });
 
         // If full_member_list is requested
         if (fullMemberList) {
