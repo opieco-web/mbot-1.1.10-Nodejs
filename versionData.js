@@ -1,16 +1,16 @@
 export default {
-    version: "1.0.83",
-    releaseDate: "Nov 28, 2025 08:35 AM",
-    releaseDateTimestamp: 1764326100,
-    changesSummary: "Added /role-info command with detailed role information and member listing",
+    version: "1.0.84",
+    releaseDate: "Nov 28, 2025 08:40 AM",
+    releaseDateTimestamp: 1764326400,
+    changesSummary: "Implemented Component V2 container format for /role-info command",
 
     changes: [
-        "1. Created /role-info slash command for moderators (ManageRoles permission)",
-        "2. Displays detailed role info: name, color, hex, creation date, member count, permissions",
-        "3. Optional full_member_list shows all members with their join dates as mentions",
-        "4. Large member lists automatically split across multiple embeds",
-        "5. All responses ephemeral (hidden) with professional embed formatting",
-        "6. Readable permission names and timestamps in Discord format"
+        "1. Converted /role-info to use Component V2 containers (type 17) instead of embeds",
+        "2. Role icon displayed as media accessory with content accessory component (type 9)",
+        "3. Role information formatted as blockquotes with all details",
+        "4. Member list shows count with numbered mentions and join dates",
+        "5. Proper Component V2 formatting with separators and text displays",
+        "6. Hoisted status displayed with Correct/Error emojis"
     ],
 
     versionGuide: `

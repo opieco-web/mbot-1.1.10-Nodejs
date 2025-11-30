@@ -1,4 +1,4 @@
-import { SlashCommandBuilder, PermissionsBitField, EmbedBuilder, ChannelType } from 'discord.js';
+import { SlashCommandBuilder, PermissionsBitField } from 'discord.js';
 
 export const roleInfo = new SlashCommandBuilder()
     .setName('role-info')
@@ -18,70 +18,6 @@ export const roleInfo = new SlashCommandBuilder()
     .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageRoles);
 
 /**
- * Format permissions in readable way
- */
-function formatPermissions(permissions) {
-    const permissionNames = {
-        'CreateInstantInvite': 'Create Invite',
-        'KickMembers': 'Kick Members',
-        'BanMembers': 'Ban Members',
-        'Administrator': 'Administrator',
-        'ManageChannels': 'Manage Channels',
-        'ManageGuild': 'Manage Server',
-        'AddReactions': 'Add Reactions',
-        'ViewAuditLog': 'View Audit Log',
-        'PrioritySpeaker': 'Priority Speaker',
-        'Stream': 'Stream',
-        'ViewChannel': 'View Channels',
-        'SendMessages': 'Send Messages',
-        'SendTTSMessages': 'Send TTS Messages',
-        'ManageMessages': 'Manage Messages',
-        'EmbedLinks': 'Embed Links',
-        'AttachFiles': 'Attach Files',
-        'ReadMessageHistory': 'Read Message History',
-        'MentionEveryone': 'Mention @everyone',
-        'UseExternalEmojis': 'Use External Emojis',
-        'ViewGuildInsights': 'View Server Insights',
-        'Connect': 'Connect to Voice',
-        'Speak': 'Speak',
-        'MuteMembers': 'Mute Members',
-        'DeafenMembers': 'Deafen Members',
-        'MoveMembers': 'Move Members',
-        'UseVAD': 'Use Voice Activity Detection',
-        'ChangeNickname': 'Change Nickname',
-        'ManageNicknames': 'Manage Nicknames',
-        'ManageRoles': 'Manage Roles',
-        'ManageWebhooks': 'Manage Webhooks',
-        'ManageEmojisAndStickers': 'Manage Emojis',
-        'UseApplicationCommands': 'Use App Commands',
-        'RequestToSpeak': 'Request to Speak',
-        'ManageEvents': 'Manage Events',
-        'ManageThreads': 'Manage Threads',
-        'CreatePublicThreads': 'Create Public Threads',
-        'CreatePrivateThreads': 'Create Private Threads',
-        'UseExternalStickers': 'Use External Stickers',
-        'SendMessagesInThreads': 'Send Messages in Threads',
-        'UseEmbeddedActivities': 'Use Embedded Activities',
-        'ModerateMembers': 'Moderate Members',
-        'ViewCreatorMonetizationAnalytics': 'View Monetization Analytics',
-        'UseSoundboard': 'Use Soundboard',
-        'CreateExpressions': 'Create Expressions',
-        'CreateEvents': 'Create Events'
-    };
-
-    if (!permissions || permissions.bitfield === 0n) {
-        return 'No permissions';
-    }
-
-    const perms = permissions.toArray();
-    if (perms.length > 0) {
-        return perms.map(perm => permissionNames[perm] || perm).join(', ');
-    }
-
-    return 'No permissions';
-}
-
-/**
  * Handle role info command
  */
 export async function handleRoleInfo(interaction) {
@@ -93,97 +29,100 @@ export async function handleRoleInfo(interaction) {
         const createdTimestamp = Math.floor(role.createdTimestamp / 1000);
 
         // Get role icon/image URL
-        const roleIcon = role.iconURL({ dynamic: true, size: 256 });
+        const roleIcon = role.iconURL({ dynamic: true, size: 256 }) || role.icon;
 
         // Get members with role
         const membersWithRole = await interaction.guild.members.fetch();
         const membersArray = membersWithRole.filter(member => member.roles.cache.has(role.id)).map(m => m);
         const memberCount = membersArray.length;
 
-        // Create main info embed
-        const infoEmbed = new EmbedBuilder()
-            .setColor(role.color || 0x808080)
-            .setTitle(`<:info:1441531934332424314> Role Information`)
-            .setThumbnail(roleIcon)
-            .addFields(
-                { name: '📛 Name', value: `${role.name}`, inline: true },
-                { name: '👥 Members', value: `${memberCount}`, inline: true },
-                { name: '🔗 Mention', value: `${role}`, inline: true },
-                { name: '🎨 Color', value: role.color ? `#${role.color.toString(16).toUpperCase().padStart(6, '0')}` : 'None', inline: true },
-                { name: '📅 Created', value: `<t:${createdTimestamp}:F>`, inline: true },
-                { name: '🆔 ID', value: `${role.id}`, inline: true },
-                { name: '✅ Permissions', value: formatPermissions(role.permissions) || 'No permissions', inline: false }
-            )
-            .setTimestamp();
+        // Get role hoisted status and position
+        const isHoisted = role.hoist ? '<:Correct:1440296238305116223>' : '<:Error:1440296241090265088>';
+        const rolePosition = role.position;
 
-        // If full_member_list is false, just send role info
-        if (!fullMemberList) {
-            return interaction.reply({
-                embeds: [infoEmbed],
-                flags: 32768
-            });
-        }
+        // Format color
+        const colorHex = role.color ? `#${role.color.toString(16).toUpperCase().padStart(6, '0')}` : 'None';
 
-        // If there are no members, send just the info embed
-        if (memberCount === 0) {
-            return interaction.reply({
-                embeds: [infoEmbed],
-                flags: 32768
-            });
-        }
+        // Build role info text
+        const roleInfoText = `> **Role:** ${role}\n> **Name:** ${role.name}\n> **ID:** \`${role.id}\`\n> **Color:** \`${colorHex}\`\n> **Members:** \`${memberCount}\`\n> **Created:** <t:${createdTimestamp}:F> (<t:${createdTimestamp}:R>)\n> **Hoisted:** ${isHoisted}\n> **Position:** \`${rolePosition}\`` + (roleIcon ? `\n> **[Icon](${roleIcon})** ` : '');
 
-        // Build member list - split into chunks if too large
-        const memberChunks = [];
-        let currentChunk = '';
-
-        for (let i = 0; i < membersArray.length; i++) {
-            const member = membersArray[i];
-            const joinedTimestamp = Math.floor(member.joinedTimestamp / 1000);
-            const memberLine = `<@${member.id}> on <t:${joinedTimestamp}:R>\n`;
-
-            if ((currentChunk + memberLine).length > 1024) {
-                memberChunks.push(currentChunk);
-                currentChunk = memberLine;
-            } else {
-                currentChunk += memberLine;
+        // Build component array
+        const components = [
+            {
+                type: 9,
+                components: [
+                    {
+                        type: 10,
+                        content: `-# The information about\n## ${role}`
+                    }
+                ],
+                accessory: roleIcon ? {
+                    type: 11,
+                    media: {
+                        url: roleIcon
+                    }
+                } : undefined
+            },
+            {
+                type: 14
+            },
+            {
+                type: 10,
+                content: roleInfoText
+            },
+            {
+                type: 14
             }
+        ];
+
+        // If full_member_list is requested and there are members
+        if (fullMemberList && memberCount > 0) {
+            let memberListContent = `### **Members:** \`${memberCount}\`\n\n`;
+
+            // Add members with count
+            membersArray.forEach((member, index) => {
+                const joinedTimestamp = Math.floor(member.joinedTimestamp / 1000);
+                memberListContent += `${index + 1}. <@${member.id}> on <t:${joinedTimestamp}:R>\n`;
+            });
+
+            components.push({
+                type: 10,
+                content: memberListContent
+            });
         }
 
-        if (currentChunk) {
-            memberChunks.push(currentChunk);
-        }
+        const response = {
+            content: ' ',
+            flags: 32768,
+            components: [
+                {
+                    type: 17,
+                    components: components
+                }
+            ]
+        };
 
-        // Create embeds for each chunk
-        const embeds = [infoEmbed];
-
-        memberChunks.forEach((chunk, index) => {
-            const memberEmbed = new EmbedBuilder()
-                .setColor(role.color || 0x808080)
-                .setThumbnail(roleIcon)
-                .setTitle(`👥 Members with this role (${index + 1}/${memberChunks.length})`)
-                .setDescription(chunk)
-                .setTimestamp();
-
-            embeds.push(memberEmbed);
-        });
-
-        return interaction.reply({
-            embeds: embeds,
-            flags: 32768
-        });
+        return interaction.reply(response);
 
     } catch (error) {
         console.error('Error in role-info command:', error);
 
-        const errorEmbed = new EmbedBuilder()
-            .setColor(0xFF0000)
-            .setTitle('<:Error:1440296241090265088> Error')
-            .setDescription(`Failed to retrieve role information: ${error.message}`)
-            .setTimestamp();
+        const errorResponse = {
+            content: ' ',
+            flags: 32768,
+            components: [
+                {
+                    type: 17,
+                    components: [
+                        {
+                            type: 10,
+                            content: `## <:Error:1440296241090265088> Error\n\nFailed to retrieve role information: ${error.message}`
+                        }
+                    ]
+                }
+            ]
+        };
 
-        return interaction.reply({
-            embeds: [errorEmbed],
-            flags: 32768
-        });
+        return interaction.reply(errorResponse);
     }
 }
