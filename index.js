@@ -1384,6 +1384,7 @@ Type \`reset\` to revert back to your original name. Examples: Shadow, Phoenix, 
         const newNickname = `AFK - ${originalNickname}`;
         
         const guildData = getGuildData(guildId);
+        guildData.afk = guildData.afk || {};
         guildData.afk[user.id] = { reason, timestamp: Date.now(), originalNickname };
         saveGuildData(guildId, guildData);
         
@@ -2652,6 +2653,7 @@ client.on(Events.MessageCreate, async msg => {
             const newNickname = `AFK - ${originalNickname}`;
             
             const guildData = getGuildData(msg.guildId);
+            guildData.afk = guildData.afk || {};
             guildData.afk[msg.author.id] = { reason, timestamp: Date.now(), originalNickname };
             saveGuildData(msg.guildId, guildData);
 
