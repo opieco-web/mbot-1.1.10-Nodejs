@@ -1,16 +1,17 @@
 export default {
-    version: "1.0.87",
-    releaseDate: "Nov 30, 2025 08:55 AM",
-    releaseDateTimestamp: 1764327300,
-    changesSummary: "Updated /role-info format with backticks and icon link",
+    version: "1.0.88",
+    releaseDate: "Nov 30, 2025 09:00 AM",
+    releaseDateTimestamp: 1764327600,
+    changesSummary: "Reorganized permissions by danger level - most powerful first",
 
     changes: [
-        "1. Added backticks around ID field",
-        "2. Added backticks around Color field",
-        "3. Added backticks around Members count field",
-        "4. Added backticks around Position field",
-        "5. Changed Icon from plain text to clickable link with URL",
-        "6. Icon link includes size=256 parameter and comma suffix"
+        "1. Administrator permission listed first (most dangerous)",
+        "2. Management permissions (Manage Server, Roles, Channels) listed second",
+        "3. Audit/moderation permissions (View Audit Log, Kick, Ban, Moderate) listed third",
+        "4. Voice moderation (Mute, Deafen, Move) listed fourth",
+        "5. Standard management (Messages, Nicknames, Webhooks, Emojis) listed fifth",
+        "6. Basic permissions (Create Invite) listed last",
+        "7. Permissions now display from most dangerous to least dangerous"
     ],
 
     versionGuide: `

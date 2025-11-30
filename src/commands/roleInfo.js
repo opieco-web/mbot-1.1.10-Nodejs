@@ -18,25 +18,27 @@ export const roleInfo = new SlashCommandBuilder()
     .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageRoles);
 
 /**
- * Get important permissions
+ * Get important permissions ordered by danger level
  */
 function getImportantPermissions(permissions) {
-    const importantPermissions = [
-        'CreateInstantInvite',
+    // Ordered from most dangerous/powerful to least
+    const permissionHierarchy = [
+        'Administrator',
+        'ManageGuild',
+        'ManageRoles',
+        'ManageChannels',
+        'ViewAuditLog',
         'KickMembers',
         'BanMembers',
-        'ManageChannels',
-        'ManageGuild',
-        'ViewAuditLog',
-        'ManageMessages',
+        'ModerateMembers',
         'MuteMembers',
         'DeafenMembers',
         'MoveMembers',
+        'ManageMessages',
         'ManageNicknames',
-        'ManageRoles',
         'ManageWebhooks',
         'ManageEmojisAndStickers',
-        'ModerateMembers'
+        'CreateInstantInvite'
     ];
 
     if (!permissions || permissions.bitfield === 0n) {
@@ -44,28 +46,36 @@ function getImportantPermissions(permissions) {
     }
 
     const perms = permissions.toArray();
-    const important = perms.filter(perm => importantPermissions.includes(perm));
 
     // Map to readable names
     const permissionNames = {
-        'CreateInstantInvite': 'Create Invite',
+        'Administrator': 'Administrator',
+        'ManageGuild': 'Manage Server',
+        'ManageRoles': 'Manage Roles',
+        'ManageChannels': 'Manage Channels',
+        'ViewAuditLog': 'View Audit Log',
         'KickMembers': 'Kick',
         'BanMembers': 'Ban',
-        'ManageChannels': 'Manage Channels',
-        'ManageGuild': 'Manage Server',
-        'ViewAuditLog': 'View Audit Log',
-        'ManageMessages': 'Manage Messages',
+        'ModerateMembers': 'Moderate',
         'MuteMembers': 'Mute',
         'DeafenMembers': 'Deafen',
         'MoveMembers': 'Move',
+        'ManageMessages': 'Manage Messages',
         'ManageNicknames': 'Manage Nicknames',
-        'ManageRoles': 'Manage Roles',
         'ManageWebhooks': 'Manage Webhooks',
         'ManageEmojisAndStickers': 'Manage Emojis',
-        'ModerateMembers': 'Moderate'
+        'CreateInstantInvite': 'Create Invite'
     };
 
-    return important.map(perm => permissionNames[perm] || perm);
+    // Return permissions in hierarchy order
+    const result = [];
+    for (const perm of permissionHierarchy) {
+        if (perms.includes(perm)) {
+            result.push(permissionNames[perm]);
+        }
+    }
+
+    return result;
 }
 
 /**
