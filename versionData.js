@@ -1,15 +1,17 @@
 export default {
-    version: "1.0.97",
-    releaseDate: "Nov 30, 2025 09:35 AM",
-    releaseDateTimestamp: 1764329700,
-    changesSummary: "Updated /role-info to use Type 9 Content Accessory structure for Component V2",
+    version: "1.0.98",
+    releaseDate: "Nov 30, 2025 09:40 AM",
+    releaseDateTimestamp: 1764330000,
+    changesSummary: "Fixed other server commands - Added comprehensive null-safety checks to all role connection functions",
 
     changes: [
-        "1. Changed title component from type 10 to type 9 (Content Accessory)",
-        "2. Wrapped title content in components array within type 9",
-        "3. Moved accessory (type 11) inside type 9 structure",
-        "4. Improved title formatting with role mention and descriptive text",
-        "5. Maintains flags: 32768 and type 17 container structure"
+        "1. Added null-safety checks in getMemberRoleActionsGain() for undefined connections",
+        "2. Added null-safety checks in getMemberRoleActionsLose() for undefined connections",
+        "3. Added validation that config objects are valid before accessing properties",
+        "4. Added Array.isArray() checks before processing role arrays",
+        "5. Added try-catch blocks in all connection utility functions",
+        "6. Ensures all functions return valid defaults (empty arrays/objects) on error",
+        "7. Prevents 'Cannot set properties of undefined' errors for other servers"
     ],
 
     versionGuide: `
