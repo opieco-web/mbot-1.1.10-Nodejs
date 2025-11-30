@@ -138,28 +138,11 @@ export async function handleRoleInfo(interaction) {
         }
 
         // Build component array
-        const headerComponent = {
-            type: 9,
-            components: [
-                {
-                    type: 10,
-                    content: `-# The information about\n## ${role}`
-                }
-            ]
-        };
-
-        // Only add accessory if role icon exists
-        if (roleIcon) {
-            headerComponent.accessory = {
-                type: 11,
-                media: {
-                    url: roleIcon
-                }
-            };
-        }
-
         const components = [
-            headerComponent,
+            {
+                type: 10,
+                content: `-# The information about\n## ${role}`
+            },
             {
                 type: 14
             },

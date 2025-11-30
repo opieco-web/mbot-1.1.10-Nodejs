@@ -1,15 +1,14 @@
 export default {
-    version: "1.0.91",
-    releaseDate: "Nov 30, 2025 09:15 AM",
-    releaseDateTimestamp: 1764328500,
-    changesSummary: "Fixed component validation and improved permissions display",
+    version: "1.0.92",
+    releaseDate: "Nov 30, 2025 09:20 AM",
+    releaseDateTimestamp: 1764328800,
+    changesSummary: "Removed problematic accessory field to fix Discord validation",
 
     changes: [
-        "1. Fixed Discord component validation by removing undefined values",
-        "2. Cleaned response JSON to ensure no undefined fields",
-        "3. Improved permissions display with better formatting",
-        "4. Added line breaks in permissions section for readability",
-        "5. Filtered components array to prevent null/undefined entries"
+        "1. Removed type 9 component wrapper that was causing validation error",
+        "2. Simplified header display to type 10 text component",
+        "3. Removed accessory field that was breaking Discord API validation",
+        "4. Cleaner component structure without unnecessary nesting"
     ],
 
     versionGuide: `
