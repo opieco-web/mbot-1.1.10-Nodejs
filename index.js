@@ -4,6 +4,8 @@ import { createCanvas } from 'canvas';
 import { allCommands } from './src/commands/index.js';
 import versionData from './versionData.js';
 import { cleanupKickedServer, cleanupLeftServer, cleanupOrphanedServers } from './src/utils/cleanupServer.js';
+import { handleRolesConnection } from './src/commands/rolesConnection.js';
+import { execute as guildMemberUpdateHandler, name as guildMemberUpdateName } from './src/events/guildMemberUpdate.js';
 
 const TOKEN = process.env.DISCORD_BOT_TOKEN;
 const CLIENT_ID = process.env.DISCORD_CLIENT_ID;
