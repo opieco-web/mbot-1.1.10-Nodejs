@@ -1,17 +1,15 @@
 export default {
-    version: "1.0.88",
-    releaseDate: "Nov 30, 2025 09:00 AM",
-    releaseDateTimestamp: 1764327600,
-    changesSummary: "Reorganized permissions by danger level - most powerful first",
+    version: "1.0.89",
+    releaseDate: "Nov 30, 2025 09:05 AM",
+    releaseDateTimestamp: 1764327900,
+    changesSummary: "Fixed rate limit error in /role-info member fetching",
 
     changes: [
-        "1. Administrator permission listed first (most dangerous)",
-        "2. Management permissions (Manage Server, Roles, Channels) listed second",
-        "3. Audit/moderation permissions (View Audit Log, Kick, Ban, Moderate) listed third",
-        "4. Voice moderation (Mute, Deafen, Move) listed fourth",
-        "5. Standard management (Messages, Nicknames, Webhooks, Emojis) listed fifth",
-        "6. Basic permissions (Create Invite) listed last",
-        "7. Permissions now display from most dangerous to least dangerous"
+        "1. Fixed GatewayRateLimitError by using member cache first",
+        "2. Only fetches members if cache is empty",
+        "3. Gracefully handles rate limit errors by using cached members",
+        "4. Prevents rapid member list requests from causing bot delays",
+        "5. Improves performance by leveraging cached member data"
     ],
 
     versionGuide: `

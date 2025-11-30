@@ -92,8 +92,21 @@ export async function handleRoleInfo(interaction) {
         // Get role icon/image URL
         const roleIcon = role.iconURL({ dynamic: true, size: 256 }) || role.icon;
 
-        // Get members with role
-        const membersWithRole = await interaction.guild.members.fetch();
+        // Get members with role - try cache first, then fetch
+        let membersWithRole;
+        try {
+            membersWithRole = interaction.guild.members.cache.size > 0 
+                ? interaction.guild.members.cache 
+                : await interaction.guild.members.fetch({ limit: 0 });
+        } catch (fetchError) {
+            // If fetch fails due to rate limit or other issues, use cache only
+            if (fetchError.code === 'GatewayRateLimitError') {
+                membersWithRole = interaction.guild.members.cache;
+            } else {
+                throw fetchError;
+            }
+        }
+        
         const membersArray = membersWithRole.filter(member => member.roles.cache.has(role.id)).map(m => m);
         const memberCount = membersArray.length;
 
