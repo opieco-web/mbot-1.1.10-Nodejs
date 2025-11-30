@@ -53,10 +53,10 @@
       "timestamp": 1764067788408,
       "originalNickname": "N0ah✨"
     },
-    "1108782022543032400": {
-      "reason": "mori",
-      "timestamp": 1764359795013,
-      "originalNickname": "Nutella"
+    "1294699516955725890": {
+      "reason": "Diva Television of NNN",
+      "timestamp": 1764498687189,
+      "originalNickname": "Bapur's wifey"
     }
   },
   "welcome": {
@@ -125,12 +125,12 @@
     "bgAttachment": "https://cdn.discordapp.com/attachments/1429390306670805142/1442243258796478604/5f6b67489ef05a8c8c7e2bdd5e09a1ee.jpg?ex=6924b934&is=692367b4&hm=c58aeeffd162581da503e344cdc4111c1aeb61002b9651c48565fb93c196fc5a&"
   },
   "status": {
-    "presence": "dnd",
-    "text": "কিরে মামা Verified হয়ে গেলাম",
-    "emoji": "🛟",
+    "presence": "idle",
+    "text": "কিরে মামা Verified হয়ে গেলাম দেখি.",
+    "emoji": "😔",
     "lastUpdatedBy": "1065350468928290828",
-    "lastUpdatedAt": "2025-11-28T06:14:35.013Z",
-    "type": "Streaming"
+    "lastUpdatedAt": "2025-11-29T11:04:00.410Z",
+    "type": "Competing"
   },
   "pendingNicknameRequests": {},
   "prefixes": {},
