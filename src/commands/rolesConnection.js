@@ -1,4 +1,4 @@
-import { SlashCommandBuilder, PermissionsBitField, EmbedBuilder } from 'discord.js';
+import { SlashCommandBuilder, PermissionsBitField, MessageFlags } from 'discord.js';
 import { addRoleConnection, removeRoleConnection, getRoleConnections } from '../utils/rolesConnectionData.js';
 
 export const rolesConnection = new SlashCommandBuilder()
@@ -51,36 +51,57 @@ export const rolesConnection = new SlashCommandBuilder()
     );
 
 /**
- * Create success embed
+ * Create Component V2 success response
  */
-function createSuccessEmbed(title, description) {
-    return new EmbedBuilder()
-        .setColor(0x00FF00)
-        .setTitle(`<:Correct:1440296238305116223> ${title}`)
-        .setDescription(description)
-        .setTimestamp();
+function createSuccessResponse(title, description) {
+    return {
+        content: ' ',
+        components: [{
+            type: 17,
+            components: [
+                { type: 10, content: `## <:Correct:1440296238305116223> ${title}` },
+                { type: 14 },
+                { type: 10, content: description }
+            ]
+        }],
+        flags: 32768 | MessageFlags.Ephemeral
+    };
 }
 
 /**
- * Create error embed
+ * Create Component V2 error response
  */
-function createErrorEmbed(title, description) {
-    return new EmbedBuilder()
-        .setColor(0xFF0000)
-        .setTitle(`<:Error:1440296241090265088> ${title}`)
-        .setDescription(description)
-        .setTimestamp();
+function createErrorResponse(title, description) {
+    return {
+        content: ' ',
+        components: [{
+            type: 17,
+            components: [
+                { type: 10, content: `## <:Error:1440296241090265088> ${title}` },
+                { type: 14 },
+                { type: 10, content: description }
+            ]
+        }],
+        flags: 32768 | MessageFlags.Ephemeral
+    };
 }
 
 /**
- * Create info embed
+ * Create Component V2 info response
  */
-function createInfoEmbed(title, description) {
-    return new EmbedBuilder()
-        .setColor(0x0099FF)
-        .setTitle(`<:warning:1441531830607151195> ${title}`)
-        .setDescription(description)
-        .setTimestamp();
+function createInfoResponse(title, description) {
+    return {
+        content: ' ',
+        components: [{
+            type: 17,
+            components: [
+                { type: 10, content: `## <:warning:1441531830607151195> ${title}` },
+                { type: 14 },
+                { type: 10, content: description }
+            ]
+        }],
+        flags: 32768 | MessageFlags.Ephemeral
+    };
 }
 
 /**
@@ -89,10 +110,10 @@ function createInfoEmbed(title, description) {
 export async function handleRolesConnection(interaction) {
     // Check permissions
     if (!interaction.member.permissions.has(PermissionsBitField.Flags.ManageRoles)) {
-        return interaction.reply({
-            embeds: [createErrorEmbed('Permission Denied', 'You need the **Manage Roles** permission to use this command.')],
-            ephemeral: true
-        });
+        return interaction.reply(createErrorResponse(
+            'Permission Denied',
+            'You need the **Manage Roles** permission to use this command.'
+        ));
     }
 
     const mode = interaction.options.getString('mode');
@@ -114,35 +135,32 @@ export async function handleRolesConnection(interaction) {
             ? 'For **add** mode, you must provide:\n• Main Role\n• Action\n• Reverse (On/Off)\n• Connection Role 1'
             : 'For **remove** mode, you must provide:\n• Main Role\n• Action\n• Connection Role 1';
         
-        return interaction.reply({
-            embeds: [createErrorEmbed('Missing Parameters', errorMsg)],
-            ephemeral: true
-        });
+        return interaction.reply(createErrorResponse('Missing Parameters', errorMsg));
     }
 
     // For add mode only, reverse is required
     if (mode === 'add' && reverse === null) {
-        return interaction.reply({
-            embeds: [createErrorEmbed('Missing Parameters', 'For **add** mode, the **Reverse** option is required (set to On or Off).')],
-            ephemeral: true
-        });
+        return interaction.reply(createErrorResponse(
+            'Missing Parameters',
+            'For **add** mode, the **Reverse** option is required (set to On or Off).'
+        ));
     }
 
     // Prevent bot role changes
     if (mainRole.managed || connectionRole1.managed || connectionRole2?.managed) {
-        return interaction.reply({
-            embeds: [createErrorEmbed('Invalid Roles', 'Cannot use bot-managed roles in connections.')],
-            ephemeral: true
-        });
+        return interaction.reply(createErrorResponse(
+            'Invalid Roles',
+            'Cannot use bot-managed roles in connections.'
+        ));
     }
 
     // Prevent role hierarchy issues
     const botHighestRole = interaction.guild.members.me.roles.highest;
     if (mainRole.position >= botHighestRole.position || connectionRole1.position >= botHighestRole.position || connectionRole2?.position >= botHighestRole.position) {
-        return interaction.reply({
-            embeds: [createErrorEmbed('Role Hierarchy Issue', 'The bot cannot manage roles at or above its highest role.')],
-            ephemeral: true
-        });
+        return interaction.reply(createErrorResponse(
+            'Role Hierarchy Issue',
+            'The bot cannot manage roles at or above its highest role.'
+        ));
     }
 
     if (mode === 'add') {
@@ -169,16 +187,10 @@ async function handleAddMode(interaction, guildId, mainRole, action, reverse, co
         const reverseStatus = reverse ? '✅ ON' : '❌ OFF';
         const description = `**Main Role:** ${mainRole}\n**Action:** ${action === 'add_role' ? '➕ Add' : '➖ Remove'}\n**Connected Roles:** ${roleNames}\n**Reverse:** ${reverseStatus}`;
 
-        return interaction.reply({
-            embeds: [createSuccessEmbed('Role Connection Added', description)],
-            ephemeral: true
-        });
+        return interaction.reply(createSuccessResponse('Role Connection Added', description));
     } catch (e) {
         console.error('Error adding role connection:', e);
-        return interaction.reply({
-            embeds: [createErrorEmbed('Operation Failed', `Error: ${e.message}`)],
-            ephemeral: true
-        });
+        return interaction.reply(createErrorResponse('Operation Failed', `Error: ${e.message}`));
     }
 }
 
@@ -198,16 +210,10 @@ async function handleRemoveMode(interaction, guildId, mainRole, action, connecti
 
         const description = `**Main Role:** ${mainRole}\n**Action:** ${action === 'add_role' ? '➕ Add' : '➖ Remove'}\n**Removed Roles:** ${roleNames}`;
 
-        return interaction.reply({
-            embeds: [createSuccessEmbed('Role Connection Removed', description)],
-            ephemeral: true
-        });
+        return interaction.reply(createSuccessResponse('Role Connection Removed', description));
     } catch (e) {
         console.error('Error removing role connection:', e);
-        return interaction.reply({
-            embeds: [createErrorEmbed('Operation Failed', `Error: ${e.message}`)],
-            ephemeral: true
-        });
+        return interaction.reply(createErrorResponse('Operation Failed', `Error: ${e.message}`));
     }
 }
 
@@ -219,49 +225,42 @@ async function handleListMode(interaction, guildId) {
         const connections = getRoleConnections(guildId);
 
         if (Object.keys(connections).length === 0) {
-            return interaction.reply({
-                embeds: [createInfoEmbed('No Role Connections', 'This server has no role connections configured yet.')],
-                ephemeral: true
-            });
+            return interaction.reply(createInfoResponse('No Role Connections', 'This server has no role connections configured yet.'));
         }
 
-        const embed = new EmbedBuilder()
-            .setColor(0x0099FF)
-            .setTitle('<:warning:1441531830607151195> Role Connections')
-            .setTimestamp();
+        let content = '📋 **Role Connections**\n\n';
 
         for (const [mainRoleId, config] of Object.entries(connections)) {
-            let fieldValue = '';
+            content += `**Main Role:** <@&${mainRoleId}>\n`;
 
             if (config.add_role && config.add_role.length > 0) {
                 const roleNames = config.add_role.map(id => `<@&${id}>`).join(', ');
-                fieldValue += `**➕ Add:** ${roleNames}\n`;
+                content += `  **➕ Add:** ${roleNames}\n`;
             }
 
             if (config.remove_role && config.remove_role.length > 0) {
                 const roleNames = config.remove_role.map(id => `<@&${id}>`).join(', ');
-                fieldValue += `**➖ Remove:** ${roleNames}\n`;
+                content += `  **➖ Remove:** ${roleNames}\n`;
             }
 
             const reverseStatus = config.reverse ? '✅ ON' : '❌ OFF';
-            fieldValue += `**Reverse:** ${reverseStatus}`;
-
-            embed.addFields({
-                name: `Main Role: <@&${mainRoleId}>`,
-                value: fieldValue,
-                inline: false
-            });
+            content += `  **Reverse:** ${reverseStatus}\n\n`;
         }
 
         return interaction.reply({
-            embeds: [embed],
-            ephemeral: true
+            content: ' ',
+            components: [{
+                type: 17,
+                components: [
+                    { type: 10, content: '## <:warning:1441531830607151195> Role Connections' },
+                    { type: 14 },
+                    { type: 10, content: content }
+                ]
+            }],
+            flags: 32768 | MessageFlags.Ephemeral
         });
     } catch (e) {
         console.error('Error listing role connections:', e);
-        return interaction.reply({
-            embeds: [createErrorEmbed('Operation Failed', `Error: ${e.message}`)],
-            ephemeral: true
-        });
+        return interaction.reply(createErrorResponse('Operation Failed', `Error: ${e.message}`));
     }
 }

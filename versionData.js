@@ -1,15 +1,14 @@
 export default {
-    version: "1.0.81",
-    releaseDate: "Nov 28, 2025 08:25 AM",
-    releaseDateTimestamp: 1764325500,
-    changesSummary: "Fixed command response format - using embeds with Component V2 styling",
+    version: "1.0.82",
+    releaseDate: "Nov 28, 2025 08:30 AM",
+    releaseDateTimestamp: 1764325800,
+    changesSummary: "Fixed Component V2 format using proper flag combination",
 
     changes: [
-        "1. Fixed bot application response error by using proper embed format",
-        "2. All responses now use standard Discord embeds with emoji styling",
-        "3. Embeds styled with Component V2 visual appearance (Correct, Error, Warning emojis)",
-        "4. Ephemeral flag properly set (messages only visible to command user)",
-        "5. Proper error handling for command interactions"
+        "1. Fixed flag format: now using 32768 | MessageFlags.Ephemeral",
+        "2. All responses use Component V2 container format (type 17) matching config command",
+        "3. Proper content field and flag combination for hidden messages",
+        "4. Messages now truly hidden from other users"
     ],
 
     versionGuide: `
