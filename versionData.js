@@ -1,14 +1,15 @@
 export default {
-    version: "1.0.80",
-    releaseDate: "Nov 28, 2025 08:20 AM",
-    releaseDateTimestamp: 1764325200,
-    changesSummary: "Fixed ephemeral messages to be properly hidden & cleared all role connections",
+    version: "1.0.81",
+    releaseDate: "Nov 28, 2025 08:25 AM",
+    releaseDateTimestamp: 1764325500,
+    changesSummary: "Fixed command response format - using embeds with Component V2 styling",
 
     changes: [
-        "1. Fixed ephemeral flag: now using ephemeral: true for proper Discord formatting",
-        "2. All bot responses are now HIDDEN from other users - only command user sees them",
-        "3. Cleared all existing role connections from data files - fresh start",
-        "4. Ready to add new role connections with working functionality"
+        "1. Fixed bot application response error by using proper embed format",
+        "2. All responses now use standard Discord embeds with emoji styling",
+        "3. Embeds styled with Component V2 visual appearance (Correct, Error, Warning emojis)",
+        "4. Ephemeral flag properly set (messages only visible to command user)",
+        "5. Proper error handling for command interactions"
     ],
 
     versionGuide: `

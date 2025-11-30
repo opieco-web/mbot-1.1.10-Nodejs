@@ -1,0 +1,11 @@
+{
+  "roleConnections": {
+    "1359091914409771108": {
+      "add_role": [],
+      "remove_role": [
+        "1297027410830557279"
+      ],
+      "reverse": true
+    }
+  }
+}
