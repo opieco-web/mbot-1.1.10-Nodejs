@@ -1,16 +1,15 @@
 export default {
-    version: "1.0.92",
-    releaseDate: "Nov 30, 2025 09:10 AM",
-    releaseDateTimestamp: 1764328200,
-    changesSummary: "Fixed rate limiting and interaction timeout issues in /role-bulk",
+    version: "1.0.93",
+    releaseDate: "Nov 30, 2025 09:15 AM",
+    releaseDateTimestamp: 1764328500,
+    changesSummary: "Fixed /role-info Component V2 format to match working botinfo pattern",
 
     changes: [
-        "1. Added 200ms delay between batches to prevent Discord API rate limits",
-        "2. Reduced batch size from 50 to 30 members for more manageable processing",
-        "3. Added rate limit error handling in member role operations",
-        "4. Fixed deferReply flag setting (Discord doesn't support flags in defer)",
-        "5. Improved error handling for rate limit errors",
-        "6. Prevents 'This application didn't respond' timeout errors"
+        "1. Changed title component from type 9 to type 10 (matching botinfo)",
+        "2. Accessory now directly on type 10 component, not on type 9",
+        "3. Removed unnecessary type 9 wrapper structure",
+        "4. Now follows same Component V2 pattern as botinfo (which works perfectly)",
+        "5. Eliminates BASE_TYPE_REQUIRED error for accessory field"
     ],
 
     versionGuide: `

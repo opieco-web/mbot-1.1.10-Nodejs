@@ -109,21 +109,15 @@ export async function handleRoleInfo(interaction) {
         // Build permissions text
         const permissionsContent = `> **Permissions:** ${permissionsText}`;
 
-        // Build component array
+        // Build component array - matching botinfo pattern
         const components = [];
         
-        // Add title component (with or without accessory)
+        // Title with optional accessory (like botinfo does it)
         const titleComponent = {
-            type: 9,
-            components: [
-                {
-                    type: 10,
-                    content: `-# The information about\n## ${role}`
-                }
-            ]
+            type: 10,
+            content: `-# The information about\n## ${role}`
         };
         
-        // Only add accessory if roleIcon exists
         if (roleIcon) {
             titleComponent.accessory = {
                 type: 11,
