@@ -69,7 +69,7 @@ function formatPermissions(permissions) {
         'CreateEvents': 'Create Events'
     };
 
-    if (permissions.isEmpty()) {
+    if (!permissions || permissions.bitfield === 0n) {
         return 'No permissions';
     }
 
@@ -92,6 +92,9 @@ export async function handleRoleInfo(interaction) {
         // Get creation date
         const createdTimestamp = Math.floor(role.createdTimestamp / 1000);
 
+        // Get role icon/image URL
+        const roleIcon = role.iconURL({ dynamic: true, size: 256 });
+
         // Get members with role
         const membersWithRole = await interaction.guild.members.fetch();
         const membersArray = membersWithRole.filter(member => member.roles.cache.has(role.id)).map(m => m);
@@ -101,6 +104,7 @@ export async function handleRoleInfo(interaction) {
         const infoEmbed = new EmbedBuilder()
             .setColor(role.color || 0x808080)
             .setTitle(`<:info:1441531934332424314> Role Information`)
+            .setThumbnail(roleIcon)
             .addFields(
                 { name: '📛 Name', value: `${role.name}`, inline: true },
                 { name: '👥 Members', value: `${memberCount}`, inline: true },
@@ -129,7 +133,6 @@ export async function handleRoleInfo(interaction) {
         }
 
         // Build member list - split into chunks if too large
-        let memberListText = '';
         const memberChunks = [];
         let currentChunk = '';
 
@@ -156,6 +159,7 @@ export async function handleRoleInfo(interaction) {
         memberChunks.forEach((chunk, index) => {
             const memberEmbed = new EmbedBuilder()
                 .setColor(role.color || 0x808080)
+                .setThumbnail(roleIcon)
                 .setTitle(`👥 Members with this role (${index + 1}/${memberChunks.length})`)
                 .setDescription(chunk)
                 .setTimestamp();
