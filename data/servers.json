@@ -5,6 +5,6 @@
     "enabled": false,
     "roleId": null,
     "users": [],
-    "allowedRoleIds": []
+    "allowedIds": []
   }
 }
