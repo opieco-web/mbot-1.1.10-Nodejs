@@ -2930,20 +2930,29 @@ client.on(Events.MessageCreate, async msg => {
                         const allUserMessages = [];
                         const textChannels = msg.guild.channels.cache.filter(ch => ch.isTextBased() && !ch.isDMBased());
                         
+                        console.log(`[BLACKLIST] Scanning ${textChannels.size} channels for messages from ${mention.displayName}`);
+                        
                         // Fetch messages from all text channels
                         for (const channel of textChannels.values()) {
                             try {
                                 const fetchedMessages = await channel.messages.fetch({ limit: 100 });
                                 const userMsgs = fetchedMessages.filter(m => m.author.id === mention.id);
-                                allUserMessages.push(...userMsgs.values());
+                                if (userMsgs.size > 0) {
+                                    console.log(`[BLACKLIST] Found ${userMsgs.size} messages in #${channel.name}`);
+                                    allUserMessages.push(...userMsgs.values());
+                                }
                             } catch (e) {
-                                // Skip channels where bot can't read messages
+                                console.log(`[BLACKLIST] Cannot read messages in #${channel.name}: ${e.message}`);
                                 continue;
                             }
                         }
                         
+                        console.log(`[BLACKLIST] Total messages found: ${allUserMessages.length}`);
+                        
                         // Sort by timestamp (newest first) and take last 40
                         const sortedMessages = allUserMessages.sort((a, b) => b.createdTimestamp - a.createdTimestamp).slice(0, 40);
+                        
+                        console.log(`[BLACKLIST] Selected ${sortedMessages.length} messages to delete (newest 40)`);
                         
                         // Group messages by channel for bulk delete
                         const messagesByChannel = {};
@@ -2954,23 +2963,27 @@ client.on(Events.MessageCreate, async msg => {
                             messagesByChannel[message.channelId].push(message);
                         });
                         
+                        console.log(`[BLACKLIST] Messages grouped in ${Object.keys(messagesByChannel).length} channels`);
+                        
                         // Delete messages from each channel
                         let totalDeleted = 0;
                         for (const [channelId, messages] of Object.entries(messagesByChannel)) {
                             try {
                                 const channel = msg.guild.channels.cache.get(channelId);
-                                if (channel && messages.length > 0) {
+                                if (channel) {
+                                    console.log(`[BLACKLIST] Deleting ${messages.length} messages from #${channel.name}`);
                                     await channel.bulkDelete(messages);
                                     totalDeleted += messages.length;
+                                    console.log(`[BLACKLIST] Successfully deleted messages from #${channel.name}`);
                                 }
                             } catch (e) {
-                                console.error(`[BLACKLIST] Error deleting messages in channel ${channelId}:`, e.message);
+                                console.error(`[BLACKLIST] Error deleting messages in #${channel?.name}: ${e.message}`);
                             }
                         }
                         
-                        console.log(`[BLACKLIST] Deleted ${totalDeleted} messages from ${mention.displayName} across ${Object.keys(messagesByChannel).length} channels`);
+                        console.log(`[BLACKLIST] ✅ Deleted ${totalDeleted} messages from ${mention.displayName} across ${Object.keys(messagesByChannel).length} channels`);
                     } catch (e) {
-                        console.error('[BLACKLIST] Error during bulk message deletion:', e.message);
+                        console.error('[BLACKLIST] ❌ Error during bulk message deletion:', e.message);
                     }
                 })();
 
