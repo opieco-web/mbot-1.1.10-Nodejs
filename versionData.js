@@ -1,18 +1,17 @@
 export default {
-    version: "1.0.101",
-    releaseDate: "Dec 01, 2025 10:30 AM",
-    releaseDateTimestamp: 1764335400,
-    changesSummary: "Redesigned blacklist system UI with button toggle and role selector",
+    version: "1.0.102",
+    releaseDate: "Dec 01, 2025 11:00 AM",
+    releaseDateTimestamp: 1764337200,
+    changesSummary: "Enhanced blacklist toggle button with dynamic styling and emoji feedback",
 
     changes: [
-        "1. Updated /blacklist-system with new interactive UI (Component V2 format)",
-        "2. Added 'Enable or Disable' button for quick system toggle",
-        "3. Added role selector menu to choose which roles can use blacklist commands",
-        "4. Both /blacklist and !bkl prefix commands now check selected roles",
-        "5. Removed troll boss terminology - now uses 'selected roles' language",
-        "6. Added button and select menu interaction handlers",
-        "7. Role-based access control for both slash and prefix blacklist commands",
-        "8. Updated allowedRoleIds data structure in both servers and mining-bangladesh.json"
+        "1. Toggle button now shows 'Enable' with red/danger color (style 4) when blacklist is disabled",
+        "2. Toggle button now shows 'Disable' with green/success color (style 3) when blacklist is enabled",
+        "3. Error emoji added to button when disabled",
+        "4. Success emoji added to button when enabled",
+        "5. Button dynamically updates after each toggle to show the next action",
+        "6. Response message includes the updated button with current state",
+        "7. Role selector remains visible in the blacklist system panel"
     ],
 
     versionGuide: `

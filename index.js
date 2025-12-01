@@ -2566,6 +2566,11 @@ Type \`reset\` to revert back to your original name. Examples: Shadow, Phoenix, 
         
         saveGuildData(guildId, guildData);
 
+        const isEnabled = guildData.blacklist.enabled;
+        const buttonLabel = isEnabled ? 'Disable' : 'Enable';
+        const buttonStyle = isEnabled ? 3 : 4;
+        const buttonEmoji = isEnabled ? '1440296238305116223' : '1440296241090265088';
+
         return interaction.reply({ 
             content: ' ', 
             flags: 32768,
@@ -2577,10 +2582,11 @@ Type \`reset\` to revert back to your original name. Examples: Shadow, Phoenix, 
                     {
                         type: 1,
                         components: [{
-                            style: 1,
+                            style: buttonStyle,
                             type: 2,
                             custom_id: `blacklist_toggle_${guildId}`,
-                            label: 'Enable or Disable'
+                            label: buttonLabel,
+                            emoji: { id: buttonEmoji }
                         }]
                     },
                     { type: 14 },
@@ -3740,14 +3746,30 @@ client.on(Events.InteractionCreate, async interaction => {
         guildData.blacklist.enabled = !guildData.blacklist.enabled;
         saveGuildData(guildId, guildData);
 
+        const isEnabled = guildData.blacklist.enabled;
+        const nextButtonLabel = isEnabled ? 'Disable' : 'Enable';
+        const nextButtonStyle = isEnabled ? 3 : 4;
+        const nextButtonEmoji = isEnabled ? '1440296238305116223' : '1440296241090265088';
+
         await interaction.reply({ 
             content: ' ', 
             components: [{ 
                 type: 17, 
                 components: [
-                    { type: 10, content: `## <:${guildData.blacklist.enabled ? 'Correct' : 'Error'}:${guildData.blacklist.enabled ? '1440296238305116223' : '1440296241090265088'}> Blacklist ${guildData.blacklist.enabled ? 'Enabled' : 'Disabled'}` },
+                    { type: 10, content: `## <:${isEnabled ? 'Correct' : 'Error'}:${isEnabled ? '1440296238305116223' : '1440296241090265088'}> Blacklist ${isEnabled ? 'Enabled' : 'Disabled'}` },
                     { type: 14 },
-                    { type: 10, content: `System is now **${guildData.blacklist.enabled ? 'Active' : 'Inactive'}**.` }
+                    {
+                        type: 1,
+                        components: [{
+                            style: nextButtonStyle,
+                            type: 2,
+                            custom_id: `blacklist_toggle_${guildId}`,
+                            label: nextButtonLabel,
+                            emoji: { id: nextButtonEmoji }
+                        }]
+                    },
+                    { type: 14 },
+                    { type: 10, content: `System is now **${isEnabled ? 'Active' : 'Inactive'}**.` }
                 ] 
             }], 
             flags: 32768 | MessageFlags.Ephemeral 
