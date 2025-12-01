@@ -132,7 +132,13 @@
     "lastUpdatedAt": "2025-11-29T11:04:00.410Z",
     "type": "Competing"
   },
-  "pendingNicknameRequests": {},
+  "pendingNicknameRequests": {
+    "1444455537407426673": {
+      "guildId": "1296783492989980682",
+      "nickname": "I'll help the first 15 people interested on how to  start earning $7k within 24hours, but you will reimburse me 10% of your profits when you receive it. Note: only interested people should send a friend request or  send me a dm!  ask me HOW ! Via telegram @Jennifer_Simmons1",
+      "timestamp": 1764588626456
+    }
+  },
   "prefixes": {},
   "autoresponses": {},
   "blacklist": {
@@ -141,7 +147,6 @@
     "users": [
       "1294699516955725890",
       "981187724151246868"
-    ],
-    "allowedRoleIds": []
+    ]
   }
 }
