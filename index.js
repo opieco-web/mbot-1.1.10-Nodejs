@@ -3728,7 +3728,7 @@ client.on(guildMemberUpdateName, guildMemberUpdateHandler);
 // BUTTON & SELECT MENU INTERACTIONS - Blacklist System
 // ------------------------
 client.on(Events.InteractionCreate, async interaction => {
-    if (!interaction.isButton() && !interaction.isStringSelectMenu()) return;
+    if (!interaction.isButton() && !interaction.isStringSelectMenu() && !interaction.isRoleSelectMenu()) return;
 
     const guildId = interaction.guild?.id;
     if (!guildId) return;
@@ -3755,7 +3755,7 @@ client.on(Events.InteractionCreate, async interaction => {
     }
 
     // BLACKLIST ROLES SELECTOR
-    if (interaction.isStringSelectMenu() && interaction.customId.startsWith('blacklist_roles_')) {
+    if ((interaction.isStringSelectMenu() || interaction.isRoleSelectMenu()) && interaction.customId.startsWith('blacklist_roles_')) {
         const guildData = getGuildData(guildId);
         guildData.blacklist = guildData.blacklist || { enabled: false, roleId: null, users: [], allowedRoleIds: [] };
         guildData.blacklist.allowedRoleIds = interaction.values;
@@ -3779,6 +3779,9 @@ client.on(Events.InteractionCreate, async interaction => {
         });
     }
 });
+
+// Add console log for debugging
+console.log('[BLACKLIST] Role selector interaction handler loaded');
 
 // ------------------------
 client.login(TOKEN);
