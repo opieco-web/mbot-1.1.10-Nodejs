@@ -1,14 +1,17 @@
 export default {
-    version: "1.0.99",
-    releaseDate: "Nov 30, 2025 09:45 AM",
-    releaseDateTimestamp: 1764330300,
-    changesSummary: "Fixed AFK prefix command for other servers - Added guildData.afk initialization",
+    version: "1.0.100",
+    releaseDate: "Nov 30, 2025 10:00 AM",
+    releaseDateTimestamp: 1764330000,
+    changesSummary: "Implemented complete blacklist system with slash and prefix commands",
 
     changes: [
-        "1. Added guildData.afk initialization in /afk slash command (line 1387)",
-        "2. Added guildData.afk initialization in afk prefix command (line 2655)",
-        "3. Prevents 'Cannot set properties of undefined' error when AFK is used in other servers",
-        "4. Both slash and prefix versions now work consistently on all servers"
+        "1. Created /blacklist-system command - enable/disable + select blacklist role (ManageGuild permission)",
+        "2. Created /blacklist command - add users to blacklist with automatic role assignment",
+        "3. Created !bkl <user> prefix command - add users to blacklist via prefix (for authorized moderators)",
+        "4. Added src/utils/blacklistData.js - utility functions for blacklist management",
+        "5. Added blacklist data structure to mining-bangladesh.json and servers.json",
+        "6. Blacklist role auto-assigned when users added via slash or prefix command",
+        "7. Persistent blacklist storage with guild-specific data isolation"
     ],
 
     versionGuide: `

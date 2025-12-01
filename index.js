@@ -9,6 +9,7 @@ import { handleRoleInfo } from './src/commands/roleInfo.js';
 import { handleRoleManage } from './src/commands/roleManage.js';
 import { handleRoleBulk } from './src/commands/roleBulk.js';
 import { execute as guildMemberUpdateHandler, name as guildMemberUpdateName } from './src/events/guildMemberUpdate.js';
+import { initializeBlacklistConfig, setBlacklistSystem, addToBlacklist, isBlacklistEnabled, getBlacklistRoleId, getBlacklistedUsers } from './src/utils/blacklistData.js';
 
 const TOKEN = process.env.DISCORD_BOT_TOKEN;
 const CLIENT_ID = process.env.DISCORD_CLIENT_ID;
@@ -2551,6 +2552,128 @@ Type \`reset\` to revert back to your original name. Examples: Shadow, Phoenix, 
             });
         }
     }
+
+    // BLACKLIST SYSTEM - Configure blacklist (slash command)
+    if (commandName === 'blacklist-system') {
+        const enabled = interaction.options.getBoolean('enabled');
+        const role = interaction.options.getRole('role');
+
+        const guildData = getGuildData(guildId);
+        guildData.blacklist = guildData.blacklist || { enabled: false, roleId: null, users: [] };
+        guildData.blacklist.enabled = enabled;
+        
+        if (role) {
+            guildData.blacklist.roleId = role.id;
+        }
+        
+        saveGuildData(guildId, guildData);
+
+        let responseContent = `**Blacklist System:** ${enabled ? '<:Correct:1440296238305116223> Enabled' : '<:Error:1440296241090265088> Disabled'}`;
+        if (role) {
+            responseContent += `\n**Blacklist Role:** ${role}`;
+        }
+
+        return interaction.reply({ 
+            content: ' ', 
+            components: [{ 
+                type: 17, 
+                components: [
+                    { type: 10, content: '## <:warning:1441531830607151195> Blacklist System' },
+                    { type: 14 },
+                    { type: 10, content: responseContent }
+                ] 
+            }], 
+            flags: 32768 | MessageFlags.Ephemeral 
+        });
+    }
+
+    // BLACKLIST - Add user to blacklist (slash command)
+    if (commandName === 'blacklist') {
+        const targetUser = interaction.options.getUser('user');
+        const guildData = getGuildData(guildId);
+        guildData.blacklist = guildData.blacklist || { enabled: false, roleId: null, users: [] };
+
+        if (!isBlacklistEnabled(guildData)) {
+            return interaction.reply({ 
+                content: ' ', 
+                components: [{ 
+                    type: 17, 
+                    components: [
+                        { type: 10, content: '## <:Error:1440296241090265088> Blacklist Not Enabled' },
+                        { type: 14 },
+                        { type: 10, content: 'The blacklist system is not enabled. Use `/blacklist-system` to enable it first.' }
+                    ] 
+                }], 
+                flags: 32768 | MessageFlags.Ephemeral 
+            });
+        }
+
+        const blacklistRoleId = getBlacklistRoleId(guildData);
+        if (!blacklistRoleId) {
+            return interaction.reply({ 
+                content: ' ', 
+                components: [{ 
+                    type: 17, 
+                    components: [
+                        { type: 10, content: '## <:Error:1440296241090265088> No Blacklist Role' },
+                        { type: 14 },
+                        { type: 10, content: 'No blacklist role has been configured. Use `/blacklist-system` to set a role.' }
+                    ] 
+                }], 
+                flags: 32768 | MessageFlags.Ephemeral 
+            });
+        }
+
+        try {
+            const targetMember = await interaction.guild.members.fetch(targetUser.id);
+            const blacklistRole = interaction.guild.roles.cache.get(blacklistRoleId);
+            
+            if (!blacklistRole) {
+                return interaction.reply({ 
+                    content: ' ', 
+                    components: [{ 
+                        type: 17, 
+                        components: [
+                            { type: 10, content: '## <:Error:1440296241090265088> Role Not Found' },
+                            { type: 14 },
+                            { type: 10, content: 'The blacklist role no longer exists. Reconfigure it with `/blacklist-system`.' }
+                        ] 
+                    }], 
+                    flags: 32768 | MessageFlags.Ephemeral 
+                });
+            }
+
+            await targetMember.roles.add(blacklistRole, 'Added to blacklist');
+            addToBlacklist(guildData, targetUser.id);
+            saveGuildData(guildId, guildData);
+
+            return interaction.reply({ 
+                content: ' ', 
+                components: [{ 
+                    type: 17, 
+                    components: [
+                        { type: 10, content: '## <:Correct:1440296238305116223> User Blacklisted' },
+                        { type: 14 },
+                        { type: 10, content: `**${targetUser.displayName}** has been added to the blacklist and assigned the blacklist role.` }
+                    ] 
+                }], 
+                flags: 32768 | MessageFlags.Ephemeral 
+            });
+        } catch (error) {
+            return interaction.reply({ 
+                content: ' ', 
+                components: [{ 
+                    type: 17, 
+                    components: [
+                        { type: 10, content: '## <:Error:1440296241090265088> Failed' },
+                        { type: 14 },
+                        { type: 10, content: `Error: ${error.message}` }
+                    ] 
+                }], 
+                flags: 32768 | MessageFlags.Ephemeral 
+            });
+        }
+    }
 });
 
 // ------------------------
@@ -2682,6 +2805,70 @@ client.on(Events.MessageCreate, async msg => {
             setTimeout(() => msg.delete().catch(() => {}), 5000);
             // Delete bot reply after 30s
             setTimeout(() => replyMsg.delete().catch(() => {}), 30000);
+        }
+
+        // BLACKLIST (GUILD-SPECIFIC - prefix command !bkl)
+        if (cmd === 'bkl') {
+            const guildData = getGuildData(msg.guildId);
+            guildData.blacklist = guildData.blacklist || { enabled: false, roleId: null, users: [] };
+
+            if (!isBlacklistEnabled(guildData)) {
+                return msg.reply({ 
+                    flags: 32768, 
+                    components: [{ 
+                        type: 17, 
+                        components: [{ type: 10, content: '<:Error:1440296241090265088> Blacklist system is not enabled.' }] 
+                    }] 
+                });
+            }
+
+            const mention = msg.mentions.users.first();
+            if (!mention) {
+                return msg.reply({ 
+                    flags: 32768, 
+                    components: [{ 
+                        type: 17, 
+                        components: [{ type: 10, content: '<:Error:1440296241090265088> Usage: `!bkl @user`' }] 
+                    }] 
+                });
+            }
+
+            try {
+                const targetMember = await msg.guild.members.fetch(mention.id);
+                const blacklistRoleId = getBlacklistRoleId(guildData);
+                const blacklistRole = msg.guild.roles.cache.get(blacklistRoleId);
+
+                if (!blacklistRole) {
+                    return msg.reply({ 
+                        flags: 32768, 
+                        components: [{ 
+                            type: 17, 
+                            components: [{ type: 10, content: '<:Error:1440296241090265088> Blacklist role not found.' }] 
+                        }] 
+                    });
+                }
+
+                await targetMember.roles.add(blacklistRole, 'Added to blacklist via prefix command');
+                addToBlacklist(guildData, mention.id);
+                saveGuildData(msg.guildId, guildData);
+
+                await msg.reply({ 
+                    flags: 32768, 
+                    components: [{ 
+                        type: 17, 
+                        components: [{ type: 10, content: `<:Correct:1440296238305116223> **${mention.displayName}** has been blacklisted.` }] 
+                    }] 
+                });
+                setTimeout(() => msg.delete().catch(() => {}), 10000);
+            } catch (error) {
+                msg.reply({ 
+                    flags: 32768, 
+                    components: [{ 
+                        type: 17, 
+                        components: [{ type: 10, content: `<:Error:1440296241090265088> Error: ${error.message}` }] 
+                    }] 
+                });
+            }
         }
 
         // Avatar

@@ -1,4 +1,9 @@
 {
   "prefix": "#",
-  "afk": {}
+  "afk": {},
+  "blacklist": {
+    "enabled": false,
+    "roleId": null,
+    "users": []
+  }
 }

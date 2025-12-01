@@ -139,5 +139,10 @@
   },
   "pendingNicknameRequests": {},
   "prefixes": {},
-  "autoresponses": {}
+  "autoresponses": {},
+  "blacklist": {
+    "enabled": false,
+    "roleId": null,
+    "users": []
+  }
 }
