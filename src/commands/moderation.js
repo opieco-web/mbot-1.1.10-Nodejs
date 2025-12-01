@@ -94,5 +94,30 @@ export const moderationCommands = [
                 .setName('channel')
                 .setDescription('Target channel to send message to (optional, defaults to current channel)')
                 .setRequired(false))
-        .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageMessages)
+        .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageMessages),
+
+    new SlashCommandBuilder()
+        .setName('blacklist-system')
+        .setDescription('Configure blacklist system (mod only)')
+        .addBooleanOption(option =>
+            option
+                .setName('enabled')
+                .setDescription('Enable or disable the blacklist system')
+                .setRequired(true))
+        .addRoleOption(option =>
+            option
+                .setName('role')
+                .setDescription('Select the role to assign to blacklisted users')
+                .setRequired(false))
+        .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageGuild),
+
+    new SlashCommandBuilder()
+        .setName('blacklist')
+        .setDescription('Add a user to the blacklist (mod only)')
+        .addUserOption(option =>
+            option
+                .setName('user')
+                .setDescription('User to add to blacklist')
+                .setRequired(true))
+        .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageGuild)
 ];
