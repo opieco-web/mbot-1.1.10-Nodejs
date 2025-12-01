@@ -119,5 +119,24 @@ export const moderationCommands = [
                 .setName('user')
                 .setDescription('User to add to blacklist')
                 .setRequired(true))
-        .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageGuild)
+        .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageGuild),
+
+    new SlashCommandBuilder()
+        .setName('blacklist-moderators')
+        .setDescription('Configure troll boss roles for !bkl prefix command (admin only)')
+        .addStringOption(option =>
+            option
+                .setName('action')
+                .setDescription('Add or remove a role')
+                .setRequired(true)
+                .addChoices(
+                    { name: 'Add Role', value: 'add' },
+                    { name: 'Remove Role', value: 'remove' }
+                ))
+        .addRoleOption(option =>
+            option
+                .setName('role')
+                .setDescription('The troll boss role to add or remove')
+                .setRequired(true))
+        .setDefaultMemberPermissions(PermissionsBitField.Flags.Administrator)
 ];

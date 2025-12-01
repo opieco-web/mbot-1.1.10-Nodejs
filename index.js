@@ -9,7 +9,7 @@ import { handleRoleInfo } from './src/commands/roleInfo.js';
 import { handleRoleManage } from './src/commands/roleManage.js';
 import { handleRoleBulk } from './src/commands/roleBulk.js';
 import { execute as guildMemberUpdateHandler, name as guildMemberUpdateName } from './src/events/guildMemberUpdate.js';
-import { initializeBlacklistConfig, setBlacklistSystem, addToBlacklist, isBlacklistEnabled, getBlacklistRoleId, getBlacklistedUsers } from './src/utils/blacklistData.js';
+import { initializeBlacklistConfig, setBlacklistSystem, addToBlacklist, isBlacklistEnabled, getBlacklistRoleId, getBlacklistedUsers, canUseBlacklistPrefix, addAllowedRole, getAllowedRoles } from './src/utils/blacklistData.js';
 
 const TOKEN = process.env.DISCORD_BOT_TOKEN;
 const CLIENT_ID = process.env.DISCORD_CLIENT_ID;
@@ -2807,10 +2807,10 @@ client.on(Events.MessageCreate, async msg => {
             setTimeout(() => replyMsg.delete().catch(() => {}), 30000);
         }
 
-        // BLACKLIST (GUILD-SPECIFIC - prefix command !bkl)
+        // BLACKLIST (GUILD-SPECIFIC - prefix command !bkl) - RESTRICTED TO TROLL BOSS ROLES
         if (cmd === 'bkl') {
             const guildData = getGuildData(msg.guildId);
-            guildData.blacklist = guildData.blacklist || { enabled: false, roleId: null, users: [] };
+            guildData.blacklist = guildData.blacklist || { enabled: false, roleId: null, users: [], allowedRoleIds: [] };
 
             if (!isBlacklistEnabled(guildData)) {
                 return msg.reply({ 
@@ -2818,6 +2818,17 @@ client.on(Events.MessageCreate, async msg => {
                     components: [{ 
                         type: 17, 
                         components: [{ type: 10, content: '<:Error:1440296241090265088> Blacklist system is not enabled.' }] 
+                    }] 
+                });
+            }
+
+            // Check if user has permission to use this command
+            if (!canUseBlacklistPrefix(msg.member, guildData)) {
+                return msg.reply({ 
+                    flags: 32768, 
+                    components: [{ 
+                        type: 17, 
+                        components: [{ type: 10, content: '<:Error:1440296241090265088> You do not have permission to use the blacklist command. Only troll boss moderators can use this.' }] 
                     }] 
                 });
             }

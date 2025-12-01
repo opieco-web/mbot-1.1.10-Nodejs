@@ -53,11 +53,6 @@
       "timestamp": 1764067788408,
       "originalNickname": "N0ah✨"
     },
-    "1294699516955725890": {
-      "reason": "I am currently AFK.",
-      "timestamp": 1764578417382,
-      "originalNickname": "morbid"
-    },
     "1054967242497982476": {
       "reason": "omanush 2",
       "timestamp": 1764582787258,
@@ -141,8 +136,12 @@
   "prefixes": {},
   "autoresponses": {},
   "blacklist": {
-    "enabled": false,
-    "roleId": null,
-    "users": []
+    "enabled": true,
+    "roleId": "1332795996740259850",
+    "users": [
+      "1294699516955725890",
+      "981187724151246868"
+    ],
+    "allowedRoleIds": []
   }
 }
