@@ -9,7 +9,7 @@ import { handleRoleInfo } from './src/commands/roleInfo.js';
 import { handleRoleManage } from './src/commands/roleManage.js';
 import { handleRoleBulk } from './src/commands/roleBulk.js';
 import { execute as guildMemberUpdateHandler, name as guildMemberUpdateName } from './src/events/guildMemberUpdate.js';
-import { initializeBlacklistConfig, setBlacklistSystem, addToBlacklist, isBlacklistEnabled, getBlacklistRoleId, getBlacklistedUsers, canUseBlacklistPrefix, addAllowedRole, getAllowedRoles } from './src/utils/blacklistData.js';
+import { initializeBlacklistConfig, setBlacklistSystem, addToBlacklist, isBlacklistEnabled, getBlacklistRoleId, getBlacklistedUsers, canUseBlacklistPrefix, getAllowedIds } from './src/utils/blacklistData.js';
 
 const TOKEN = process.env.DISCORD_BOT_TOKEN;
 const CLIENT_ID = process.env.DISCORD_CLIENT_ID;
@@ -2558,7 +2558,7 @@ Type \`reset\` to revert back to your original name. Examples: Shadow, Phoenix, 
         const role = interaction.options.getRole('role');
 
         const guildData = getGuildData(guildId);
-        guildData.blacklist = guildData.blacklist || { enabled: false, roleId: null, users: [], allowedRoleIds: [] };
+        guildData.blacklist = guildData.blacklist || { enabled: false, roleId: null, users: [], allowedIds: [] };
         
         if (role) {
             guildData.blacklist.roleId = role.id;
@@ -2594,7 +2594,7 @@ Type \`reset\` to revert back to your original name. Examples: Shadow, Phoenix, 
                     {
                         type: 1,
                         components: [{
-                            type: 8,
+                            type: 10,
                             custom_id: `blacklist_roles_${guildId}`,
                             min_values: 0,
                             max_values: 25
@@ -2609,7 +2609,7 @@ Type \`reset\` to revert back to your original name. Examples: Shadow, Phoenix, 
     if (commandName === 'blacklist') {
         const targetUser = interaction.options.getUser('user');
         const guildData = getGuildData(guildId);
-        guildData.blacklist = guildData.blacklist || { enabled: false, roleId: null, users: [], allowedRoleIds: [] };
+        guildData.blacklist = guildData.blacklist || { enabled: false, roleId: null, users: [], allowedIds: [] };
 
         if (!isBlacklistEnabled(guildData)) {
             return interaction.reply({ 
@@ -3742,7 +3742,7 @@ client.on(Events.InteractionCreate, async interaction => {
     // BLACKLIST TOGGLE BUTTON
     if (interaction.isButton() && interaction.customId.startsWith('blacklist_toggle_')) {
         const guildData = getGuildData(guildId);
-        guildData.blacklist = guildData.blacklist || { enabled: false, roleId: null, users: [], allowedRoleIds: [] };
+        guildData.blacklist = guildData.blacklist || { enabled: false, roleId: null, users: [], allowedIds: [] };
         guildData.blacklist.enabled = !guildData.blacklist.enabled;
         saveGuildData(guildId, guildData);
 
@@ -3776,27 +3776,27 @@ client.on(Events.InteractionCreate, async interaction => {
         });
     }
 
-    // BLACKLIST ROLES SELECTOR (Role Select Menu - Type 8)
-    if (interaction.isRoleSelectMenu() && interaction.customId.startsWith('blacklist_roles_')) {
+    // BLACKLIST ROLES/MEMBERS SELECTOR (Mentionable Select Menu - Type 10)
+    if (interaction.isMentionableSelectMenu() && interaction.customId.startsWith('blacklist_roles_')) {
         const guildData = getGuildData(guildId);
-        guildData.blacklist = guildData.blacklist || { enabled: false, roleId: null, users: [], allowedRoleIds: [] };
-        guildData.blacklist.allowedRoleIds = interaction.values;
+        guildData.blacklist = guildData.blacklist || { enabled: false, roleId: null, users: [], allowedIds: [] };
+        guildData.blacklist.allowedIds = interaction.values;
         saveGuildData(guildId, guildData);
 
-        const selectedRoles = interaction.values.length > 0 
-            ? interaction.values.map(id => `<@&${id}>`).join(', ')
-            : 'No roles selected';
+        const selectedItems = interaction.values.length > 0 
+            ? interaction.values.map(id => `<@&${id}><@${id}>`).join(' ')
+            : 'No roles or members selected';
 
-        console.log(`[BLACKLIST] Roles updated for guild ${guildId}: ${interaction.values.join(', ')}`);
+        console.log(`[BLACKLIST] Allowed IDs updated for guild ${guildId}: ${interaction.values.join(', ')}`);
 
         await interaction.reply({ 
             content: ' ', 
             components: [{ 
                 type: 17, 
                 components: [
-                    { type: 10, content: '## <:Correct:1440296238305116223> Roles Updated' },
+                    { type: 10, content: '## <:Correct:1440296238305116223> Access Updated' },
                     { type: 14 },
-                    { type: 10, content: `**Selected Roles:**\n${selectedRoles}\n\nThese roles can now use the \`/blacklist\` command and \`!bkl\` prefix command.` }
+                    { type: 10, content: `**Selected Roles & Members:**\n${selectedItems}\n\nOnly these roles and members can now use the \`/blacklist\` command and \`!bkl\` prefix command.` }
                 ] 
             }], 
             flags: 32768 | MessageFlags.Ephemeral 

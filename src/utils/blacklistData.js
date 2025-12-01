@@ -11,7 +11,7 @@ export function initializeBlacklistConfig(guildData) {
             enabled: false,
             roleId: null,
             users: [],
-            allowedRoleIds: []
+            allowedIds: []
         };
     }
     return guildData;
@@ -22,7 +22,7 @@ export function initializeBlacklistConfig(guildData) {
  */
 export function getBlacklistConfig(guildData) {
     if (!guildData.blacklist) {
-        return { enabled: false, roleId: null, users: [], allowedRoleIds: [] };
+        return { enabled: false, roleId: null, users: [], allowedIds: [] };
     }
     return guildData.blacklist;
 }
@@ -32,7 +32,7 @@ export function getBlacklistConfig(guildData) {
  */
 export function setBlacklistSystem(guildData, enabled, roleId) {
     if (!guildData.blacklist) {
-        guildData.blacklist = { enabled: false, roleId: null, users: [], allowedRoleIds: [] };
+        guildData.blacklist = { enabled: false, roleId: null, users: [], allowedIds: [] };
     }
     guildData.blacklist.enabled = enabled;
     if (roleId) {
@@ -42,42 +42,13 @@ export function setBlacklistSystem(guildData, enabled, roleId) {
 }
 
 /**
- * Add role to allowed roles for prefix command
+ * Get allowed IDs (roles and members) for prefix command
  */
-export function addAllowedRole(guildData, roleId) {
-    if (!guildData.blacklist) {
-        guildData.blacklist = { enabled: false, roleId: null, users: [], allowedRoleIds: [] };
-    }
-    if (!guildData.blacklist.allowedRoleIds) {
-        guildData.blacklist.allowedRoleIds = [];
-    }
-    
-    if (!guildData.blacklist.allowedRoleIds.includes(roleId)) {
-        guildData.blacklist.allowedRoleIds.push(roleId);
-    }
-    
-    return guildData;
-}
-
-/**
- * Remove role from allowed roles for prefix command
- */
-export function removeAllowedRole(guildData, roleId) {
-    if (!guildData.blacklist || !guildData.blacklist.allowedRoleIds) {
-        return guildData;
-    }
-    guildData.blacklist.allowedRoleIds = guildData.blacklist.allowedRoleIds.filter(id => id !== roleId);
-    return guildData;
-}
-
-/**
- * Get allowed roles for prefix command
- */
-export function getAllowedRoles(guildData) {
-    if (!guildData.blacklist || !guildData.blacklist.allowedRoleIds) {
+export function getAllowedIds(guildData) {
+    if (!guildData.blacklist || !guildData.blacklist.allowedIds) {
         return [];
     }
-    return guildData.blacklist.allowedRoleIds;
+    return guildData.blacklist.allowedIds;
 }
 
 /**
@@ -86,11 +57,16 @@ export function getAllowedRoles(guildData) {
 export function canUseBlacklistPrefix(member, guildData) {
     if (!member) return false;
     
-    const allowedRoles = getAllowedRoles(guildData);
-    if (allowedRoles.length === 0) return false;
+    const allowedIds = getAllowedIds(guildData);
+    if (allowedIds.length === 0) return false;
+    
+    // Check if user ID is in allowed list
+    if (allowedIds.includes(member.id)) {
+        return true;
+    }
     
     // Check if user has any of the allowed roles
-    return member.roles.cache.some(role => allowedRoles.includes(role.id));
+    return member.roles.cache.some(role => allowedIds.includes(role.id));
 }
 
 /**
@@ -98,7 +74,7 @@ export function canUseBlacklistPrefix(member, guildData) {
  */
 export function addToBlacklist(guildData, userId) {
     if (!guildData.blacklist) {
-        guildData.blacklist = { enabled: false, roleId: null, users: [], allowedRoleIds: [] };
+        guildData.blacklist = { enabled: false, roleId: null, users: [], allowedIds: [] };
     }
     if (!guildData.blacklist.users) {
         guildData.blacklist.users = [];
