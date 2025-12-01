@@ -1,0 +1,26 @@
+{
+  "emojis": [
+    {
+      "name": "Correct",
+      "id": "1440296238305116223",
+      "filename": "correct.png",
+      "usage": "Success messages, approvals, confirmations",
+      "type": "standard"
+    },
+    {
+      "name": "Error",
+      "id": "1440296241090265088",
+      "filename": "error.png",
+      "usage": "Error messages, denials, failures",
+      "type": "standard"
+    },
+    {
+      "name": "warning",
+      "id": "1441531830607151195",
+      "filename": "warning.png",
+      "usage": "Warning messages, cautions, alerts",
+      "type": "standard"
+    }
+  ],
+  "notes": "All emoji files should be PNG format. Update this file when adding new emojis with: name, Discord emoji ID, filename, usage description, and type."
+}
