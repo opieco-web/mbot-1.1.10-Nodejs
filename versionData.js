@@ -1,15 +1,15 @@
 export default {
-    version: "1.0.105",
-    releaseDate: "Dec 01, 2025 11:15 AM",
-    releaseDateTimestamp: 1764338100,
-    changesSummary: "Fixed select menu interaction handler to recognize mentionable select menus",
+    version: "1.0.106",
+    releaseDate: "Dec 01, 2025 11:25 AM",
+    releaseDateTimestamp: 1764338700,
+    changesSummary: "Fixed blacklist-system command structure and added live access roles/members display",
 
     changes: [
-        "1. Fixed: Interaction handler was filtering OUT mentionable select menus",
-        "2. Added .isMentionableSelectMenu() check to initial interaction filter",
-        "3. Select menu now properly responds when roles/members are selected",
-        "4. All selections are saved to allowedIds array",
-        "5. Verified type 7 is correct for mentionable select menu"
+        "1. Fixed: Removed duplicate select menu entries (was showing Add/Remove dropdowns)",
+        "2. Cleaned: Component structure now uses single mentionable select menu (type 7)",
+        "3. Added: Dynamic display showing which roles and members currently have access",
+        "4. Fixed: Select menu now has correct min_values: 0 and max_values: 25",
+        "5. Added: Placeholder text 'Select roles or members...' for clarity"
     ],
 
     versionGuide: `

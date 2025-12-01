@@ -2571,6 +2571,17 @@ Type \`reset\` to revert back to your original name. Examples: Shadow, Phoenix, 
         const buttonStyle = isEnabled ? 4 : 3;
         const buttonEmoji = isEnabled ? '1440296241090265088' : '1440296238305116223';
 
+        const allowedIds = guildData.blacklist.allowedIds || [];
+        const allowedRoles = allowedIds.filter(id => id.startsWith('role:') || interaction.guild.roles.cache.has(id));
+        const allowedMembers = allowedIds.filter(id => !allowedIds.find(rid => rid.startsWith('role:')));
+        
+        const roleNames = allowedRoles.map(id => {
+            const roleId = id.startsWith('role:') ? id.substring(5) : id;
+            return `<@&${roleId}>`;
+        }).join(', ') || '*None*';
+        
+        const memberNames = allowedMembers.map(id => `<@${id}>`).join(', ') || '*None*';
+
         return interaction.reply({ 
             content: ' ', 
             flags: 32768,
@@ -2590,16 +2601,19 @@ Type \`reset\` to revert back to your original name. Examples: Shadow, Phoenix, 
                         }]
                     },
                     { type: 14 },
-                    { type: 10, content: 'Select from the selections below which roles/member can use the prefix and slash commands.' },
+                    { type: 10, content: 'Select from the dropdown below which roles/members can use the prefix and slash commands.' },
                     {
                         type: 1,
                         components: [{
                             type: 7,
                             custom_id: `blacklist_roles_${guildId}`,
                             min_values: 0,
-                            max_values: 25
+                            max_values: 25,
+                            placeholder: 'Select roles or members...'
                         }]
-                    }
+                    },
+                    { type: 14 },
+                    { type: 10, content: `**Access roles:** ${roleNames}\n\n**Access members:** ${memberNames}` }
                 ] 
             }], 
         });
