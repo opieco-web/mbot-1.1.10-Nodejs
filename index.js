@@ -2568,8 +2568,8 @@ Type \`reset\` to revert back to your original name. Examples: Shadow, Phoenix, 
 
         const isEnabled = guildData.blacklist.enabled;
         const buttonLabel = isEnabled ? 'Disable' : 'Enable';
-        const buttonStyle = isEnabled ? 3 : 4;
-        const buttonEmoji = isEnabled ? '1440296238305116223' : '1440296241090265088';
+        const buttonStyle = isEnabled ? 4 : 3;
+        const buttonEmoji = isEnabled ? '1440296241090265088' : '1440296238305116223';
 
         return interaction.reply({ 
             content: ' ', 
@@ -2594,7 +2594,7 @@ Type \`reset\` to revert back to your original name. Examples: Shadow, Phoenix, 
                     {
                         type: 1,
                         components: [{
-                            type: 7,
+                            type: 8,
                             custom_id: `blacklist_roles_${guildId}`,
                             min_values: 0,
                             max_values: 25
@@ -3748,15 +3748,15 @@ client.on(Events.InteractionCreate, async interaction => {
 
         const isEnabled = guildData.blacklist.enabled;
         const nextButtonLabel = isEnabled ? 'Disable' : 'Enable';
-        const nextButtonStyle = isEnabled ? 3 : 4;
-        const nextButtonEmoji = isEnabled ? '1440296238305116223' : '1440296241090265088';
+        const nextButtonStyle = isEnabled ? 4 : 3;
+        const nextButtonEmoji = isEnabled ? '1440296241090265088' : '1440296238305116223';
 
         await interaction.reply({ 
             content: ' ', 
             components: [{ 
                 type: 17, 
                 components: [
-                    { type: 10, content: `## <:${isEnabled ? 'Correct' : 'Error'}:${isEnabled ? '1440296238305116223' : '1440296241090265088'}> Blacklist ${isEnabled ? 'Enabled' : 'Disabled'}` },
+                    { type: 10, content: `## <:${isEnabled ? 'Error' : 'Correct'}:${isEnabled ? '1440296241090265088' : '1440296238305116223'}> Blacklist ${isEnabled ? 'Enabled' : 'Disabled'}` },
                     { type: 14 },
                     {
                         type: 1,
@@ -3776,8 +3776,8 @@ client.on(Events.InteractionCreate, async interaction => {
         });
     }
 
-    // BLACKLIST ROLES SELECTOR
-    if ((interaction.isStringSelectMenu() || interaction.isRoleSelectMenu()) && interaction.customId.startsWith('blacklist_roles_')) {
+    // BLACKLIST ROLES SELECTOR (Role Select Menu - Type 8)
+    if (interaction.isRoleSelectMenu() && interaction.customId.startsWith('blacklist_roles_')) {
         const guildData = getGuildData(guildId);
         guildData.blacklist = guildData.blacklist || { enabled: false, roleId: null, users: [], allowedRoleIds: [] };
         guildData.blacklist.allowedRoleIds = interaction.values;
@@ -3786,6 +3786,8 @@ client.on(Events.InteractionCreate, async interaction => {
         const selectedRoles = interaction.values.length > 0 
             ? interaction.values.map(id => `<@&${id}>`).join(', ')
             : 'No roles selected';
+
+        console.log(`[BLACKLIST] Roles updated for guild ${guildId}: ${interaction.values.join(', ')}`);
 
         await interaction.reply({ 
             content: ' ', 
