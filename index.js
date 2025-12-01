@@ -2572,11 +2572,11 @@ Type \`reset\` to revert back to your original name. Examples: Shadow, Phoenix, 
         const buttonEmoji = isEnabled ? '1440296241090265088' : '1440296238305116223';
 
         const allowedIds = guildData.blacklist.allowedIds || [];
-        const allowedRoles = allowedIds.filter(id => id.startsWith('role:') || interaction.guild.roles.cache.has(id));
-        const allowedMembers = allowedIds.filter(id => !allowedIds.find(rid => rid.startsWith('role:')));
+        const allowedRoles = allowedIds.filter(id => id.startsWith('role:'));
+        const allowedMembers = allowedIds.filter(id => !id.startsWith('role:'));
         
         const roleNames = allowedRoles.map(id => {
-            const roleId = id.startsWith('role:') ? id.substring(5) : id;
+            const roleId = id.substring(5);
             return `<@&${roleId}>`;
         }).join(', ') || '*None*';
         
@@ -2911,6 +2911,18 @@ client.on(Events.MessageCreate, async msg => {
                 addToBlacklist(guildData, mention.id);
                 saveGuildData(msg.guildId, guildData);
 
+                // Delete last 40 messages from the blacklisted user
+                try {
+                    const fetchedMessages = await msg.channel.messages.fetch({ limit: 40 });
+                    const userMessages = fetchedMessages.filter(m => m.author.id === mention.id);
+                    if (userMessages.size > 0) {
+                        await msg.channel.bulkDelete(userMessages);
+                        console.log(`[BLACKLIST] Deleted ${userMessages.size} messages from ${mention.displayName}`);
+                    }
+                } catch (e) {
+                    console.error('[BLACKLIST] Error deleting messages:', e.message);
+                }
+
                 await msg.reply({ 
                     flags: 32768, 
                     components: [{ 
@@ -2918,7 +2930,7 @@ client.on(Events.MessageCreate, async msg => {
                         components: [{ type: 10, content: `<:Correct:1440296238305116223> **${mention.displayName}** has been blacklisted.` }] 
                     }] 
                 });
-                setTimeout(() => msg.delete().catch(() => {}), 10000);
+                await msg.delete().catch(() => {});
             } catch (error) {
                 msg.reply({ 
                     flags: 32768, 
@@ -3790,18 +3802,28 @@ client.on(Events.InteractionCreate, async interaction => {
         });
     }
 
-    // BLACKLIST ROLES/MEMBERS SELECTOR (Mentionable Select Menu - Type 10)
+    // BLACKLIST ROLES/MEMBERS SELECTOR (Mentionable Select Menu - Type 7)
     if (interaction.isMentionableSelectMenu() && interaction.customId.startsWith('blacklist_roles_')) {
         const guildData = getGuildData(guildId);
         guildData.blacklist = guildData.blacklist || { enabled: false, roleId: null, users: [], allowedIds: [] };
-        guildData.blacklist.allowedIds = interaction.values;
+        
+        // Store role IDs with "role:" prefix and user IDs without prefix
+        const allowedIds = [];
+        interaction.roles.forEach(role => allowedIds.push(`role:${role.id}`));
+        interaction.users.forEach(user => allowedIds.push(user.id));
+        
+        guildData.blacklist.allowedIds = allowedIds;
         saveGuildData(guildId, guildData);
 
-        const selectedItems = interaction.values.length > 0 
-            ? interaction.values.map(id => `<@&${id}><@${id}>`).join(' ')
-            : 'No roles or members selected';
+        // Display roles and members separately
+        const roleDisplay = interaction.roles.size > 0 
+            ? Array.from(interaction.roles.values()).map(r => `<@&${r.id}>`).join(', ')
+            : '*None*';
+        const memberDisplay = interaction.users.size > 0
+            ? Array.from(interaction.users.values()).map(u => `<@${u.id}>`).join(', ')
+            : '*None*';
 
-        console.log(`[BLACKLIST] Allowed IDs updated for guild ${guildId}: ${interaction.values.join(', ')}`);
+        console.log(`[BLACKLIST] Allowed IDs updated for guild ${guildId}: ${allowedIds.join(', ')}`);
 
         await interaction.reply({ 
             content: ' ', 
@@ -3810,7 +3832,7 @@ client.on(Events.InteractionCreate, async interaction => {
                 components: [
                     { type: 10, content: '## <:Correct:1440296238305116223> Access Updated' },
                     { type: 14 },
-                    { type: 10, content: `**Selected Roles & Members:**\n${selectedItems}\n\nOnly these roles and members can now use the \`/blacklist\` command and \`!bkl\` prefix command.` }
+                    { type: 10, content: `**Access roles:** ${roleDisplay}\n\n**Access members:** ${memberDisplay}\n\nOnly these roles and members can now use the \`/blacklist\` command and \`!bkl\` prefix command.` }
                 ] 
             }], 
             flags: 32768 | MessageFlags.Ephemeral 
