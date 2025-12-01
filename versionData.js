@@ -1,26 +1,26 @@
 export default {
-    version: "1.1.07",
-    releaseDate: "Dec 01, 2025 11:35 AM",
-    releaseDateTimestamp: 1764338700,
-    changesSummary: "Fixed role/member ID distinction, immediate message deletion, and bulk message purge on blacklist",
+    version: "1.1.08",
+    releaseDate: "Dec 01, 2025 11:40 AM",
+    releaseDateTimestamp: 1764339000,
+    changesSummary: "Fixed bulk message deletion to work across entire server, not just current channel",
 
     changes: [
-        "1. FIXED: Role/Member ID bug - roles now stored with 'role:' prefix to distinguish from user IDs",
-        "2. FIXED: Display now correctly shows roles separately from individual members (no mixed mentions)",
-        "3. FIXED: Prefix command message deletion is now immediate (not 10s delay)",
-        "4. NEW: When user is blacklisted, their last 40 messages are automatically purged from the channel",
-        "5. Improved: Console logging shows exact number of messages deleted"
+        "1. FIXED: Message deletion now scans ALL text channels in the guild",
+        "2. IMPROVED: Collects user's messages across all channels (not limited to current channel)",
+        "3. FIXED: Correctly selects and deletes their 40 most recent messages globally",
+        "4. OPTIMIZED: Groups messages by channel before bulk deletion for efficiency",
+        "5. Enhanced: Console log shows total deleted + number of channels affected"
     ],
 
     versionGuide: `
 📌 Versioning Guide (After v1.0.100)
 
-MAJOR.MINOR.PATCH (e.g., 1.1.07)
+MAJOR.MINOR.PATCH (e.g., 1.1.08)
 - MAJOR: Stays 1 (Discord bot version)
 - MINOR: 1 (after crossing v1.0.100, middle number becomes 1)
-- PATCH: Increments (07 = 7th patch after v1.0.100)
+- PATCH: Increments (08 = 8th patch after v1.0.100)
 
 Previous format: v1.0.0 → v1.0.100
-New format: v1.1.0 → v1.1.07 (and beyond)
+New format: v1.1.0 → v1.1.08 (and beyond)
     `
 };
