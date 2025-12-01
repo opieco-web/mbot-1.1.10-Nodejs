@@ -1,17 +1,15 @@
 export default {
-    version: "1.0.104",
-    releaseDate: "Dec 01, 2025 11:10 AM",
-    releaseDateTimestamp: 1764337800,
-    changesSummary: "Blacklist system now supports both roles AND members for access control",
+    version: "1.0.105",
+    releaseDate: "Dec 01, 2025 11:15 AM",
+    releaseDateTimestamp: 1764338100,
+    changesSummary: "Fixed select menu interaction handler to recognize mentionable select menus",
 
     changes: [
-        "1. Changed dropdown selector to Mentionable Select Menu (type 10)",
-        "2. Now allows selection of BOTH roles and individual members",
-        "3. Updated data structure: allowedRoleIds → allowedIds (supports mixed role/member IDs)",
-        "4. Updated canUseBlacklistPrefix() to check both member IDs and role IDs",
-        "5. Selected roles and members are now saved and persisted",
-        "6. Only selected roles and members can use /blacklist and !bkl commands",
-        "7. Updated data/servers.json with new allowedIds structure"
+        "1. Fixed: Interaction handler was filtering OUT mentionable select menus",
+        "2. Added .isMentionableSelectMenu() check to initial interaction filter",
+        "3. Select menu now properly responds when roles/members are selected",
+        "4. All selections are saved to allowedIds array",
+        "5. Verified type 7 is correct for mentionable select menu"
     ],
 
     versionGuide: `

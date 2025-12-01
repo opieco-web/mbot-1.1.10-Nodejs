@@ -3734,7 +3734,7 @@ client.on(guildMemberUpdateName, guildMemberUpdateHandler);
 // BUTTON & SELECT MENU INTERACTIONS - Blacklist System
 // ------------------------
 client.on(Events.InteractionCreate, async interaction => {
-    if (!interaction.isButton() && !interaction.isStringSelectMenu() && !interaction.isRoleSelectMenu()) return;
+    if (!interaction.isButton() && !interaction.isStringSelectMenu() && !interaction.isRoleSelectMenu() && !interaction.isMentionableSelectMenu()) return;
 
     const guildId = interaction.guild?.id;
     if (!guildId) return;
