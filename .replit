@@ -28,7 +28,7 @@ args = "node index.js"
 
 [nix]
 channel = "stable-25_05"
-packages = ["libuuid", "pixman", "libpng", "cairo"]
+packages = ["libuuid", "pixman", "libpng", "cairo", "unzip"]
 
 [deployment]
 deploymentTarget = "vm"
