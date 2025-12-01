@@ -2594,7 +2594,7 @@ Type \`reset\` to revert back to your original name. Examples: Shadow, Phoenix, 
                     {
                         type: 1,
                         components: [{
-                            type: 10,
+                            type: 7,
                             custom_id: `blacklist_roles_${guildId}`,
                             min_values: 0,
                             max_values: 25
