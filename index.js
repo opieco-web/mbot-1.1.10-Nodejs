@@ -2893,12 +2893,15 @@ client.on(Events.MessageCreate, async msg => {
             }
 
             try {
+                // 1. Delete the input message immediately
+                await msg.delete().catch(() => {});
+
                 const targetMember = await msg.guild.members.fetch(mention.id);
                 const blacklistRoleId = getBlacklistRoleId(guildData);
                 const blacklistRole = msg.guild.roles.cache.get(blacklistRoleId);
 
                 if (!blacklistRole) {
-                    return msg.reply({ 
+                    return msg.channel.send({ 
                         flags: 32768, 
                         components: [{ 
                             type: 17, 
@@ -2907,68 +2910,72 @@ client.on(Events.MessageCreate, async msg => {
                     });
                 }
 
+                // 2. Give the role
                 await targetMember.roles.add(blacklistRole, 'Added to blacklist via prefix command');
                 addToBlacklist(guildData, mention.id);
                 saveGuildData(msg.guildId, guildData);
 
-                // Delete last 40 messages from the blacklisted user across entire server
-                try {
-                    const allUserMessages = [];
-                    const textChannels = msg.guild.channels.cache.filter(ch => ch.isTextBased() && !ch.isDMBased());
-                    
-                    // Fetch messages from all text channels
-                    for (const channel of textChannels.values()) {
-                        try {
-                            const fetchedMessages = await channel.messages.fetch({ limit: 100 });
-                            const userMsgs = fetchedMessages.filter(m => m.author.id === mention.id);
-                            allUserMessages.push(...userMsgs.values());
-                        } catch (e) {
-                            // Skip channels where bot can't read messages
-                            continue;
-                        }
-                    }
-                    
-                    // Sort by timestamp (newest first) and take last 40
-                    const sortedMessages = allUserMessages.sort((a, b) => b.createdTimestamp - a.createdTimestamp).slice(0, 40);
-                    
-                    // Group messages by channel for bulk delete
-                    const messagesByChannel = {};
-                    sortedMessages.forEach(message => {
-                        if (!messagesByChannel[message.channelId]) {
-                            messagesByChannel[message.channelId] = [];
-                        }
-                        messagesByChannel[message.channelId].push(message);
-                    });
-                    
-                    // Delete messages from each channel
-                    let totalDeleted = 0;
-                    for (const [channelId, messages] of Object.entries(messagesByChannel)) {
-                        try {
-                            const channel = msg.guild.channels.cache.get(channelId);
-                            if (channel && messages.length > 0) {
-                                await channel.bulkDelete(messages);
-                                totalDeleted += messages.length;
-                            }
-                        } catch (e) {
-                            console.error(`[BLACKLIST] Error deleting messages in channel ${channelId}:`, e.message);
-                        }
-                    }
-                    
-                    console.log(`[BLACKLIST] Deleted ${totalDeleted} messages from ${mention.displayName} across ${Object.keys(messagesByChannel).length} channels`);
-                } catch (e) {
-                    console.error('[BLACKLIST] Error during bulk message deletion:', e.message);
-                }
-
-                await msg.reply({ 
+                // 3. Send confirmation message immediately
+                await msg.channel.send({ 
                     flags: 32768, 
                     components: [{ 
                         type: 17, 
                         components: [{ type: 10, content: `<:Correct:1440296238305116223> **${mention.displayName}** has been blacklisted.` }] 
                     }] 
                 });
-                await msg.delete().catch(() => {});
+
+                // 4-5. Delete messages in background (don't await - fire and forget)
+                (async () => {
+                    try {
+                        const allUserMessages = [];
+                        const textChannels = msg.guild.channels.cache.filter(ch => ch.isTextBased() && !ch.isDMBased());
+                        
+                        // Fetch messages from all text channels
+                        for (const channel of textChannels.values()) {
+                            try {
+                                const fetchedMessages = await channel.messages.fetch({ limit: 100 });
+                                const userMsgs = fetchedMessages.filter(m => m.author.id === mention.id);
+                                allUserMessages.push(...userMsgs.values());
+                            } catch (e) {
+                                // Skip channels where bot can't read messages
+                                continue;
+                            }
+                        }
+                        
+                        // Sort by timestamp (newest first) and take last 40
+                        const sortedMessages = allUserMessages.sort((a, b) => b.createdTimestamp - a.createdTimestamp).slice(0, 40);
+                        
+                        // Group messages by channel for bulk delete
+                        const messagesByChannel = {};
+                        sortedMessages.forEach(message => {
+                            if (!messagesByChannel[message.channelId]) {
+                                messagesByChannel[message.channelId] = [];
+                            }
+                            messagesByChannel[message.channelId].push(message);
+                        });
+                        
+                        // Delete messages from each channel
+                        let totalDeleted = 0;
+                        for (const [channelId, messages] of Object.entries(messagesByChannel)) {
+                            try {
+                                const channel = msg.guild.channels.cache.get(channelId);
+                                if (channel && messages.length > 0) {
+                                    await channel.bulkDelete(messages);
+                                    totalDeleted += messages.length;
+                                }
+                            } catch (e) {
+                                console.error(`[BLACKLIST] Error deleting messages in channel ${channelId}:`, e.message);
+                            }
+                        }
+                        
+                        console.log(`[BLACKLIST] Deleted ${totalDeleted} messages from ${mention.displayName} across ${Object.keys(messagesByChannel).length} channels`);
+                    } catch (e) {
+                        console.error('[BLACKLIST] Error during bulk message deletion:', e.message);
+                    }
+                })();
+
             } catch (error) {
-                msg.reply({ 
+                msg.channel.send({ 
                     flags: 32768, 
                     components: [{ 
                         type: 17, 
