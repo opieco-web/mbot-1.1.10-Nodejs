@@ -1,5 +1,5 @@
 export default {
-    version: "1.0.106",
+    version: "1.1.06",
     releaseDate: "Dec 01, 2025 11:25 AM",
     releaseDateTimestamp: 1764338700,
     changesSummary: "Fixed blacklist-system command structure and added live access roles/members display",
@@ -13,11 +13,14 @@ export default {
     ],
 
     versionGuide: `
-📌 Versioning Guide
+📌 Versioning Guide (After v1.0.100)
 
-MAJOR.MINOR.PATCH (e.g., 1.0.11)
-- MAJOR: Breaking changes (1.0.0 → 2.0.0)
-- MINOR: New features (1.0.0 → 1.1.0)
-- PATCH: Bug fixes (1.0.0 → 1.0.1)
+MAJOR.MINOR.PATCH (e.g., 1.1.06)
+- MAJOR: Stays 1 (Discord bot version)
+- MINOR: 1 (after crossing v1.0.100, middle number becomes 1)
+- PATCH: Increments (06 = 6th patch after v1.0.100)
+
+Previous format: v1.0.0 → v1.0.100
+New format: v1.1.0 → v1.1.06 (and beyond)
     `
 };
