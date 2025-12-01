@@ -98,45 +98,21 @@ export const moderationCommands = [
 
     new SlashCommandBuilder()
         .setName('blacklist-system')
-        .setDescription('Configure blacklist system (mod only)')
-        .addBooleanOption(option =>
-            option
-                .setName('enabled')
-                .setDescription('Enable or disable the blacklist system')
-                .setRequired(true))
+        .setDescription('Configure blacklist system with button and role selector')
         .addRoleOption(option =>
             option
                 .setName('role')
                 .setDescription('Select the role to assign to blacklisted users')
-                .setRequired(false))
+                .setRequired(true))
         .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageGuild),
 
     new SlashCommandBuilder()
         .setName('blacklist')
-        .setDescription('Add a user to the blacklist (mod only)')
+        .setDescription('Add a user to the blacklist')
         .addUserOption(option =>
             option
                 .setName('user')
                 .setDescription('User to add to blacklist')
                 .setRequired(true))
-        .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageGuild),
-
-    new SlashCommandBuilder()
-        .setName('blacklist-moderators')
-        .setDescription('Configure troll boss roles for !bkl prefix command (admin only)')
-        .addStringOption(option =>
-            option
-                .setName('action')
-                .setDescription('Add or remove a role')
-                .setRequired(true)
-                .addChoices(
-                    { name: 'Add Role', value: 'add' },
-                    { name: 'Remove Role', value: 'remove' }
-                ))
-        .addRoleOption(option =>
-            option
-                .setName('role')
-                .setDescription('The troll boss role to add or remove')
-                .setRequired(true))
-        .setDefaultMemberPermissions(PermissionsBitField.Flags.Administrator)
+        .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageGuild)
 ];

@@ -1,17 +1,18 @@
 export default {
-    version: "1.0.100",
-    releaseDate: "Nov 30, 2025 10:00 AM",
-    releaseDateTimestamp: 1764330000,
-    changesSummary: "Implemented complete blacklist system with slash and prefix commands",
+    version: "1.0.101",
+    releaseDate: "Dec 01, 2025 10:30 AM",
+    releaseDateTimestamp: 1764335400,
+    changesSummary: "Redesigned blacklist system UI with button toggle and role selector",
 
     changes: [
-        "1. Created /blacklist-system command - enable/disable + select blacklist role (ManageGuild permission)",
-        "2. Created /blacklist command - add users to blacklist with automatic role assignment",
-        "3. Created !bkl <user> prefix command - add users to blacklist via prefix (for authorized moderators)",
-        "4. Added src/utils/blacklistData.js - utility functions for blacklist management",
-        "5. Added blacklist data structure to mining-bangladesh.json and servers.json",
-        "6. Blacklist role auto-assigned when users added via slash or prefix command",
-        "7. Persistent blacklist storage with guild-specific data isolation"
+        "1. Updated /blacklist-system with new interactive UI (Component V2 format)",
+        "2. Added 'Enable or Disable' button for quick system toggle",
+        "3. Added role selector menu to choose which roles can use blacklist commands",
+        "4. Both /blacklist and !bkl prefix commands now check selected roles",
+        "5. Removed troll boss terminology - now uses 'selected roles' language",
+        "6. Added button and select menu interaction handlers",
+        "7. Role-based access control for both slash and prefix blacklist commands",
+        "8. Updated allowedRoleIds data structure in both servers and mining-bangladesh.json"
     ],
 
     versionGuide: `

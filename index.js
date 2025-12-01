@@ -2555,12 +2555,10 @@ Type \`reset\` to revert back to your original name. Examples: Shadow, Phoenix, 
 
     // BLACKLIST SYSTEM - Configure blacklist (slash command)
     if (commandName === 'blacklist-system') {
-        const enabled = interaction.options.getBoolean('enabled');
         const role = interaction.options.getRole('role');
 
         const guildData = getGuildData(guildId);
-        guildData.blacklist = guildData.blacklist || { enabled: false, roleId: null, users: [] };
-        guildData.blacklist.enabled = enabled;
+        guildData.blacklist = guildData.blacklist || { enabled: false, roleId: null, users: [], allowedRoleIds: [] };
         
         if (role) {
             guildData.blacklist.roleId = role.id;
@@ -2568,22 +2566,36 @@ Type \`reset\` to revert back to your original name. Examples: Shadow, Phoenix, 
         
         saveGuildData(guildId, guildData);
 
-        let responseContent = `**Blacklist System:** ${enabled ? '<:Correct:1440296238305116223> Enabled' : '<:Error:1440296241090265088> Disabled'}`;
-        if (role) {
-            responseContent += `\n**Blacklist Role:** ${role}`;
-        }
-
         return interaction.reply({ 
             content: ' ', 
+            flags: 32768,
             components: [{ 
                 type: 17, 
                 components: [
-                    { type: 10, content: '## <:warning:1441531830607151195> Blacklist System' },
+                    { type: 10, content: '# The Blacklist system' },
                     { type: 14 },
-                    { type: 10, content: responseContent }
+                    {
+                        type: 1,
+                        components: [{
+                            style: 1,
+                            type: 2,
+                            custom_id: `blacklist_toggle_${guildId}`,
+                            label: 'Enable or Disable'
+                        }]
+                    },
+                    { type: 14 },
+                    { type: 10, content: 'Select from the selections below which roles/member can use the prefix and slash commands.' },
+                    {
+                        type: 1,
+                        components: [{
+                            type: 7,
+                            custom_id: `blacklist_roles_${guildId}`,
+                            min_values: 0,
+                            max_values: 25
+                        }]
+                    }
                 ] 
             }], 
-            flags: 32768 | MessageFlags.Ephemeral 
         });
     }
 
@@ -2591,7 +2603,7 @@ Type \`reset\` to revert back to your original name. Examples: Shadow, Phoenix, 
     if (commandName === 'blacklist') {
         const targetUser = interaction.options.getUser('user');
         const guildData = getGuildData(guildId);
-        guildData.blacklist = guildData.blacklist || { enabled: false, roleId: null, users: [] };
+        guildData.blacklist = guildData.blacklist || { enabled: false, roleId: null, users: [], allowedRoleIds: [] };
 
         if (!isBlacklistEnabled(guildData)) {
             return interaction.reply({ 
@@ -2602,6 +2614,22 @@ Type \`reset\` to revert back to your original name. Examples: Shadow, Phoenix, 
                         { type: 10, content: '## <:Error:1440296241090265088> Blacklist Not Enabled' },
                         { type: 14 },
                         { type: 10, content: 'The blacklist system is not enabled. Use `/blacklist-system` to enable it first.' }
+                    ] 
+                }], 
+                flags: 32768 | MessageFlags.Ephemeral 
+            });
+        }
+
+        // Check if user has permission to use slash command
+        if (!canUseBlacklistPrefix(interaction.member, guildData)) {
+            return interaction.reply({ 
+                content: ' ', 
+                components: [{ 
+                    type: 17, 
+                    components: [
+                        { type: 10, content: '## <:Error:1440296241090265088> Permission Denied' },
+                        { type: 14 },
+                        { type: 10, content: 'You do not have permission to use this command. Only selected roles can use it.' }
                     ] 
                 }], 
                 flags: 32768 | MessageFlags.Ephemeral 
@@ -3695,6 +3723,62 @@ client.on(Events.GuildMemberAdd, async member => {
 // GUILD MEMBER UPDATE - Auto Role Connections
 // ------------------------
 client.on(guildMemberUpdateName, guildMemberUpdateHandler);
+
+// ------------------------
+// BUTTON & SELECT MENU INTERACTIONS - Blacklist System
+// ------------------------
+client.on(Events.InteractionCreate, async interaction => {
+    if (!interaction.isButton() && !interaction.isStringSelectMenu()) return;
+
+    const guildId = interaction.guild?.id;
+    if (!guildId) return;
+
+    // BLACKLIST TOGGLE BUTTON
+    if (interaction.isButton() && interaction.customId.startsWith('blacklist_toggle_')) {
+        const guildData = getGuildData(guildId);
+        guildData.blacklist = guildData.blacklist || { enabled: false, roleId: null, users: [], allowedRoleIds: [] };
+        guildData.blacklist.enabled = !guildData.blacklist.enabled;
+        saveGuildData(guildId, guildData);
+
+        await interaction.reply({ 
+            content: ' ', 
+            components: [{ 
+                type: 17, 
+                components: [
+                    { type: 10, content: `## <:${guildData.blacklist.enabled ? 'Correct' : 'Error'}:${guildData.blacklist.enabled ? '1440296238305116223' : '1440296241090265088'}> Blacklist ${guildData.blacklist.enabled ? 'Enabled' : 'Disabled'}` },
+                    { type: 14 },
+                    { type: 10, content: `System is now **${guildData.blacklist.enabled ? 'Active' : 'Inactive'}**.` }
+                ] 
+            }], 
+            flags: 32768 | MessageFlags.Ephemeral 
+        });
+    }
+
+    // BLACKLIST ROLES SELECTOR
+    if (interaction.isStringSelectMenu() && interaction.customId.startsWith('blacklist_roles_')) {
+        const guildData = getGuildData(guildId);
+        guildData.blacklist = guildData.blacklist || { enabled: false, roleId: null, users: [], allowedRoleIds: [] };
+        guildData.blacklist.allowedRoleIds = interaction.values;
+        saveGuildData(guildId, guildData);
+
+        const selectedRoles = interaction.values.length > 0 
+            ? interaction.values.map(id => `<@&${id}>`).join(', ')
+            : 'No roles selected';
+
+        await interaction.reply({ 
+            content: ' ', 
+            components: [{ 
+                type: 17, 
+                components: [
+                    { type: 10, content: '## <:Correct:1440296238305116223> Roles Updated' },
+                    { type: 14 },
+                    { type: 10, content: `**Selected Roles:**\n${selectedRoles}\n\nThese roles can now use the \`/blacklist\` command and \`!bkl\` prefix command.` }
+                ] 
+            }], 
+            flags: 32768 | MessageFlags.Ephemeral 
+        });
+    }
+});
 
 // ------------------------
 client.login(TOKEN);
